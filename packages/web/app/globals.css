@@ -1,0 +1,248 @@
+/* Importar fuentes de Google — deben ir antes de @tailwind */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Variables CSS para el sistema de diseño (canales RGB para soporte de opacidad con Tailwind) */
+:root {
+  /* Primario */
+  --color-primary: 41 79 219;              /* #294fdb */
+  --color-primary-dim: 21 65 207;          /* #1541cf */
+  --color-primary-container: 221 225 255;  /* #dde1ff */
+  --color-primary-fixed-dim: 203 210 255;  /* #cbd2ff */
+  --color-on-primary: 249 247 255;         /* #f9f7ff */
+
+  /* Superficies */
+  --color-surface: 247 249 255;            /* #f7f9ff */
+  --color-surface-container: 231 239 248;        /* #e7eff8 */
+  --color-surface-container-low: 239 244 252;    /* #eff4fc */
+  --color-surface-container-lowest: 255 255 255; /* #ffffff */
+  --color-surface-container-high: 223 233 245;   /* #dfe9f5 */
+  --color-surface-container-highest: 215 228 242; /* #d7e4f2 */
+
+  /* Texto */
+  --color-on-surface: 40 52 62;            /* #28343e */
+  --color-on-surface-variant: 84 96 108;   /* #54606c */
+
+  /* Bordes */
+  --color-outline: 111 124 136;            /* #6f7c88 */
+  --color-outline-variant: 166 179 193;    /* #a6b3c1 */
+
+  /* Error */
+  --color-error: 158 63 78;               /* #9e3f4e */
+  --color-error-container: 255 139 154;   /* #ff8b9a */
+
+  /* Tipografía */
+  --font-headline: 'Manrope', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* Overrides dark mode */
+.dark {
+  /* Primario */
+  --color-primary: 109 136 255;            /* #6d88ff */
+  --color-primary-dim: 90 120 255;         /* #5a78ff */
+  --color-primary-container: 30 51 128;    /* #1e3380 */
+  --color-primary-fixed-dim: 74 106 223;   /* #4a6adf */
+  --color-on-primary: 13 29 86;            /* #0d1d56 */
+
+  /* Superficies */
+  --color-surface: 11 15 18;               /* #0b0f12 */
+  --color-surface-container: 19 27 34;           /* #131b22 */
+  --color-surface-container-low: 15 22 32;       /* #0f1620 */
+  --color-surface-container-lowest: 8 12 15;     /* #080c0f */
+  --color-surface-container-high: 26 37 48;      /* #1a2530 */
+  --color-surface-container-highest: 31 45 56;   /* #1f2d38 */
+
+  /* Texto */
+  --color-on-surface: 232 237 242;         /* #e8edf2 */
+  --color-on-surface-variant: 166 179 193; /* #a6b3c1 */
+
+  /* Bordes */
+  --color-outline: 136 153 166;            /* #8899a6 */
+  --color-outline-variant: 61 79 92;       /* #3d4f5c */
+
+  /* Error */
+  --color-error: 248 123 137;             /* #f87b89 */
+  --color-error-container: 92 26 38;      /* #5c1a26 */
+}
+
+/* Offset de scroll para que la navbar fija no tape los títulos al navegar por anclas */
+:target,
+.prose :is(h1, h2, h3, h4) {
+  scroll-margin-top: 5.5rem; /* 88px: navbar (64px) + margen visual cómodo */
+}
+
+/* Estilos base */
+body {
+  font-family: var(--font-body);
+  background-color: rgb(var(--color-surface));
+  color: rgb(var(--color-on-surface));
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-headline);
+}
+
+/* Iconos Material Symbols */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+/* Efecto glass para navbar */
+.glass-nav {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--color-outline-variant));
+  border-radius: 3px;
+}
+
+/* ─── Bloques de código: Shiki dual-theme (light / dark) ──────────────────── */
+
+/*
+  Shiki con keepBackground:true inyecta los colores de fondo directamente en
+  el style="" del pre. Solo necesitamos forma, fuente y el toggle light/dark.
+*/
+
+[data-rehype-pretty-code-figure] {
+  position: relative;
+  margin: 1.5rem 0;
+}
+
+[data-rehype-pretty-code-figure] pre {
+  border-radius: 0.75rem;
+  overflow: auto;
+  padding: 1.25rem 1.5rem;
+  font-family: var(--font-mono) !important;
+  font-size: 0.875rem;
+  line-height: 1.75;
+  position: relative;
+}
+
+/* Tokens: mostrar colores del tema activo */
+[data-rehype-pretty-code-figure] code[data-theme*=' '] span {
+  color: var(--shiki-light);
+}
+.dark [data-rehype-pretty-code-figure] code[data-theme*=' '] span {
+  color: var(--shiki-dark);
+}
+
+/* Pre: fondo según tema activo (override del inline style de Shiki) */
+[data-rehype-pretty-code-figure] pre[data-theme*=' '] {
+  background-color: var(--shiki-light-bg) !important;
+  border: 1px solid rgb(0 0 0 / 6%);
+}
+.dark [data-rehype-pretty-code-figure] pre[data-theme*=' '] {
+  background-color: var(--shiki-dark-bg) !important;
+  border: 1px solid rgb(255 255 255 / 8%);
+}
+
+/* Título del bloque (nombre de archivo o lenguaje) */
+[data-rehype-pretty-code-title] {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: rgb(var(--color-on-surface-variant));
+  padding: 0.4rem 1.25rem;
+  border-bottom: 1px solid rgb(0 0 0 / 8%);
+  border-radius: 0.75rem 0.75rem 0 0;
+  background-color: rgb(0 0 0 / 4%);
+}
+.dark [data-rehype-pretty-code-title] {
+  border-bottom-color: rgb(255 255 255 / 8%);
+  background-color: rgb(255 255 255 / 4%);
+}
+[data-rehype-pretty-code-title] + pre {
+  border-radius: 0 0 0.75rem 0.75rem;
+}
+
+/* Botón "Copiar" */
+.code-copy-btn {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.7rem;
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-radius: 0.375rem;
+  opacity: 0;
+  transition: opacity 150ms;
+  cursor: pointer;
+  background: rgb(0 0 0 / 28%);
+  color: #fff;
+  border: none;
+  backdrop-filter: blur(4px);
+}
+.dark .code-copy-btn {
+  background: rgb(255 255 255 / 12%);
+  color: rgb(var(--color-on-surface));
+  border: 1px solid rgb(var(--color-outline-variant) / 0.25);
+}
+[data-rehype-pretty-code-figure] pre:hover .code-copy-btn {
+  opacity: 1;
+}
+.code-copy-btn:active {
+  transform: scale(0.95);
+}
+
+/* ─── Código inline ────────────────────────────────────────────────────────── */
+/* Estilos para código inline */
+code:not(pre code) {
+  background-color: rgb(var(--color-surface-container));
+  color: rgb(var(--color-primary));
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+}
+
+/* Imágenes en artículos */
+.img-contained {
+  max-width: 100%;
+  height: auto;
+  border-radius: theme('borderRadius.xl');
+  margin: 1.5rem auto;
+  display: block;
+}
+
+.img-full {
+  width: 100%;
+  height: auto;
+  border-radius: theme('borderRadius.xl');
+  margin: 1.5rem 0;
+}
+
+/* Ocultar texto de accesibilidad */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

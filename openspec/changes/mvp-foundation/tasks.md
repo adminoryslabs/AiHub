@@ -11,114 +11,131 @@
 - 🔄 En progreso
 
 ## Fase 0: Preparación
-- [ ] Verificar stack (Node.js 18+, pnpm/npm, TypeScript)
-- [ ] Inicializar monorepo con Turborepo
-- [ ] Configurar gitignores y linting (ESLint + Prettier)
+- [x] Verificar stack (Node.js 18+, pnpm/npm, TypeScript)
+- [x] Inicializar monorepo con Turborepo
+- [x] Configurar gitignores y linting (ESLint + Prettier)
 
 ## Fase 1: Fundación compartida
 
 ### 1.1 Base de datos
 - [ ] Crear proyecto en NeonDB
-- [ ] Ejecutar migración inicial (SQL completo del design.md)
-- [ ] Crear todos los índices definidos
-- [ ] Verificar trigger updated_at funcionando
-- [ ] Seed: insertar 5 categorías iniciales
-- [ ] Seed: crear usuario admin inicial con bcrypt
+- [x] Ejecutar migración inicial (SQL completo del design.md)
+- [x] Crear todos los índices definidos
+- [x] Verificar trigger updated_at funcionando
+- [x] Seed: insertar 5 categorías iniciales
+- [x] Seed: crear usuario admin inicial con bcrypt
 
 ### 1.2 Backend Express
-- [ ] Inicializar proyecto packages/api (TypeScript)
-- [ ] Instalar dependencias: express, pg, jwt, bcrypt, @aws-sdk/client-s3, meilisearch, dotenv, cors
-- [ ] Crear estructura de rutas:
-  - [ ] `src/routes/public/` (health, articles, categories, featured, search, sitemap)
-  - [ ] `src/routes/admin/` (auth, articles, resources, images)
-- [ ] Implementar middleware de autenticación (`authenticateAdmin`)
-- [ ] Implementar middleware de manejo de errores centralizado
-- [ ] Implementar logging básico (winston/pino)
-- [ ] Conectar pool de PostgreSQL (node-pg o直接 pg)
-- [ ] Implementar Meilisearch client y configuración del índice
-- [ ] Implementar Cloudflare R2 client (S3 compatible)
-- [ ] Implementar todos los endpoints públicos (6):
-  - [ ] `GET /api/v1/health`
-  - [ ] `GET /api/v1/articles` (con filtros, paginación)
-  - [ ] `GET /api/v1/articles/:slug` (con relaciones completas)
-  - [ ] `GET /api/v1/categories` (con article_count)
-  - [ ] `GET /api/v1/featured`
-  - [ ] `GET /api/v1/search` (delegar a Meilisearch)
-  - [ ] `GET /api/v1/sitemap` (XML response)
-- [ ] Implementar todos los endpoints admin (11):
-  - [ ] `POST /api/v1/admin/auth/login`
-  - [ ] `GET /api/v1/admin/articles` (filtros)
-  - [ ] `POST /api/v1/admin/articles`
-  - [ ] `PUT /api/v1/admin/articles/:id`
-  - [ ] `POST /api/v1/admin/articles/:id/content`
-  - [ ] `PUT /api/v1/admin/articles/:id/status`
-  - [ ] `POST /api/v1/admin/articles/:id/verify`
-  - [ ] `GET /api/v1/admin/articles/:id` (detalle completo)
-  - [ ] CRUD recursos: `POST/PUT/DELETE /api/v1/admin/resources`
-  - [ ] `POST /api/v1/admin/articles/:id/resources`
-  - [ ] `DELETE /api/v1/admin/articles/:id/resources/:resource_id`
-  - [ ] `POST /api/v1/admin/articles/:id/relations`
-  - [ ] `DELETE /api/v1/admin/articles/:id/relations/:to_id`
-  - [ ] `POST /api/v1/admin/images/upload`
-- [ ] Sincronización Meilisearch:
-  - [ ] addDocument/updateDocument al crear/actualizar contenido
-  - [ ] deleteDocument al eliminar artículo
-  - [ ] Filtrar siempre por status = published en búsqueda pública
-- [ ] Validaciones de entrada (Joi/zod) en todos los endpoints
-- [ ] Tests de integración para health check
-- [ ] Tests de integración para endpoints públicos
-- [ ] Tests de integración para autenticación admin
-- [ ] Tests de integración para CRUD de artículos
-- [ ] Tests de integración para upload de imágenes
+- [x] Inicializar proyecto packages/api (TypeScript)
+- [x] Instalar dependencias: express, pg, jwt, bcrypt, @aws-sdk/client-s3, meilisearch, dotenv, cors
+- [x] Crear estructura de rutas:
+  - [x] `src/routes/public/` (health, articles, categories, featured, search, sitemap)
+  - [x] `src/routes/admin/` (auth, articles, resources, images)
+- [x] Implementar middleware de autenticación (`authenticateAdmin`)
+- [x] Implementar middleware de manejo de errores centralizado
+- [x] Implementar logging básico (winston/pino)
+- [x] Conectar pool de PostgreSQL (node-pg o pg directo)
+- [x] Implementar Meilisearch client y configuración del índice
+- [x] Implementar Cloudflare R2 client (S3 compatible)
+- [x] Implementar todos los endpoints públicos (6):
+  - [x] `GET /api/v1/health`
+  - [x] `GET /api/v1/articles` (con filtros, paginación)
+  - [x] `GET /api/v1/articles/:slug` (con relaciones completas)
+  - [x] `GET /api/v1/categories` (con article_count)
+  - [x] `GET /api/v1/featured`
+  - [x] `GET /api/v1/search` (delegar a Meilisearch)
+  - [x] `GET /api/v1/sitemap` (XML response)
+- [x] Implementar todos los endpoints admin (13):
+  - [x] `POST /api/v1/admin/auth/login`
+  - [x] `GET /api/v1/admin/articles` (filtros)
+  - [x] `POST /api/v1/admin/articles`
+  - [x] `PUT /api/v1/admin/articles/:id`
+  - [x] `POST /api/v1/admin/articles/:id/content`
+  - [x] `PUT /api/v1/admin/articles/:id/status`
+  - [x] `POST /api/v1/admin/articles/:id/verify`
+  - [x] `GET /api/v1/admin/articles/:id` (detalle completo)
+  - [x] CRUD recursos: `POST/PUT/DELETE /api/v1/admin/resources`
+  - [x] `POST /api/v1/admin/articles/:id/resources`
+  - [x] `DELETE /api/v1/admin/articles/:id/resources/:resource_id`
+  - [x] `POST /api/v1/admin/articles/:id/relations`
+  - [x] `DELETE /api/v1/admin/articles/:id/relations/:to_id`
+  - [x] `POST /api/v1/admin/images/upload`
+- [x] Sincronización Meilisearch:
+  - [x] addDocument/updateDocument al crear/actualizar contenido
+  - [x] deleteDocument al eliminar artículo
+  - [x] Filtrar siempre por status = published en búsqueda pública
+- [x] Validaciones de entrada (Joi/zod) en todos los endpoints
+
+### 1.4 Testing del backend (Vitest + supertest)
+- [x] Instalar dependencias de testing: vitest, @vitest/coverage-v8, supertest, @types/supertest
+- [x] Configurar `vitest.config.ts` en `packages/api` (environment node, coverage)
+- [x] Agregar scripts en package.json: `test`, `test:watch`, `test:coverage`
+- [x] Tests unitarios — middleware:
+  - [x] `authenticateAdmin`: sin header → 401, token inválido → 401, token válido → next()
+  - [x] `errorHandler`: errores conocidos → status correcto, errores desconocidos → 500
+- [x] Tests unitarios — servicios:
+  - [ ] `articles.service`: lógica de construcción de queries y mapeo de respuestas
+  - [x] `meilisearch.service`: documentos generados correctamente antes de indexar
+- [x] Tests de integración (supertest, DB de test):
+  - [x] `GET /api/v1/health` → 200 con estructura correcta
+  - [x] `GET /api/v1/categories?lang=es` → lista con article_count
+  - [x] `GET /api/v1/articles?lang=es` → solo publicados, paginación correcta
+  - [x] `GET /api/v1/articles/:slug?lang=es` → 200 si publicado, 404 si no existe
+  - [x] `GET /api/v1/featured?lang=es` → solo featured + published
+  - [x] `POST /api/v1/admin/auth/login` → 200 con token, 401 con credenciales inválidas
+  - [x] `POST /api/v1/admin/articles` sin token → 401
+  - [x] `POST /api/v1/admin/articles` con token → 201 artículo creado
+  - [x] `POST /api/v1/admin/articles/:id/content` → upsert correcto
+  - [x] `PUT /api/v1/admin/articles/:id/status` → transiciones válidas e inválidas
 
 ### 1.3 Tipos compartidos
-- [ ] Crear `packages/shared` con tipos TypeScript
-- [ ] Definir tipos: Article, ArticleContent, Category, Resource, ArticleRelation, AdminUser
-- [ ] Publicar como paquete local para consumir en api y web
+- [x] Crear `packages/shared` con tipos TypeScript
+- [x] Definir tipos: Article, ArticleContent, Category, Resource, ArticleRelation, AdminUser
+- [x] Publicar como paquete local para consumir en api y web
 
 ---
 
 ## Fase 2: Sistema de diseño (UI)
 
 ### 2.1 Configuración de Tailwind
-- [ ] Inicializar proyecto packages/web (Next.js 15+ App Router)
-- [ ] Instalar dependencias: next, react, react-dom, tailwindcss, postcss, autoprefixer
-- [ ] Configurar `tailwind.config.ts` con tokens del design.md:
-  - [ ] Colores (primary, surface, on-surface, etc.)
-  - [ ] borderRadius (DEFAULT, lg, xl, full)
-  - [ ] fontFamily (headline: Manrope, body: Inter, mono: JetBrains Mono)
-- [ ] Instalar fuentes from Google Fonts:
-  - [ ] Manrope (weights: 400,600,700,800)
-  - [ ] Inter (weights: 300,400,500,600)
-  - [ ] JetBrains Mono (weight: 400)
-  - [ ] Material Symbols Outlined
-- [ ] Instalar plugins de Tailwind:
-  - [ ] `@tailwindcss/typography`
-  - [ ] `@tailwindcss/forms`
-  - [ ] `@tailwindcss/container-queries`
-- [ ] Crear `app/globals.css` con variables CSS para dark mode
-- [ ] Configurar next.config.js para optimizar fuentes
+- [x] Inicializar proyecto packages/web (Next.js 15+ App Router)
+- [x] Instalar dependencias: next, react, react-dom, tailwindcss, postcss, autoprefixer
+- [x] Configurar `tailwind.config.ts` con tokens del design.md:
+  - [x] Colores (primary, surface, on-surface, etc.)
+  - [x] borderRadius (DEFAULT, lg, xl, full)
+  - [x] fontFamily (headline: Manrope, body: Inter, mono: JetBrains Mono)
+- [x] Instalar fuentes from Google Fonts:
+  - [x] Manrope (weights: 400,600,700,800)
+  - [x] Inter (weights: 300,400,500,600)
+  - [x] JetBrains Mono (weight: 400)
+  - [x] Material Symbols Outlined
+- [x] Instalar plugins de Tailwind:
+  - [x] `@tailwindcss/typography`
+  - [x] `@tailwindcss/forms`
+  - [x] `@tailwindcss/container-queries`
+- [x] Crear `app/globals.css` con variables CSS para dark mode
+- [x] Configurar next.config.js para optimizar fuentes
 
 ### 2.2 Componentes base
-- [ ] Button (variantes: primary, secondary, ghost, icon)
-- [ ] Badge (variantes: status, category, type)
+- [x] Button (variantes: primary, secondary, ghost, icon)
+- [x] Badge (variantes: status, category, type)
 - [ ] Card (con bordes y sombras del design)
 - [ ] Input, Textarea (con focus states)
-- [ ] Icon component (wrapper de Material Symbols)
-- [ ] Layout components:
-  - [ ] Navbar (fixed, glass effect, con logo, search, lang/topic/avatar)
-  - [ ] SidebarLeft (categorías colapsables, iconos Material)
-  - [ ] SidebarRight (TOC, recursos, CTA) — solo en artículo
-  - [ ] Footer
-- [ ] ThemeToggle (dark/light, localStorage)
-- [ ] LanguageSwitcher (ES/EN pills)
-- [ ] SearchBar (overlay con resultados, debounce, keyboard nav)
-- [ ] ArticleRenderer:
-  - [ ] remark-parse, remark-gfm, remark-rehype
-  - [ ] rehype-highlight (syntax highlighting)
-  - [ ] rehype-raw, rehype-sanitize
-  - [ ] Plugin custom para Mermaid (detectar ```mermaid)
-  - [ ] Clases CSS para imágenes (img-contained, img-full)
+- [x] Icon component (wrapper de Material Symbols)
+- [x] Layout components:
+  - [x] Navbar (fixed, glass effect, con logo, search, lang/topic/avatar)
+  - [x] SidebarLeft (categorías colapsables, iconos Material)
+  - [x] SidebarRight (TOC, recursos, CTA) — solo en artículo
+  - [x] Footer
+- [x] ThemeToggle (dark/light, localStorage)
+- [x] LanguageSwitcher (ES/EN pills)
+- [x] SearchBar (overlay con resultados, debounce, keyboard nav)
+- [x] ArticleRenderer:
+  - [x] remark-parse, remark-gfm, remark-rehype
+  - [x] rehype-highlight (syntax highlighting)
+  - [x] rehype-raw, rehype-sanitize
+  - [x] Plugin custom para Mermaid (detectar ```mermaid)
+  - [x] Clases CSS para imágenes (img-contained, img-full)
 - [ ] MermaidRenderer (client-side con mermaid.js)
 - [ ] CodeBlock (con filename, copy button, syntax highlighting)
 
@@ -127,89 +144,90 @@
 ## Fase 3: Sitio público (Next.js)
 
 ### 3.1 Páginas SSR
-- [ ] `/` → redirect por Accept-Language (con fallback a /es)
-- [ ] `/[lang]` → homepage con categorías (cards) + featured (lista)
-- [ ] `/[lang]/[category]` → listado de artículos de categoría
-- [ ] `/[lang]/[category]/[slug]` → artículo completo
-- [ ] 404 page (con link al home)
+- [x] `/` → redirect por Accept-Language (con fallback a /es)
+- [x] `/[lang]` → homepage con categorías (cards) + featured (lista)
+- [x] `/[lang]/[category]` → listado de artículos de categoría
+- [x] `/[lang]/[category]/[slug]` → artículo completo
+- [x] 404 page (con link al home)
 
 ### 3.2 Data fetching y API client
-- [ ] Crear `lib/api-client.ts` (fetch wrapper con base URL, headers auto)
-- [ ] Implementar carga de datos en server components (async/await)
-- [ ] Mapeo de respuestas API a tipos del shared package
-- [ ] Manejo de errores HTTP (404, 500, etc.)
+- [x] Crear `lib/api-client.ts` (fetch wrapper con base URL, headers auto)
+- [x] Implementar carga de datos en server components (async/await)
+- [x] Mapeo de respuestas API a tipos del shared package
+- [x] Manejo de errores HTTP (404, 500, etc.)
 
 ### 3.3 i18n routing
-- [ ] `lib/i18n.ts` con:
-  - [ ] Diccionario `CATEGORY_I18N` (slug → {es, en})
-  - [ ] Funciones `getCategorySlug`, `resolveCategory`
-  - [ ] Lista de idiomas soportados
-- [ ] Generar URLs correctas en links (usar slugs localizados)
-- [ ] LanguageSwitcher funcional (cambia URL manteniendo categoría/slug)
-- [ ] Mantener idioma en query params cuando sea necesario
+- [x] `lib/i18n.ts` con:
+  - [x] Mapa de íconos `CATEGORY_ICONS` (slug → Material Symbol, decisión de UI)
+  - [x] Funciones `getCategorySlug(categories, slug, lang)` y `resolveCategory(categories, localizedSlug)` — operan sobre datos de la API, no un diccionario estático
+  - [x] Lista de idiomas soportados
+- [x] Cargar categorías desde `GET /api/v1/categories` (ambos idiomas) en server components para construir el mapa de URLs en runtime
+- [x] Generar URLs correctas en links (usar slugs localizados resueltos desde la API)
+- [x] LanguageSwitcher funcional (cambia URL manteniendo categoría/slug)
+- [x] Mantener idioma en query params cuando sea necesario
 
 ### 3.4 SEO
-- [ ] `generateMetadata` en cada página con:
-  - [ ] title: `{title} — AI Hub` o default
-  - [ ] description: resumen del artículo o default
-  - [ ] canonical URL
-  - [ ] hreflang links (alternates ES/EN)
-  - [ ] og:title, og:description, og:type, og:url
-- [ ] Sitemap XML endpoint (`/api/v1/sitemap`) — ya en backend, frontend solo consume
+- [x] `generateMetadata` en cada página con:
+  - [x] title: `{title} — AI Hub` o default
+  - [x] description: resumen del artículo o default
+  - [x] canonical URL
+  - [x] hreflang links (alternates ES/EN)
+  - [x] og:title, og:description, og:type, og:url
+- [x] Sitemap XML endpoint (`/api/v1/sitemap`) — ya en backend, frontend solo consume
 - [ ] robots.txt (estático o dinámico)
 
 ### 3.5 Layout y experiencia
-- [ ] Sidebar izquierdo con categorías colapsables (obtenidas de API)
-- [ ] En artículo: sidebar derecha con TOC (scroll-spy) + recursos
-- [ ] Responsive:
-  - [ ] Desktop: 3 column layout
-  - [ ] Tablet: sidebars visibles pero ajustadas
-  - [ ] Móvil: bottom navigation bar (4 items), hamburger menu
+- [x] Sidebar izquierdo con categorías colapsables (obtenidas de API)
+- [x] En artículo: sidebar derecha con TOC (scroll-spy) + recursos
+- [x] Responsive:
+  - [x] Desktop: 3 column layout
+  - [x] Tablet: sidebars visibles pero ajustadas
+  - [x] Móvil: bottom navigation bar (4 items), hamburger menu
 - [ ] Scroll spy para TOC (highlight sección actual)
 - [ ] Scroll suave a anchors internos (#heading)
 
 ### 3.6 Búsqueda
-- [ ] SearchBar en Navbar
-- [ ] Overlay/modal con resultados
-- [ ] Debounce 300ms → `GET /api/v1/search`
-- [ ] Mostrar: título, snippet (highlighted), categoría, badge idioma
-- [ ] Navegación por teclado (↑↓ Enter Escape)
-- [ ] Click → navegar a artículo
+- [x] SearchBar en Navbar
+- [x] Overlay/modal con resultados
+- [x] Debounce 300ms → `GET /api/v1/search`
+- [x] Mostrar: título, snippet (highlighted), categoría, badge idioma
+- [x] Navegación por teclado (↑↓ Enter Escape)
+- [x] Click → navegar a artículo
 
 ---
 
 ## Fase 4: Panel de admin (Next.js)
 
 ### 4.1 Autenticación frontend
-- [ ] `/admin/login` con email/password (form + validación)
-- [ ] `lib/auth.ts`: guardar/leer/eliminar token en localStorage
-- [ ] Middleware de Next.js para proteger `/admin/*` (excepto login)
-- [ ] Logout (eliminar token + redirect)
-- [ ] Redirección automática a login si no autenticado
+- [x] `/admin/login` con email/password (form + validación)
+- [x] `lib/auth.ts`: guardar/leer/eliminar token en localStorage
+- [x] Middleware de Next.js para proteger `/admin/*` (excepto login)
+- [x] Logout (eliminar token + redirect)
+- [x] Redirección automática a login si no autenticado
 
 ### 4.2 Páginas del panel
-- [ ] `/admin` — Dashboard:
-  - [ ] Stats: total, published, draft, deprecated
-  - [ ] Últimos 10 artículos modificados
-  - [ ] Indicador de artículos pendientes de verificación (>30 días)
-- [ ] `/admin/articles` — Lista con:
-  - [ ] Tabla con columnas: título, categoría, tipo, estado, badges ES/EN, última edición, acciones
-  - [ ] Filtros: estado, categoría, tipo, búsqueda
-  - [ ] Paginación
-  - [ ] Botón "Nuevo artículo"
-- [ ] `/admin/articles/new` — Crear metadatos:
-  - [ ] Form con campos: slug_uk, type, parent_id (solo tool-branch), category (dropdown dinámico), volatility, domains, featured
-  - [ ] Validaciones (slug único, category válida, parent válido)
-  - [ ] Tras crear → redirect a editor
-- [ ] `/admin/articles/[id]` — Editor con pestañas:
-  - [ ] **Metadatos**: editar category, volatility, featured, domains, applicable_as_of
-  - [ ] **Contenido ES**: drag & drop .md, textarea, preview (título+resumen), botón Importar → `POST /api/v1/admin/articles/:id/content`
-  - [ ] **Contenido EN**: igual que ES
-  - [ ] **Relaciones**: agregar/eliminar related, prerequisite, next (con selector de artículos)
-  - [ ] **Recursos**: listar vinculados, agregar (crear nuevo o vincular existente), desvincular
-  - [ ] Indicadores de completitud por idioma (✅/⚠️/🕐)
-  - [ ] Botones de verificación por idioma → `POST /api/v1/admin/articles/:id/verify`
-- [ ] `/admin/resources` — CRUD de recursos (tabla + formulario modal)
+- [x] `/admin` — Dashboard:
+  - [x] Stats: total, published, draft, deprecated
+  - [x] Últimos 10 artículos modificados
+  - [x] Indicador de artículos pendientes de verificación (>30 días)
+- [x] `/admin/articles` — Lista con:
+  - [x] Tabla con columnas: título, categoría, tipo, estado, badges ES/EN, última edición, acciones
+  - [x] Filtros: estado, categoría, tipo, búsqueda
+  - [x] Paginación
+  - [x] Botón "Nuevo artículo"
+- [x] `/admin/articles/new` — Crear metadatos:
+  - [x] Form con campos: slug_uk, type, parent_id (solo tool-branch), category (dropdown dinámico), volatility, domains, featured
+  - [x] Validaciones (slug único, category válida, parent válido)
+  - [x] Tras crear → redirect a editor
+- [x] `/admin/articles/[id]` — Editor con pestañas:
+  - [x] **Metadatos**: editar category, volatility, featured, domains, applicable_as_of
+  - [x] **Contenido ES**: drag & drop .md, textarea, preview (título+resumen), botón Importar → `POST /api/v1/admin/articles/:id/content`
+  - [x] **Contenido EN**: igual que ES
+  - [x] **Relaciones**: agregar/eliminar related, prerequisite, next (con selector de artículos)
+  - [x] **Recursos**: listar vinculados, agregar (crear nuevo o vincular existente), desvincular
+  - [x] Indicadores de completitud por idioma (✅/⚠️/🕐)
+  - [x] Botones de verificación por idioma → `POST /api/v1/admin/articles/:id/verify`
+- [x] `/admin/resources` — CRUD de recursos (tabla + formulario modal)
 - [ ] `/admin/images` — Upload a R2:
   - [ ] Drag & drop múltiple
   - [ ] Validación: tipo (png,jpg,webp,svg), tamaño (max 5MB)
@@ -217,32 +235,32 @@
   - [ ] Historial de subidas recientes
 
 ### 4.3 UX admin
-- [ ] Badges de estado con colores: draft (gris), published (verde), deprecated (rojo)
-- [ ] Confirmaciones antes de publicar/deprecar
-- [ ] Feedback visual (toast/snackbar) en success/error
-- [ ] Loading states en botones
-- [ ] Indicador "desactualizado" si `last_verified_at` es null o >30 días
+- [x] Badges de estado con colores: draft (gris), published (verde), deprecated (rojo)
+- [x] Confirmaciones antes de publicar/deprecar
+- [x] Feedback visual (toast/snackbar) en success/error
+- [x] Loading states en botones
+- [x] Indicador "desactualizado" si `last_verified_at` es null o >30 días
 
 ---
 
 ## Fase 5: Integraciones y despliegue
 
 ### 5.1 Variables de entorno
-- [ ] Crear `.env.example` para API (todos los campos del design.md)
-- [ ] Crear `.env.example` para Web
+- [x] Crear `.env.example` para API (todos los campos del design.md)
+- [x] Crear `.env.example` para Web
 - [ ] Documentar obtención de claves (Neon, Meilisearch, R2) en README
 
 ### 5.2 Docker Compose (dev)
-- [ ] servicios: postgres (Neon local), meilisearch
-- [ ] volúmenes persistentes para datos
-- [ ] puertos expuestos (5432, 7700)
-- [ ] Variables de entorno para los servicios
+- [x] servicios: meilisearch (postgres reutiliza contenedor existente `fcp_db`)
+- [x] volúmenes persistentes para datos
+- [x] puertos expuestos (7700)
+- [x] Variables de entorno para los servicios
 - [ ] Documentar cómo levantar entorno
 
 ### 5.3 Scripts de migración y seed
-- [ ] Empaquetar SQL de schema en `packages/api/migrations/001_initial_schema.sql`
-- [ ] Empaquetar seed de categorías en `002_seed_categories.sql`
-- [ ] Script seed de admin user (bcrypt hash) en `seeds/001_admin_user.sql`
+- [x] Empaquetar SQL de schema en `packages/api/migrations/001_initial_schema.sql`
+- [x] Empaquetar seed de categorías en `002_seed_categories.sql`
+- [x] Script seed de admin user (bcrypt hash) en `seeds/create-admin.ts`
 - [ ] Documentar cómo ejecutar migraciones (orden, comandos)
 - [ ] Script de sincronización inicial de Meilisearch (bulk index de publicados)
 
@@ -296,7 +314,7 @@
 ## Checklist final de MVP
 
 - [ ] Schema DB completo implementado en NeonDB
-- [ ] 17 endpoints API funcionando (6 públicos + 11 admin)
+- [ ] 20 endpoints API funcionando (7 públicos + 13 admin)
 - [ ] Autenticación JWT para admin (bcrypt, middleware)
 - [ ] Meilisearch sincronizando artículos (push-based)
 - [ ] Cloudflare R2 subiendo imágenes (S3 API)

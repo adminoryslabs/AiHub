@@ -1,0 +1,15 @@
+project: ai-hub
+stack:
+  - next.js: (por definir)
+  - express: (por definir)
+  - postgresql: neondb
+  - meilisearch: cloud
+  - cloudflare-r2: storage
+test_framework: vitest  # backend: vitest + supertest. Frontend: sin testing en MVP
+persistence_mode: openspec
+rules:
+  - comentarios en español, variables en inglés
+  - seo obligatorio: nada de contenido público client-side only
+  - admin importa .md sin editor enriquecido
+  - meilisearch con sinónimos (embeddings = fase 2)
+  - no commit/push sin confirmación explícita
