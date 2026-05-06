@@ -414,7 +414,7 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
 // POST /api/v1/admin/articles/:id/content — importar/actualizar contenido de un idioma
 router.post('/:id/content', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
+    const id = String(req.params.id);
     const parsed = ContentSchema.safeParse(req.body);
     if (!parsed.success) {
       throw new ValidationError(
@@ -477,7 +477,7 @@ router.post('/:id/content', async (req: Request, res: Response, next: NextFuncti
 // PUT /api/v1/admin/articles/:id/status — cambiar estado del artículo
 router.put('/:id/status', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
+    const id = String(req.params.id);
     const parsed = StatusSchema.safeParse(req.body);
     if (!parsed.success) {
       throw new ValidationError('Estado inválido. Debe ser: draft, published o deprecated');

@@ -1,0 +1,43 @@
+name: Deploy API to NAS
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'packages/api/**'
+      - 'packages/shared/**'
+      - 'package.json'
+      - 'yarn.lock'
+      - 'turbo.json'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Install cloudflared
+        run: |
+          curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cloudflared
+          chmod +x cloudflared
+          sudo mv cloudflared /usr/local/bin/
+
+      - name: Deploy to NAS via Cloudflare Access SSH
+        env:
+          SSH_KEY: ${{ secrets.NAS_SSH_KEY }}
+          NAS_USER: ${{ secrets.NAS_USER }}
+          NAS_HOST: ${{ secrets.NAS_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/nas_runner_key
+          chmod 600 ~/.ssh/nas_runner_key
+          cat > ~/.ssh/config <<EOF
+          Host $NAS_HOST
+            ProxyCommand cloudflared access ssh --hostname %h
+            StrictHostKeyChecking no
+            IdentityFile ~/.ssh/nas_runner_key
+            IdentitiesOnly yes
+          EOF
+          ssh "$NAS_USER@$NAS_HOST" "sudo /volume1/docker/aihub/deploy.sh"
