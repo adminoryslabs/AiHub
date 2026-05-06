@@ -35,4 +35,4 @@ coverage/
 .turbo/
 
 # Artículos (se gestionan desde el admin, no en el repo)
-articles/
+/articles/
