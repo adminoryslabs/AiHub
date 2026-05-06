@@ -4,6 +4,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
+  listAdminArticles,
   getAdminArticle,
   updateArticle,
   updateArticleContent,
@@ -46,11 +47,33 @@ interface ArticleData {
   resources: { id: string; title: string; type: string; url: string; description: string | null }[];
 }
 
+interface ArticleOption {
+  id: string;
+  slug_uk: string;
+  category: string;
+  status: string;
+  content_status: {
+    es?: { title: string };
+    en?: { title: string };
+  };
+}
+
 const STATUS_TRANSITIONS: Record<string, string> = {
   draft: 'published',
   published: 'deprecated',
   deprecated: 'draft',
 };
+
+const RELATION_LABELS: Record<string, string> = {
+  related: 'Relacionados',
+  prerequisite: 'Prerrequisitos',
+  next: 'Siguientes',
+};
+
+function getArticleOptionLabel(article: ArticleOption): string {
+  const title = article.content_status.es?.title || article.content_status.en?.title || article.slug_uk;
+  return `${title} (${article.slug_uk}) · ${article.category} · ${article.status}`;
+}
 
 export default function ArticleEditorPage() {
   const { id } = useParams<{ id: string }>();
@@ -496,6 +519,45 @@ function RelationsTab({
 }) {
   const [toId, setToId] = useState('');
   const [relType, setRelType] = useState('related');
+  const [articles, setArticles] = useState<ArticleOption[]>([]);
+  const [search, setSearch] = useState('');
+  const [loadingArticles, setLoadingArticles] = useState(true);
+
+  useEffect(() => {
+    async function loadArticleOptions() {
+      try {
+        const res = await listAdminArticles({ per_page: 100 });
+        const data = (res?.data as ArticleOption[] || []).filter((article) => article.id !== articleId);
+        setArticles(data);
+      } catch {
+        setArticles([]);
+      } finally {
+        setLoadingArticles(false);
+      }
+    }
+
+    loadArticleOptions();
+  }, [articleId]);
+
+  function getArticleTitle(articleIdToFind: string): string {
+    const article = articles.find((item) => item.id === articleIdToFind);
+    if (!article) return articleIdToFind;
+    return getArticleOptionLabel(article);
+  }
+
+  const normalizedSearch = search.trim().toLowerCase();
+  const filteredArticles = articles.filter((article) => {
+    if (!normalizedSearch) return true;
+    const haystack = [
+      article.slug_uk,
+      article.category,
+      article.content_status.es?.title || '',
+      article.content_status.en?.title || '',
+    ]
+      .join(' ')
+      .toLowerCase();
+    return haystack.includes(normalizedSearch);
+  });
 
   async function handleAdd() {
     if (!toId.trim()) return;
@@ -526,17 +588,20 @@ function RelationsTab({
   ];
 
   return (
-    <div className="max-w-lg space-y-6">
+    <div className="max-w-2xl space-y-6">
       {/* Agregar relación */}
       <div className="p-4 bg-surface-container-low rounded-xl space-y-3">
         <h3 className="font-medium text-on-surface">Agregar relación</h3>
-        <div className="flex gap-3">
+        <p className="text-sm text-on-surface-variant">
+          Busca por título o slug. El sistema guarda internamente el UUID del artículo destino.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-[1fr_180px] gap-3">
           <input
             type="text"
-            value={toId}
-            onChange={(e) => setToId(e.target.value)}
-            placeholder="UUID del artículo destino"
-            className="flex-1 px-3 py-2 bg-white border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar por título o slug"
+            className="px-3 py-2 bg-white border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
           />
           <select
             value={relType}
@@ -547,14 +612,35 @@ function RelationsTab({
             <option value="prerequisite">Prerrequisito</option>
             <option value="next">Siguiente</option>
           </select>
-          <Button size="sm" onClick={handleAdd}>Agregar</Button>
+        </div>
+        <div className="flex gap-3">
+          <select
+            value={toId}
+            onChange={(e) => setToId(e.target.value)}
+            disabled={loadingArticles}
+            className="flex-1 px-3 py-2 bg-white border border-outline-variant/30 rounded-xl text-sm focus:outline-none disabled:opacity-60"
+          >
+            <option value="">
+              {loadingArticles ? 'Cargando artículos...' : 'Selecciona un artículo'}
+            </option>
+            {filteredArticles.map((article) => (
+              <option key={article.id} value={article.id}>
+                {getArticleOptionLabel(article)}
+              </option>
+            ))}
+          </select>
+          <Button size="sm" onClick={handleAdd} disabled={!toId}>
+            Agregar
+          </Button>
         </div>
       </div>
 
       {/* Lista de relaciones */}
       {relEntries.map(([type, ids]) => (
         <div key={type}>
-          <h3 className="font-medium text-on-surface mb-2 capitalize">{type}</h3>
+          <h3 className="font-medium text-on-surface mb-2">
+            {RELATION_LABELS[type] || type}
+          </h3>
           {ids.length === 0 ? (
             <p className="text-sm text-on-surface-variant">Sin relaciones</p>
           ) : (
@@ -564,7 +650,10 @@ function RelationsTab({
                   key={relId}
                   className="flex items-center justify-between p-3 bg-surface-container-low rounded-xl"
                 >
-                  <span className="text-sm font-mono text-on-surface-variant truncate">{relId}</span>
+                  <div className="min-w-0">
+                    <p className="text-sm text-on-surface truncate">{getArticleTitle(relId)}</p>
+                    <p className="text-xs font-mono text-on-surface-variant truncate">{relId}</p>
+                  </div>
                   <button
                     onClick={() => handleRemove(relId, type)}
                     className="ml-2 p-1 rounded-lg hover:bg-error/10 text-error transition-colors"
