@@ -34,7 +34,7 @@ push a master (GitHub)
   → git pull → docker compose build → migrations → up -d → healthcheck
 ```
 
-Workflow: `.github/workflows/deploy.yml` (filtrado a cambios en `packages/api/**`, `packages/shared/**`, lockfile, turbo.json).
+Workflow: `.github/workflows/deploy.yml` (filtrado a cambios en `packages/api/**`, `packages/shared/**`, `package-lock.json`, `turbo.json`).
 
 ---
 
@@ -135,7 +135,7 @@ docker compose logs -f api
 
 - Conectar repo `adminoryslabs/AiHub` a Vercel.
 - **Root Directory**: `packages/web`.
-- **Build Command**: `cd ../.. && yarn install && yarn workspace @ai-hub/web build`.
+- **Build Command**: `npm run build --workspace=@ai-hub/web`.
 - **Environment Variables**:
   - `NEXT_PUBLIC_API_URL=https://api-aihub.oryslabs.com`
 - Añadir dominio custom: `aihub.oryslabs.com`.

@@ -8,7 +8,7 @@ on:
       - 'packages/api/**'
       - 'packages/shared/**'
       - 'package.json'
-      - 'yarn.lock'
+      - 'package-lock.json'
       - 'turbo.json'
       - '.github/workflows/deploy.yml'
   workflow_dispatch:

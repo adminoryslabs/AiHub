@@ -1,6 +1,6 @@
 # Dockerfile para AI Hub API (Express)
 # Build context esperado: raíz del monorepo.
-# Razón: necesita acceso a la lockfile del workspace durante el build.
+# Razón: necesita acceso al lockfile del workspace durante el build.
 
 # ---------- Stage 1: builder ----------
 FROM node:20-alpine AS builder
@@ -11,18 +11,18 @@ WORKDIR /repo
 RUN apk add --no-cache python3 make g++
 
 # Copiar manifests primero para cachear instalación de dependencias
-COPY package.json yarn.lock turbo.json ./
+COPY package.json package-lock.json turbo.json ./
 COPY packages/api/package.json packages/api/
 COPY packages/shared/package.json packages/shared/
 COPY packages/web/package.json packages/web/
 
 # Instalar todas las dependencias del workspace
-RUN yarn install --frozen-lockfile
+RUN npm ci
 
 # Copiar código fuente y construir solo la API
 COPY packages/api packages/api
 
-RUN yarn workspace @ai-hub/api build
+RUN npm run build --workspace=@ai-hub/api
 
 # ---------- Stage 2: runtime ----------
 FROM node:20-alpine AS runtime
@@ -37,21 +37,25 @@ RUN apk add --no-cache postgresql-client \
   && apk add --no-cache --virtual .build-deps python3 make g++
 
 # Instalar solo dependencias de producción de la API, sin arrastrar otros workspaces
-COPY --from=builder /repo/yarn.lock ./
-COPY --from=builder /repo/packages/api/package.json ./package.json
-RUN yarn install --frozen-lockfile --production \
-  && yarn cache clean \
+COPY --from=builder /repo/package.json /repo/package-lock.json ./
+COPY --from=builder /repo/packages/api/package.json packages/api/
+COPY --from=builder /repo/packages/shared/package.json packages/shared/
+COPY --from=builder /repo/packages/web/package.json packages/web/
+RUN npm ci --omit=dev --workspace=@ai-hub/api --include-workspace-root=false \
+  && npm cache clean --force \
   && apk del .build-deps
 
 # Copiar artefactos de build necesarios para producción
-COPY --from=builder /repo/packages/api/dist ./dist
-COPY --from=builder /repo/packages/api/migrations ./migrations
+COPY --from=builder /repo/packages/api/dist packages/api/dist
+COPY --from=builder /repo/packages/api/migrations packages/api/migrations
 
 USER aihub
 
 ENV NODE_ENV=production
 ENV PORT=3000
 EXPOSE 3000
+
+WORKDIR /app/packages/api
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/v1/health || exit 1
