@@ -35,9 +35,9 @@ Las secciones deben aparecer en este orden. No omitir ninguna salvo que se indiq
 | 3 | **Cómo se usa** | Sí | Práctico. Con ejemplos de código cuando aplique. |
 | 4 | **Implementaciones por herramienta** | Solo si existen ramas | Lista de links a las ramas tool-specific del artículo. |
 | 5 | **Cuándo usarlo / cuándo no** | Sí | Dos columnas o dos listas. Criterio de decisión real, no marketing. |
-| 6 | **Conceptos relacionados** | Sí | Links a otros artículos del Hub. Mínimo 2, máximo 6. |
-| 7 | **Recursos externos** | Sí | Curados. Mínimo 2. Ver sección 5 para criterios. |
-| 8 | **Historia y evolución** | No | Colapsable (`<details>`). Solo si aporta contexto relevante. |
+| 6 | **Historia y evolución** | No | Colapsable (`<details>`). Solo si aporta contexto relevante. |
+
+Los **conceptos relacionados** y **recursos externos** no van dentro del Markdown importable. Se gestionan como metadatos relacionales desde el panel admin para evitar links rotos, duplicidad y contenido difícil de mantener.
 
 ### 2.2 Rama tool-specific
 
@@ -88,9 +88,27 @@ Regla: las ramas tool-specific van en `tools`, no en la categoría del concepto 
 
 ---
 
-## 5. Recursos externos
+## 5. Relaciones y recursos externos
 
-Cada artículo debe incluir recursos curados en el campo `resources` de la base de datos (no inline en el markdown). El cuerpo del artículo no incluye links de recursos — todos van a la sección de recursos.
+### 5.1 Conceptos relacionados
+
+Los conceptos relacionados se gestionan desde la pestaña **Relaciones** del panel admin, no como links manuales dentro del Markdown.
+
+Tipos disponibles:
+
+| Tipo | Uso |
+|------|-----|
+| `related` | Conceptos conectados lateralmente. Aparecen como "Artículos relacionados". |
+| `prerequisite` | Conceptos que conviene entender antes. Aparecen como "Antes de leer este artículo". |
+| `next` | Siguiente lectura sugerida. Aparece como tarjeta de navegación. |
+
+Las relaciones son direccionales: si A se relaciona con B, B no se relaciona automáticamente con A.
+
+Al crear un artículo, el agente debe proponer relaciones como lista separada usando `slug_uk` o título, pero no insertarlas en el cuerpo del artículo.
+
+### 5.2 Recursos externos
+
+Cada artículo debe incluir recursos curados en el campo `resources` de la base de datos (no inline en el Markdown). El cuerpo del artículo no incluye sección de recursos; estos se vinculan desde el panel admin y se renderizan en el sidebar derecho.
 
 ### Tipos de recurso
 
@@ -202,14 +220,6 @@ lang: es
 
 ...
 
-## Conceptos relacionados
-
-...
-
-## Recursos externos
-
-> Los recursos se gestionan desde el panel admin, no en el markdown.
-
 ## Historia y evolución
 
 <details>
@@ -227,17 +237,52 @@ lang: es
 - `summary`: Máximo 160 caracteres. Se usa en meta description y en cards.
 - `lang`: `es` o `en`.
 
+### Artefacto admin complementario
+
+Además de los dos archivos `.md`, cada propuesta de artículo debe traer un artefacto complementario para cargar datos en el panel admin. Los tres archivos se guardan juntos bajo `articles/{slug_uk}/`:
+
+```text
+articles/what-is-an-example/
+├── es.md
+├── en.md
+└── admin.md
+```
+
+El archivo `admin.md` debe usar esta estructura:
+
+```yaml
+metadata:
+  slug_uk: what-is-an-example
+  type: concept
+  category: fundamentals
+  volatility: low
+  featured: false
+  applicable_as_of: null
+relations_suggested:
+  related:
+    - what-is-an-llm
+  prerequisite: []
+  next: []
+resources_suggested:
+  - title: Example official docs
+    type: doc
+    url: https://example.com
+    description: Short reason this resource is useful.
+image_suggestions: []
+```
+
 ---
 
 ## 9. Checklist antes de publicar
 
 Antes de cambiar el estado de un artículo a `published`, verificar:
 
-- [ ] Las 7 secciones obligatorias existen y tienen contenido real
+- [ ] Las secciones obligatorias del Markdown existen y tienen contenido real
 - [ ] El `summary` tiene menos de 160 caracteres
 - [ ] El `slug` en cada idioma es correcto y único
 - [ ] La `volatility` está asignada según los criterios de la sección 3
-- [ ] Al menos 2 recursos externos vinculados
+- [ ] Al menos 2 recursos externos están propuestos o vinculados desde el panel admin
+- [ ] Las relaciones sugeridas están definidas fuera del Markdown
 - [ ] Si es `tool-branch`, `applicable_as_of` está informado
 - [ ] El código compila / es funcional (si aplica)
 - [ ] No hay links rotos a otros artículos
