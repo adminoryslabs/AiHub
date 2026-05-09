@@ -36,3 +36,6 @@ coverage/
 
 # Artículos (se gestionan desde el admin, no en el repo)
 /articles/
+
+# Skills locales no versionados
+/.claude/skills/aihub-deploy/

@@ -2,9 +2,12 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { getPool } from '../../services/db';
+import { requirePermission } from '../../middleware/auth';
 import { ValidationError, NotFoundError } from '../../middleware/error-handler';
 
 const router = Router();
+
+router.use(requirePermission('resource.manage'));
 
 const CreateResourceSchema = z.object({
   title: z.string().min(1).max(500),

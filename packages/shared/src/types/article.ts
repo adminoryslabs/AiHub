@@ -1,7 +1,7 @@
 // Tipos de artículos compartidos entre API y Web
 
 export type ArticleType = 'concept' | 'tool-branch';
-export type ArticleStatus = 'draft' | 'published' | 'deprecated';
+export type ArticleStatus = 'draft' | 'in_review' | 'published' | 'deprecated';
 export type Volatility = 'low' | 'medium' | 'high';
 export type Lang = 'es' | 'en';
 export type RelationType = 'related' | 'prerequisite' | 'next';
@@ -159,9 +159,26 @@ export interface Category {
   article_count: number;
 }
 
-// Usuario admin
+// Rol interno del panel
+export interface Role {
+  id: string;
+  slug: string;
+  name: string;
+  is_system?: boolean;
+}
+
+// Usuario interno del panel
 export interface AdminUser {
   id: string;
   email: string;
+  is_active?: boolean;
+  role?: Role;
   created_at: string;
+}
+
+export interface AdminSessionUser {
+  id: string;
+  email: string;
+  role: Role;
+  permissions: string[];
 }

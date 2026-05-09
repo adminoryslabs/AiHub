@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { getSession } from '@/lib/auth';
 import {
   listAdminArticles,
   getAdminArticle,
@@ -61,10 +62,18 @@ interface ArticleOption {
   };
 }
 
-const STATUS_TRANSITIONS: Record<string, string> = {
-  draft: 'published',
-  published: 'deprecated',
-  deprecated: 'draft',
+const STATUS_TRANSITIONS: Record<string, string[]> = {
+  draft: ['in_review'],
+  in_review: ['published', 'draft'],
+  published: ['draft', 'deprecated'],
+  deprecated: ['draft'],
+};
+
+const STATUS_ACTION_LABELS: Record<string, string> = {
+  in_review: 'Enviar a revisión',
+  published: 'Publicar',
+  draft: 'Pasar a borrador',
+  deprecated: 'Deprecar',
 };
 
 const RELATION_LABELS: Record<string, string> = {
@@ -87,6 +96,7 @@ export default function ArticleEditorPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [permissions, setPermissions] = useState<string[]>([]);
 
   const loadArticle = useCallback(async () => {
     try {
@@ -100,6 +110,7 @@ export default function ArticleEditorPage() {
   }, [id, router]);
 
   useEffect(() => {
+    setPermissions(getSession()?.permissions || []);
     loadArticle();
     getCategories('es').then(setCategories).catch(() => {});
   }, [loadArticle]);
@@ -109,10 +120,18 @@ export default function ArticleEditorPage() {
     setTimeout(() => setMessage(''), 3000);
   }
 
-  async function handleStatusChange() {
+  function getAllowedTransitions(currentStatus: string) {
+    return (STATUS_TRANSITIONS[currentStatus] || []).filter((nextStatus) => {
+      if (nextStatus === 'in_review' || (currentStatus === 'in_review' && nextStatus === 'draft')) {
+        return permissions.includes('article.review');
+      }
+
+      return permissions.includes('article.publish');
+    });
+  }
+
+  async function handleStatusChange(next: string) {
     if (!article) return;
-    const next = STATUS_TRANSITIONS[article.status];
-    if (!next) return;
     if (!confirm(`¿Cambiar estado a "${next}"?`)) return;
 
     setSaving(true);
@@ -170,11 +189,17 @@ export default function ArticleEditorPage() {
           {message && (
             <span className="text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full">{message}</span>
           )}
-          {STATUS_TRANSITIONS[article.status] && (
-            <Button variant="secondary" size="sm" onClick={handleStatusChange} loading={saving}>
-              → {STATUS_TRANSITIONS[article.status]}
+          {getAllowedTransitions(article.status).map((nextStatus) => (
+            <Button
+              key={nextStatus}
+              variant="secondary"
+              size="sm"
+              onClick={() => handleStatusChange(nextStatus)}
+              loading={saving}
+            >
+              {STATUS_ACTION_LABELS[nextStatus] || `→ ${nextStatus}`}
             </Button>
-          )}
+          ))}
         </div>
       </div>
 

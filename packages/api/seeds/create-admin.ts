@@ -13,11 +13,24 @@ async function createAdminUser() {
   // Hashear contraseña con bcrypt (coste 12)
   const passwordHash = await bcrypt.hash(password, 12);
 
+  const roleResult = await pool.query(
+    `SELECT id FROM roles WHERE slug = 'superadmin'`
+  );
+
+  if (roleResult.rows.length === 0) {
+    throw new Error('El rol superadmin no existe. Ejecuta primero las migraciones.');
+  }
+
+  const roleId = roleResult.rows[0].id;
+
   await pool.query(
-    `INSERT INTO admin_users (email, password_hash)
-     VALUES ($1, $2)
-     ON CONFLICT (email) DO NOTHING`,
-    [email, passwordHash]
+    `INSERT INTO users (email, password_hash, role_id)
+     VALUES ($1, $2, $3)
+     ON CONFLICT (email) DO UPDATE SET
+       password_hash = EXCLUDED.password_hash,
+       role_id = EXCLUDED.role_id,
+       is_active = true`,
+    [email, passwordHash, roleId]
   );
 
   process.stdout.write(`Usuario admin creado: ${email}\n`);

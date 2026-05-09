@@ -1,8 +1,8 @@
-// Tests unitarios del middleware authenticateAdmin
+// Tests unitarios del middleware authenticateUser
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { authenticateAdmin } from '../../../src/middleware/auth';
+import { authenticateUser } from '../../../src/middleware/auth';
 
 // Mock de objetos de Express
 function createMockReq(headers: Record<string, string> = {}): Partial<Request> {
@@ -17,7 +17,7 @@ function createMockRes(): { status: ReturnType<typeof vi.fn>; json: ReturnType<t
   return res;
 }
 
-describe('authenticateAdmin', () => {
+describe('authenticateUser', () => {
   const secret = 'test-jwt-secret-for-testing-only';
 
   beforeEach(() => {
@@ -29,7 +29,7 @@ describe('authenticateAdmin', () => {
     const res = createMockRes();
     const next = vi.fn() as unknown as NextFunction;
 
-    authenticateAdmin(req as Request, res as unknown as Response, next);
+    authenticateUser(req as Request, res as unknown as Response, next);
 
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith({
@@ -43,7 +43,7 @@ describe('authenticateAdmin', () => {
     const res = createMockRes();
     const next = vi.fn() as unknown as NextFunction;
 
-    authenticateAdmin(req as Request, res as unknown as Response, next);
+    authenticateUser(req as Request, res as unknown as Response, next);
 
     expect(res.status).toHaveBeenCalledWith(401);
     expect(next).not.toHaveBeenCalled();
@@ -54,7 +54,7 @@ describe('authenticateAdmin', () => {
     const res = createMockRes();
     const next = vi.fn() as unknown as NextFunction;
 
-    authenticateAdmin(req as Request, res as unknown as Response, next);
+    authenticateUser(req as Request, res as unknown as Response, next);
 
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith({
@@ -65,7 +65,12 @@ describe('authenticateAdmin', () => {
 
   it('devuelve 401 si el token está expirado', () => {
     // Crear token expirado
-    const expiredToken = jwt.sign({ userId: 'uuid-1', email: 'admin@test.com' }, secret, {
+    const expiredToken = jwt.sign({
+      userId: 'uuid-1',
+      email: 'admin@test.com',
+      role: { id: 'role-1', slug: 'superadmin' },
+      permissions: ['article.publish'],
+    }, secret, {
       expiresIn: '-1s',
     });
 
@@ -73,14 +78,19 @@ describe('authenticateAdmin', () => {
     const res = createMockRes();
     const next = vi.fn() as unknown as NextFunction;
 
-    authenticateAdmin(req as Request, res as unknown as Response, next);
+    authenticateUser(req as Request, res as unknown as Response, next);
 
     expect(res.status).toHaveBeenCalledWith(401);
     expect(next).not.toHaveBeenCalled();
   });
 
   it('llama a next() con token válido y adjunta el usuario al request', () => {
-    const validToken = jwt.sign({ userId: 'uuid-123', email: 'admin@test.com' }, secret, {
+    const validToken = jwt.sign({
+      userId: 'uuid-123',
+      email: 'admin@test.com',
+      role: { id: 'role-1', slug: 'superadmin' },
+      permissions: ['article.create', 'article.publish'],
+    }, secret, {
       expiresIn: '24h',
     });
 
@@ -88,12 +98,14 @@ describe('authenticateAdmin', () => {
     const res = createMockRes();
     const next = vi.fn() as unknown as NextFunction;
 
-    authenticateAdmin(req as Request, res as unknown as Response, next);
+    authenticateUser(req as Request, res as unknown as Response, next);
 
     expect(next).toHaveBeenCalledOnce();
     expect((req as Request).adminUser).toEqual({
       id: 'uuid-123',
       email: 'admin@test.com',
+      role: { id: 'role-1', slug: 'superadmin' },
+      permissions: ['article.create', 'article.publish'],
     });
   });
 });

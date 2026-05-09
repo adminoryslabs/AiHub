@@ -15,10 +15,26 @@ const app = createApp();
 let testArticleId: string;
 const JWT_SECRET = 'test-jwt-secret-for-testing-only';
 let authToken: string;
+const TEST_SUPERADMIN_ROLE_ID = '11111111-1111-4111-8111-111111111111';
+const TEST_ADMIN_USER_ID = '22222222-2222-4222-8222-222222222222';
 
 // Helper para generar token de test
 function generateTestToken() {
-  return jwt.sign({ userId: 'test-admin-uuid', email: 'admin@test.com' }, JWT_SECRET, {
+  return jwt.sign({
+    userId: TEST_ADMIN_USER_ID,
+    email: 'admin@test.com',
+    role: { id: TEST_SUPERADMIN_ROLE_ID, slug: 'superadmin', name: 'Superadmin' },
+    permissions: [
+      'article.create',
+      'article.edit',
+      'article.review',
+      'article.publish',
+      'article.delete',
+      'resource.manage',
+      'image.upload',
+      'access.manage',
+    ],
+  }, JWT_SECRET, {
     expiresIn: '1h',
   });
 }
@@ -28,6 +44,33 @@ beforeAll(async () => {
   const pool = getPool();
 
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS roles (
+      id UUID PRIMARY KEY,
+      slug VARCHAR(50) NOT NULL UNIQUE,
+      name VARCHAR(100) NOT NULL,
+      is_system BOOLEAN NOT NULL DEFAULT true,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+    CREATE TABLE IF NOT EXISTS permissions (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      key VARCHAR(100) NOT NULL UNIQUE,
+      description TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+    CREATE TABLE IF NOT EXISTS role_permissions (
+      role_id UUID NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+      permission_id UUID NOT NULL REFERENCES permissions(id) ON DELETE CASCADE,
+      CONSTRAINT uq_role_permission UNIQUE (role_id, permission_id)
+    );
+    CREATE TABLE IF NOT EXISTS users (
+      id UUID PRIMARY KEY,
+      email VARCHAR(255) NOT NULL UNIQUE,
+      password_hash VARCHAR(255) NOT NULL,
+      role_id UUID NOT NULL REFERENCES roles(id),
+      is_active BOOLEAN NOT NULL DEFAULT true,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
     ALTER TABLE article_resources DROP CONSTRAINT IF EXISTS uq_article_resource;
     ALTER TABLE article_resources ADD COLUMN IF NOT EXISTS lang VARCHAR(2);
     UPDATE article_resources SET lang = 'es' WHERE lang IS NULL;
@@ -43,6 +86,7 @@ beforeAll(async () => {
           AND existing.lang = 'en'
       );
     ALTER TABLE article_resources ALTER COLUMN lang SET NOT NULL;
+    ALTER TABLE articles DROP CONSTRAINT IF EXISTS articles_status_check;
   `);
 
   await pool.query(`
@@ -64,19 +108,91 @@ beforeAll(async () => {
     END $$;
   `);
 
+  await pool.query(`
+    DO $$
+    BEGIN
+      BEGIN
+        ALTER TABLE articles
+          ADD CONSTRAINT articles_status_check CHECK (status IN ('draft', 'in_review', 'published', 'deprecated'));
+      EXCEPTION WHEN duplicate_object THEN
+        NULL;
+      END;
+
+      BEGIN
+        ALTER TABLE articles ADD COLUMN created_by UUID NULL;
+      EXCEPTION WHEN duplicate_column THEN
+        NULL;
+      END;
+      BEGIN
+        ALTER TABLE articles ADD COLUMN updated_by UUID NULL;
+      EXCEPTION WHEN duplicate_column THEN
+        NULL;
+      END;
+      BEGIN
+        ALTER TABLE articles ADD COLUMN review_requested_by UUID NULL;
+      EXCEPTION WHEN duplicate_column THEN
+        NULL;
+      END;
+      BEGIN
+        ALTER TABLE articles ADD COLUMN published_by UUID NULL;
+      EXCEPTION WHEN duplicate_column THEN
+        NULL;
+      END;
+      BEGIN
+        ALTER TABLE article_contents ADD COLUMN last_edited_by UUID NULL;
+      EXCEPTION WHEN duplicate_column THEN
+        NULL;
+      END;
+      BEGIN
+        ALTER TABLE article_contents ADD COLUMN last_verified_by UUID NULL;
+      EXCEPTION WHEN duplicate_column THEN
+        NULL;
+      END;
+    END $$;
+  `);
+
   // Limpiar datos de test (orden respeta FKs)
   await pool.query('DELETE FROM article_resources');
   await pool.query('DELETE FROM article_relations');
   await pool.query('DELETE FROM article_contents');
   await pool.query('DELETE FROM articles');
   await pool.query('DELETE FROM resources');
-  await pool.query('DELETE FROM admin_users');
+  await pool.query('DELETE FROM role_permissions');
+  await pool.query('DELETE FROM permissions');
+  await pool.query('DELETE FROM users');
+  await pool.query('DELETE FROM roles');
+
+  await pool.query(
+    `INSERT INTO roles (id, slug, name) VALUES ($1, 'superadmin', 'Superadmin')`,
+    [TEST_SUPERADMIN_ROLE_ID]
+  );
+
+  await pool.query(
+    `INSERT INTO permissions (key, description)
+     VALUES
+      ('article.create', 'Crear artículos'),
+      ('article.edit', 'Editar artículos'),
+      ('article.review', 'Revisar artículos'),
+      ('article.publish', 'Publicar artículos'),
+      ('article.delete', 'Eliminar artículos'),
+      ('resource.manage', 'Gestionar recursos'),
+      ('image.upload', 'Subir imágenes'),
+     ('access.manage', 'Gestionar accesos')`
+  );
+
+  await pool.query(
+    `INSERT INTO role_permissions (role_id, permission_id)
+     SELECT $1, id FROM permissions`,
+    [TEST_SUPERADMIN_ROLE_ID]
+  );
 
   // Crear admin de test
   const passwordHash = await bcrypt.hash('admin123', 10);
   await pool.query(
-    'INSERT INTO admin_users (email, password_hash) VALUES ($1, $2) ON CONFLICT (email) DO UPDATE SET password_hash = $2',
-    ['admin@test.com', passwordHash]
+    `INSERT INTO users (id, email, password_hash, role_id)
+     VALUES ($1, $2, $3, $4)
+     ON CONFLICT (email) DO UPDATE SET password_hash = $3, role_id = $4, is_active = true`,
+    [TEST_ADMIN_USER_ID, 'admin@test.com', passwordHash, TEST_SUPERADMIN_ROLE_ID]
   );
 
   authToken = generateTestToken();
@@ -272,6 +388,10 @@ describe('POST /api/v1/admin/auth/login', () => {
     expect(res.body.data).toMatchObject({
       token: expect.any(String),
       expires_at: expect.any(String),
+      user: {
+        email: 'admin@test.com',
+        permissions: expect.any(Array),
+      },
     });
   });
 
@@ -425,7 +545,17 @@ describe('PUT /api/v1/admin/articles/:id/status', () => {
     statusTestArticleId = res.rows[0].id;
   });
 
-  it('transición válida: draft → published', async () => {
+  it('transición válida: draft → in_review', async () => {
+    const res = await request(app)
+      .put(`/api/v1/admin/articles/${statusTestArticleId}/status`)
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({ status: 'in_review' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.status).toBe('in_review');
+  });
+
+  it('transición válida: in_review → published', async () => {
     const res = await request(app)
       .put(`/api/v1/admin/articles/${statusTestArticleId}/status`)
       .set('Authorization', `Bearer ${authToken}`)
@@ -435,22 +565,12 @@ describe('PUT /api/v1/admin/articles/:id/status', () => {
     expect(res.body.data.status).toBe('published');
   });
 
-  it('transición válida: published → deprecated', async () => {
-    const res = await request(app)
-      .put(`/api/v1/admin/articles/${statusTestArticleId}/status`)
-      .set('Authorization', `Bearer ${authToken}`)
-      .send({ status: 'deprecated' });
-
-    expect(res.status).toBe(200);
-    expect(res.body.data.status).toBe('deprecated');
-  });
-
   it('transición inválida devuelve 409', async () => {
-    // El artículo está en deprecated, no puede ir directamente a published
+    // El artículo está en published, no puede ir directamente a in_review
     const res = await request(app)
       .put(`/api/v1/admin/articles/${statusTestArticleId}/status`)
       .set('Authorization', `Bearer ${authToken}`)
-      .send({ status: 'published' });
+      .send({ status: 'in_review' });
 
     expect(res.status).toBe(409);
   });

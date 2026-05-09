@@ -3,6 +3,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { getSession } from '@/lib/auth';
 import { listAdminArticles, updateArticleStatus } from '@/lib/admin-api-client';
 import { StatusBadge, Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -24,9 +25,17 @@ interface ArticleItem {
 }
 
 const STATUS_TRANSITIONS: Record<string, string[]> = {
-  draft: ['published'],
-  published: ['deprecated'],
+  draft: ['in_review'],
+  in_review: ['published', 'draft'],
+  published: ['draft', 'deprecated'],
   deprecated: ['draft'],
+};
+
+const STATUS_ACTION_LABELS: Record<string, string> = {
+  in_review: 'Enviar a revisión',
+  published: 'Publicar',
+  draft: 'Pasar a borrador',
+  deprecated: 'Deprecar',
 };
 
 function getContentIndicator(content?: {
@@ -48,7 +57,12 @@ export default function ArticlesListPage() {
   const [filters, setFilters] = useState({ status: '', category: '', type: '', search: '' });
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [permissions, setPermissions] = useState<string[]>([]);
   const PER_PAGE = 20;
+
+  useEffect(() => {
+    setPermissions(getSession()?.permissions || []);
+  }, []);
 
   const loadArticles = useCallback(async () => {
     setLoading(true);
@@ -67,8 +81,17 @@ export default function ArticlesListPage() {
     loadArticles();
   }, [loadArticles]);
 
-  async function handleStatusChange(id: string, currentStatus: string) {
-    const nextStatus = STATUS_TRANSITIONS[currentStatus]?.[0];
+  function getAllowedTransitions(currentStatus: string) {
+    return (STATUS_TRANSITIONS[currentStatus] || []).filter((nextStatus) => {
+      if (nextStatus === 'in_review' || (currentStatus === 'in_review' && nextStatus === 'draft')) {
+        return permissions.includes('article.review');
+      }
+
+      return permissions.includes('article.publish');
+    });
+  }
+
+  async function handleStatusChange(id: string, currentStatus: string, nextStatus: string) {
     if (!nextStatus) return;
     if (!confirm(`¿Cambiar estado a "${nextStatus}"?`)) return;
 
@@ -115,6 +138,7 @@ export default function ArticlesListPage() {
         >
           <option value="">Todos los estados</option>
           <option value="draft">Borrador</option>
+          <option value="in_review">En revisión</option>
           <option value="published">Publicado</option>
           <option value="deprecated">Obsoleto</option>
         </select>
@@ -183,15 +207,16 @@ export default function ArticlesListPage() {
                       >
                         <Icon name="edit" size="sm" />
                       </Link>
-                      {STATUS_TRANSITIONS[article.status]?.length > 0 && (
-                        <button
-                          onClick={() => handleStatusChange(article.id, article.status)}
-                          className="p-2 rounded-lg hover:bg-surface-container text-on-surface-variant transition-colors text-xs"
-                          title={`Cambiar a ${STATUS_TRANSITIONS[article.status]?.[0]}`}
-                        >
-                          <Icon name="sync" size="sm" />
-                        </button>
-                      )}
+                       {getAllowedTransitions(article.status).map((nextStatus) => (
+                         <button
+                           key={`${article.id}-${nextStatus}`}
+                           onClick={() => handleStatusChange(article.id, article.status, nextStatus)}
+                           className="p-2 rounded-lg hover:bg-surface-container text-on-surface-variant transition-colors text-xs"
+                           title={STATUS_ACTION_LABELS[nextStatus] || `Cambiar a ${nextStatus}`}
+                         >
+                           <Icon name="sync" size="sm" />
+                         </button>
+                       ))}
                     </div>
                   </td>
                 </tr>

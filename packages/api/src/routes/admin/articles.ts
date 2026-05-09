@@ -3,6 +3,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { getPool } from '../../services/db';
 import { upsertDocument, updateDocumentStatus, deleteArticleDocuments } from '../../services/meilisearch';
+import { hasPermission, requireAnyPermission, requirePermission } from '../../middleware/auth';
 import {
   ValidationError,
   NotFoundError,
@@ -14,7 +15,7 @@ const router = Router();
 
 // Schemas de validación
 const ListQuerySchema = z.object({
-  status: z.enum(['draft', 'published', 'deprecated']).optional(),
+  status: z.enum(['draft', 'in_review', 'published', 'deprecated']).optional(),
   category: z.string().optional(),
   type: z.enum(['concept', 'tool-branch']).optional(),
   search: z.string().optional(),
@@ -57,7 +58,7 @@ const ContentSchema = z.object({
 });
 
 const StatusSchema = z.object({
-  status: z.enum(['draft', 'published', 'deprecated']),
+  status: z.enum(['draft', 'in_review', 'published', 'deprecated']),
 });
 
 const VerifySchema = z.object({
@@ -76,9 +77,19 @@ const ResourceLinkSchema = z.object({
 
 // Transiciones de estado válidas
 const VALID_TRANSITIONS: Record<string, string[]> = {
-  draft: ['published'],
-  published: ['deprecated'],
+  draft: ['in_review'],
+  in_review: ['draft', 'published'],
+  published: ['draft', 'deprecated'],
   deprecated: ['draft'],
+};
+
+const TRANSITION_PERMISSIONS: Record<string, string> = {
+  'draft->in_review': 'article.review',
+  'in_review->draft': 'article.review',
+  'in_review->published': 'article.publish',
+  'published->draft': 'article.publish',
+  'published->deprecated': 'article.publish',
+  'deprecated->draft': 'article.publish',
 };
 
 function createLocalizedResources() {
@@ -88,8 +99,26 @@ function createLocalizedResources() {
   };
 }
 
+function getTransitionPermission(currentStatus: string, nextStatus: string): string | null {
+  return TRANSITION_PERMISSIONS[`${currentStatus}->${nextStatus}`] || null;
+}
+
+function assertTransitionPermission(req: Request, currentStatus: string, nextStatus: string) {
+  const permission = getTransitionPermission(currentStatus, nextStatus);
+  if (!permission) {
+    throw new AppError('CONFLICT', 'Transición editorial no soportada', 409);
+  }
+
+  if (!hasPermission(req, permission)) {
+    throw new AppError('FORBIDDEN', 'No tienes permisos para realizar esta acción', 403);
+  }
+}
+
 // GET /api/v1/admin/articles — lista de todos los artículos con estado de contenido
-router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+router.get(
+  '/',
+  requireAnyPermission(['article.create', 'article.edit', 'article.review', 'article.publish']),
+  async (req: Request, res: Response, next: NextFunction) => {
   try {
     const parsed = ListQuerySchema.safeParse(req.query);
     if (!parsed.success) {
@@ -222,10 +251,11 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   } catch (err) {
     next(err);
   }
-});
+}
+);
 
 // POST /api/v1/admin/articles — crear artículo con metadatos
-router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', requirePermission('article.create'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const parsed = CreateArticleSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -264,10 +294,10 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     }
 
     const result = await pool.query(
-      `INSERT INTO articles (slug_uk, type, parent_id, category, domains, volatility, featured)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO articles (slug_uk, type, parent_id, category, domains, volatility, featured, created_by, updated_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $8)
        RETURNING id, slug_uk, type, category, status, created_at`,
-      [slug_uk, type, parent_id || null, category, domains, volatility, featured]
+      [slug_uk, type, parent_id || null, category, domains, volatility, featured, req.authUser?.id]
     );
 
     res.status(201).json({ data: result.rows[0] });
@@ -277,7 +307,10 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // GET /api/v1/admin/articles/:id — detalle completo para edición
-router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.get(
+  '/:id',
+  requireAnyPermission(['article.create', 'article.edit', 'article.review', 'article.publish']),
+  async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const pool = getPool();
@@ -360,10 +393,11 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   } catch (err) {
     next(err);
   }
-});
+}
+);
 
 // PUT /api/v1/admin/articles/:id — actualizar metadatos
-router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.put('/:id', requirePermission('article.edit'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const parsed = UpdateArticleSchema.safeParse(req.body);
@@ -416,6 +450,9 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
       throw new ValidationError('No se proporcionaron campos para actualizar');
     }
 
+    setClauses.push(`updated_by = $${paramIndex++}`);
+    params.push(req.authUser?.id || null);
+
     params.push(id);
     const result = await pool.query(
       `UPDATE articles SET ${setClauses.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
@@ -429,7 +466,7 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // POST /api/v1/admin/articles/:id/content — importar/actualizar contenido de un idioma
-router.post('/:id/content', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/:id/content', requirePermission('article.edit'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = String(req.params.id);
     const parsed = ContentSchema.safeParse(req.body);
@@ -455,17 +492,20 @@ router.post('/:id/content', async (req: Request, res: Response, next: NextFuncti
 
     // Upsert del contenido
     const result = await pool.query(
-      `INSERT INTO article_contents (article_id, lang, slug, title, summary, body, last_edited_at)
-       VALUES ($1, $2, $3, $4, $5, $6, now())
+      `INSERT INTO article_contents (article_id, lang, slug, title, summary, body, last_edited_at, last_edited_by)
+       VALUES ($1, $2, $3, $4, $5, $6, now(), $7)
        ON CONFLICT (article_id, lang) DO UPDATE SET
          slug = EXCLUDED.slug,
          title = EXCLUDED.title,
          summary = EXCLUDED.summary,
          body = EXCLUDED.body,
-         last_edited_at = now()
-       RETURNING article_id, lang, slug, title, last_edited_at`,
-      [id, lang, slug, title, summary, body]
+         last_edited_at = now(),
+         last_edited_by = EXCLUDED.last_edited_by
+        RETURNING article_id, lang, slug, title, last_edited_at`,
+      [id, lang, slug, title, summary, body, req.authUser?.id || null]
     );
+
+    await pool.query('UPDATE articles SET updated_by = $1 WHERE id = $2', [req.authUser?.id || null, id]);
 
     // Sincronizar con Meilisearch
     await upsertDocument({
@@ -492,12 +532,15 @@ router.post('/:id/content', async (req: Request, res: Response, next: NextFuncti
 });
 
 // PUT /api/v1/admin/articles/:id/status — cambiar estado del artículo
-router.put('/:id/status', async (req: Request, res: Response, next: NextFunction) => {
+router.put(
+  '/:id/status',
+  requireAnyPermission(['article.review', 'article.publish']),
+  async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = String(req.params.id);
     const parsed = StatusSchema.safeParse(req.body);
     if (!parsed.success) {
-      throw new ValidationError('Estado inválido. Debe ser: draft, published o deprecated');
+      throw new ValidationError('Estado inválido. Debe ser: draft, in_review, published o deprecated');
     }
 
     const { status: newStatus } = parsed.data;
@@ -522,9 +565,26 @@ router.put('/:id/status', async (req: Request, res: Response, next: NextFunction
       );
     }
 
+    assertTransitionPermission(req, currentStatus, newStatus);
+
+    const setClauses = ['status = $1', 'updated_by = $2'];
+    const params: unknown[] = [newStatus, req.authUser?.id || null];
+
+    if (newStatus === 'in_review') {
+      setClauses.push('review_requested_by = $3');
+      params.push(req.authUser?.id || null);
+    }
+
+    if (newStatus === 'published') {
+      setClauses.push(`published_by = $${params.length + 1}`);
+      params.push(req.authUser?.id || null);
+    }
+
+    params.push(id);
+
     const result = await pool.query(
-      'UPDATE articles SET status = $1 WHERE id = $2 RETURNING *',
-      [newStatus, id]
+      `UPDATE articles SET ${setClauses.join(', ')} WHERE id = $${params.length} RETURNING *`,
+      params
     );
 
     // Sincronizar estado en Meilisearch
@@ -536,10 +596,11 @@ router.put('/:id/status', async (req: Request, res: Response, next: NextFunction
   } catch (err) {
     next(err);
   }
-});
+}
+);
 
 // POST /api/v1/admin/articles/:id/verify — marcar como verificado en un idioma
-router.post('/:id/verify', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/:id/verify', requirePermission('article.review'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const parsed = VerifySchema.safeParse(req.body);
@@ -551,10 +612,10 @@ router.post('/:id/verify', async (req: Request, res: Response, next: NextFunctio
     const pool = getPool();
 
     const result = await pool.query(
-      `UPDATE article_contents SET last_verified_at = now()
+      `UPDATE article_contents SET last_verified_at = now(), last_verified_by = $3
        WHERE article_id = $1 AND lang = $2
-       RETURNING article_id, lang, last_verified_at`,
-      [id, lang]
+        RETURNING article_id, lang, last_verified_at`,
+      [id, lang, req.authUser?.id || null]
     );
 
     if (result.rows.length === 0) {
@@ -568,7 +629,7 @@ router.post('/:id/verify', async (req: Request, res: Response, next: NextFunctio
 });
 
 // POST /api/v1/admin/articles/:id/relations — agregar relación entre artículos
-router.post('/:id/relations', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/:id/relations', requirePermission('article.edit'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const parsed = RelationSchema.safeParse(req.body);
@@ -608,7 +669,7 @@ router.post('/:id/relations', async (req: Request, res: Response, next: NextFunc
 });
 
 // DELETE /api/v1/admin/articles/:id/relations/:to_id — eliminar relación
-router.delete('/:id/relations/:to_id', async (req: Request, res: Response, next: NextFunction) => {
+router.delete('/:id/relations/:to_id', requirePermission('article.edit'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id, to_id } = req.params;
     const typeQuery = z.object({ type: z.enum(['related', 'prerequisite', 'next']) });
@@ -638,7 +699,7 @@ router.delete('/:id/relations/:to_id', async (req: Request, res: Response, next:
 });
 
 // POST /api/v1/admin/articles/:id/resources — vincular recurso a artículo
-router.post('/:id/resources', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/:id/resources', requirePermission('resource.manage'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const parsed = ResourceLinkSchema.safeParse(req.body);
@@ -672,6 +733,7 @@ router.post('/:id/resources', async (req: Request, res: Response, next: NextFunc
 // DELETE /api/v1/admin/articles/:id/resources/:resource_id — desvincular recurso
 router.delete(
   '/:id/resources/:resource_id',
+  requirePermission('resource.manage'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id, resource_id } = req.params;

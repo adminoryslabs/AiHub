@@ -4,7 +4,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { isAuthenticated, removeToken } from '@/lib/auth';
+import { getAdminSession } from '@/lib/admin-api-client';
+import { getSession, isAuthenticated, removeToken, saveSession } from '@/lib/auth';
 import { Icon } from '@/components/ui/Icon';
 
 const NAV_ITEMS = [
@@ -12,20 +13,47 @@ const NAV_ITEMS = [
   { href: '/admin/articles', label: 'Artículos', icon: 'article' },
   { href: '/admin/resources', label: 'Recursos', icon: 'link' },
   { href: '/admin/images', label: 'Imágenes', icon: 'image' },
+  { href: '/admin/access', label: 'Accesos', icon: 'admin_panel_settings', permission: 'access.manage' },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [ready, setReady] = useState(false);
+  const [permissions, setPermissions] = useState<string[]>([]);
 
   useEffect(() => {
-    // Protección de rutas admin
-    if (pathname !== '/admin/login' && !isAuthenticated()) {
-      router.replace('/admin/login');
-      return;
+    async function hydrateSession() {
+      if (pathname === '/admin/login') {
+        setReady(true);
+        return;
+      }
+
+      if (!isAuthenticated()) {
+        router.replace('/admin/login');
+        return;
+      }
+
+      const cachedSession = getSession();
+      if (cachedSession) {
+        setPermissions(cachedSession.permissions);
+      }
+
+      try {
+        const session = await getAdminSession();
+        saveSession(session);
+        setPermissions(session.permissions);
+        setReady(true);
+      } catch {
+        removeToken();
+        router.replace('/admin/login');
+      }
     }
-    setReady(true);
+
+    hydrateSession().catch(() => {
+      removeToken();
+      router.replace('/admin/login');
+    });
   }, [pathname, router]);
 
   function handleLogout() {
@@ -56,7 +84,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Navegación */}
         <nav className="flex-1 p-3 space-y-1">
-          {NAV_ITEMS.map((item) => {
+          {NAV_ITEMS.filter((item) => !item.permission || permissions.includes(item.permission)).map((item) => {
             const isActive =
               item.href === '/admin'
                 ? pathname === '/admin'

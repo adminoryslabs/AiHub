@@ -6,7 +6,7 @@ import pino from 'pino';
 import pinoHttp from 'pino-http';
 
 import { errorHandler } from './middleware/error-handler';
-import { authenticateAdmin } from './middleware/auth';
+import { authenticateUser } from './middleware/auth';
 import { setupMeilisearchIndex } from './services/meilisearch';
 
 // Rutas públicas
@@ -22,6 +22,7 @@ import authRouter from './routes/admin/auth';
 import adminArticlesRouter from './routes/admin/articles';
 import resourcesRouter from './routes/admin/resources';
 import imagesRouter from './routes/admin/images';
+import accessRouter from './routes/admin/access';
 
 // Configuración del logger
 const logger = pino({
@@ -71,9 +72,10 @@ export function createApp() {
   app.use('/api/v1/admin/auth', authRouter);
 
   // Rutas admin protegidas con JWT
-  app.use('/api/v1/admin/articles', authenticateAdmin, adminArticlesRouter);
-  app.use('/api/v1/admin/resources', authenticateAdmin, resourcesRouter);
-  app.use('/api/v1/admin/images', authenticateAdmin, imagesRouter);
+  app.use('/api/v1/admin/articles', authenticateUser, adminArticlesRouter);
+  app.use('/api/v1/admin/resources', authenticateUser, resourcesRouter);
+  app.use('/api/v1/admin/images', authenticateUser, imagesRouter);
+  app.use('/api/v1/admin/access', authenticateUser, accessRouter);
 
   // Handler de errores (debe ser el último middleware)
   app.use(errorHandler);

@@ -1,4 +1,5 @@
 // Cliente HTTP para la API admin (incluye token JWT)
+import type { AccessRolesResponse, AccessUsersResponse, LoginResponse, SessionResponse } from '@ai-hub/shared';
 import { getToken } from './auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -50,7 +51,7 @@ async function adminFetch<T>(
 // --- Autenticación ---
 
 export async function login(email: string, password: string) {
-  const res = await adminFetch<{ data: { token: string; expires_at: string } }>(
+  const res = await adminFetch<LoginResponse>(
     '/api/v1/admin/auth/login',
     {
       method: 'POST',
@@ -58,6 +59,11 @@ export async function login(email: string, password: string) {
     }
   );
   return res.data;
+}
+
+export async function getAdminSession() {
+  const res = await adminFetch<SessionResponse>('/api/v1/admin/auth/session');
+  return res.data.user;
 }
 
 // --- Artículos admin ---
@@ -237,4 +243,28 @@ export async function uploadImage(file: File) {
   }
 
   return res.json() as Promise<{ data: { url: string; key: string; size: number; mime_type: string } }>;
+}
+
+// --- Gestión de accesos ---
+
+export async function listAccessUsers() {
+  return adminFetch<AccessUsersResponse>('/api/v1/admin/access/users');
+}
+
+export async function updateAccessUserRole(id: string, roleId: string) {
+  return adminFetch<{ data: unknown }>(`/api/v1/admin/access/users/${id}/role`, {
+    method: 'PATCH',
+    body: JSON.stringify({ role_id: roleId }),
+  });
+}
+
+export async function listAccessRoles() {
+  return adminFetch<AccessRolesResponse>('/api/v1/admin/access/roles');
+}
+
+export async function updateAccessRolePermissions(id: string, permissions: string[]) {
+  return adminFetch<{ data: unknown }>(`/api/v1/admin/access/roles/${id}/permissions`, {
+    method: 'PUT',
+    body: JSON.stringify({ permissions }),
+  });
 }

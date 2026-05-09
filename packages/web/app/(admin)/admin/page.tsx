@@ -24,12 +24,13 @@ interface Stats {
   total: number;
   published: number;
   draft: number;
+  in_review: number;
   deprecated: number;
 }
 
 export default function AdminDashboard() {
   const [articles, setArticles] = useState<ArticleItem[]>([]);
-  const [stats, setStats] = useState<Stats>({ total: 0, published: 0, draft: 0, deprecated: 0 });
+  const [stats, setStats] = useState<Stats>({ total: 0, published: 0, draft: 0, in_review: 0, deprecated: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,6 +47,7 @@ export default function AdminDashboard() {
           total: allArticles.length,
           published: allArticles.filter((a) => a.status === 'published').length,
           draft: allArticles.filter((a) => a.status === 'draft').length,
+          in_review: allArticles.filter((a) => a.status === 'in_review').length,
           deprecated: allArticles.filter((a) => a.status === 'deprecated').length,
         });
       } catch {
@@ -61,6 +63,7 @@ export default function AdminDashboard() {
     { label: 'Total', value: stats.total, icon: 'article', color: 'text-primary' },
     { label: 'Publicados', value: stats.published, icon: 'check_circle', color: 'text-green-600' },
     { label: 'Borradores', value: stats.draft, icon: 'edit', color: 'text-on-surface-variant' },
+    { label: 'En revisión', value: stats.in_review, icon: 'rate_review', color: 'text-yellow-600' },
     { label: 'Obsoletos', value: stats.deprecated, icon: 'archive', color: 'text-error' },
   ];
 
@@ -95,7 +98,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 xl:grid-cols-5 gap-4 mb-8">
         {statCards.map((card) => (
           <div
             key={card.label}

@@ -2,9 +2,12 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import multer from 'multer';
 import { uploadImage } from '../../services/storage';
+import { requirePermission } from '../../middleware/auth';
 import { ValidationError } from '../../middleware/error-handler';
 
 const router = Router();
+
+router.use(requirePermission('image.upload'));
 
 // Configuración de multer: almacenamiento en memoria (buffer)
 const upload = multer({

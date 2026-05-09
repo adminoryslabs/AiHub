@@ -32,6 +32,7 @@ export function Badge({ variant = 'primary', children, className = '' }: BadgePr
 export function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { variant: BadgeVariant; label: string }> = {
     published: { variant: 'success', label: 'Publicado' },
+    in_review: { variant: 'warning', label: 'En revisión' },
     draft: { variant: 'muted', label: 'Borrador' },
     deprecated: { variant: 'error', label: 'Obsoleto' },
   };

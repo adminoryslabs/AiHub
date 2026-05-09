@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { login } from '@/lib/admin-api-client';
-import { saveToken } from '@/lib/auth';
+import { saveAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/Button';
 
 export default function LoginPage() {
@@ -20,8 +20,8 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const { token } = await login(email, password);
-      saveToken(token);
+      const { token, user } = await login(email, password);
+      saveAuth(token, user);
       router.push('/admin');
     } catch (err) {
       setError(

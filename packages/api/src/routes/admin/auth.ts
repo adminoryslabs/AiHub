@@ -3,7 +3,8 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { getPool } from '../../services/db';
+import { authenticateUser } from '../../middleware/auth';
+import { getUserAuthByEmail, getUserSessionById, buildSessionPayload } from '../../services/access';
 import { ValidationError } from '../../middleware/error-handler';
 
 const router = Router();
@@ -24,15 +25,11 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
     }
 
     const { email, password } = parsed.data;
-    const pool = getPool();
 
     // Buscar usuario por email
-    const result = await pool.query(
-      'SELECT id, email, password_hash FROM admin_users WHERE email = $1',
-      [email]
-    );
+    const user = await getUserAuthByEmail(email);
 
-    if (result.rows.length === 0) {
+    if (!user || !user.is_active) {
       // Respuesta genérica para no revelar si el email existe
       res.status(401).json({
         error: {
@@ -42,8 +39,6 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
       });
       return;
     }
-
-    const user = result.rows[0];
 
     // Verificar contraseña con bcrypt
     const passwordValid = await bcrypt.compare(password, user.password_hash);
@@ -60,8 +55,18 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
     // Generar JWT
     const secret = process.env.JWT_SECRET!;
     const expiresIn = process.env.JWT_EXPIRES_IN || '24h';
+    const sessionUser = {
+      id: user.id,
+      email: user.email,
+      role: {
+        id: user.role_id,
+        slug: user.role_slug,
+        name: user.role_name,
+      },
+      permissions: user.permissions,
+    };
 
-    const token = jwt.sign({ userId: user.id, email: user.email }, secret, {
+    const token = jwt.sign(buildSessionPayload(sessionUser), secret, {
       expiresIn: expiresIn as jwt.SignOptions['expiresIn'],
     });
 
@@ -73,8 +78,39 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
       data: {
         token,
         expires_at: expiresAt.toISOString(),
+        user: sessionUser,
       },
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/session', authenticateUser, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.authUser?.id;
+    if (!userId) {
+      res.status(401).json({
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Sesión no autenticada',
+        },
+      });
+      return;
+    }
+
+    const sessionUser = await getUserSessionById(userId);
+    if (!sessionUser) {
+      res.status(401).json({
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Sesión no válida',
+        },
+      });
+      return;
+    }
+
+    res.json({ data: { user: sessionUser } });
   } catch (err) {
     next(err);
   }

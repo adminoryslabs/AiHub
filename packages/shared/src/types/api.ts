@@ -1,3 +1,5 @@
+import type { AdminSessionUser, AdminUser, Role } from './article';
+
 // Tipos de respuesta de la API compartidos entre frontend y backend
 
 // Estructura de error estándar
@@ -29,7 +31,26 @@ export interface LoginResponse {
   data: {
     token: string;
     expires_at: string;
+    user: AdminSessionUser;
   };
+}
+
+export interface SessionResponse {
+  data: {
+    user: AdminSessionUser;
+  };
+}
+
+export interface AccessUsersResponse {
+  data: AdminUser[];
+}
+
+export interface AccessRolesResponse {
+  data: Array<
+    Role & {
+      permissions: string[];
+    }
+  >;
 }
 
 // Resultado de búsqueda
