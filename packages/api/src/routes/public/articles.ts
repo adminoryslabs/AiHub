@@ -233,9 +233,9 @@ router.get('/:slug', async (req: Request, res: Response, next: NextFunction) => 
         r.description
       FROM resources r
       JOIN article_resources ar ON ar.resource_id = r.id
-      WHERE ar.article_id = $1
+      WHERE ar.article_id = $1 AND ar.lang = $2
       ORDER BY r.title`,
-      [article.id]
+      [article.id, lang]
     );
 
     // Obtener enlace al idioma alternativo

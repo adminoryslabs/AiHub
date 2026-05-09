@@ -71,6 +71,7 @@ const RelationSchema = z.object({
 
 const ResourceLinkSchema = z.object({
   resource_id: z.string().uuid(),
+  lang: z.enum(['es', 'en']),
 });
 
 // Transiciones de estado válidas
@@ -79,6 +80,13 @@ const VALID_TRANSITIONS: Record<string, string[]> = {
   published: ['deprecated'],
   deprecated: ['draft'],
 };
+
+function createLocalizedResources() {
+  return { es: [], en: [] } as {
+    es: Array<Record<string, unknown>>;
+    en: Array<Record<string, unknown>>;
+  };
+}
 
 // GET /api/v1/admin/articles — lista de todos los artículos con estado de contenido
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
@@ -309,12 +317,21 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 
     // Obtener recursos
     const resourcesResult = await pool.query(
-      `SELECT r.id, r.title, r.type, r.url, r.description
+      `SELECT r.id, r.title, r.type, r.url, r.description, ar.lang
        FROM resources r
        JOIN article_resources ar ON ar.resource_id = r.id
-       WHERE ar.article_id = $1`,
+       WHERE ar.article_id = $1
+       ORDER BY ar.lang, r.title`,
       [id]
     );
+
+    const resources = createLocalizedResources();
+    for (const row of resourcesResult.rows) {
+      const { lang, ...resource } = row as { lang: 'es' | 'en' } & Record<string, unknown>;
+      if (lang === 'es' || lang === 'en') {
+        resources[lang].push(resource);
+      }
+    }
 
     // Obtener artículos hijos
     const childrenResult = await pool.query(
@@ -336,7 +353,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
         ...article,
         contents: contentsResult.rows,
         relations,
-        resources: resourcesResult.rows,
+        resources,
         children: childrenResult.rows,
       },
     });
@@ -629,7 +646,7 @@ router.post('/:id/resources', async (req: Request, res: Response, next: NextFunc
       throw new ValidationError('resource_id es requerido y debe ser un UUID válido');
     }
 
-    const { resource_id } = parsed.data;
+    const { resource_id, lang } = parsed.data;
     const pool = getPool();
 
     // Verificar que el recurso existe
@@ -639,13 +656,13 @@ router.post('/:id/resources', async (req: Request, res: Response, next: NextFunc
     }
 
     await pool.query(
-      `INSERT INTO article_resources (article_id, resource_id) VALUES ($1, $2)
-       ON CONFLICT ON CONSTRAINT uq_article_resource DO NOTHING`,
-      [id, resource_id]
+      `INSERT INTO article_resources (article_id, resource_id, lang) VALUES ($1, $2, $3)
+       ON CONFLICT ON CONSTRAINT uq_article_resource_lang DO NOTHING`,
+      [id, resource_id, lang]
     );
 
     res.status(201).json({
-      data: { article_id: id, resource_id },
+      data: { article_id: id, resource_id, lang },
     });
   } catch (err) {
     next(err);
@@ -658,12 +675,19 @@ router.delete(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id, resource_id } = req.params;
+      const langQuery = z.object({ lang: z.enum(['es', 'en']) });
+      const parsed = langQuery.safeParse(req.query);
+      if (!parsed.success) {
+        throw new ValidationError('El parámetro lang es requerido');
+      }
+
+      const { lang } = parsed.data;
       const pool = getPool();
 
       const result = await pool.query(
-        `DELETE FROM article_resources WHERE article_id = $1 AND resource_id = $2
+        `DELETE FROM article_resources WHERE article_id = $1 AND resource_id = $2 AND lang = $3
          RETURNING article_id`,
-        [id, resource_id]
+        [id, resource_id, lang]
       );
 
       if (result.rows.length === 0) {

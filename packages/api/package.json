@@ -10,7 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "migrate": "psql $DATABASE_URL -f migrations/001_initial_schema.sql && psql $DATABASE_URL -f migrations/002_seed_categories.sql",
+    "migrate": "psql $DATABASE_URL -f migrations/001_initial_schema.sql && psql $DATABASE_URL -f migrations/002_seed_categories.sql && psql $DATABASE_URL -f migrations/003_article_resources_lang.sql",
     "seed:admin": "tsx seeds/create-admin.ts"
   },
   "dependencies": {

@@ -9,9 +9,10 @@ import type { Resource } from '@ai-hub/shared';
 interface SidebarRightProps {
   toc: TocItem[];
   resources: Resource[];
+  lang: 'es' | 'en';
 }
 
-export function SidebarRight({ toc, resources }: SidebarRightProps) {
+export function SidebarRight({ toc, resources, lang }: SidebarRightProps) {
   const [activeId, setActiveId] = useState<string>('');
 
   // Scroll-spy: detectar sección activa
@@ -71,7 +72,7 @@ export function SidebarRight({ toc, resources }: SidebarRightProps) {
       {resources.length > 0 && (
         <div>
           <h3 className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/60 mb-3">
-            Recursos
+            {lang === 'es' ? 'Recursos' : 'Resources'}
           </h3>
           <div className="space-y-2">
             {resources.map((resource) => (

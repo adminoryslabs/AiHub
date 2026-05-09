@@ -43,6 +43,11 @@ export interface Resource {
   created_at?: string;
 }
 
+export interface LocalizedResources {
+  es: Resource[];
+  en: Resource[];
+}
+
 // Relaciones agrupadas por tipo
 export interface ArticleRelations {
   related: ArticleRef[];
@@ -137,7 +142,7 @@ export interface AdminArticle {
     prerequisite: string[];
     next: string[];
   };
-  resources: Resource[];
+  resources: LocalizedResources;
   children: {
     id: string;
     slug_uk: string;

@@ -202,16 +202,16 @@ export async function deleteResource(id: string) {
   return adminFetch<null>(`/api/v1/admin/resources/${id}`, { method: 'DELETE' });
 }
 
-export async function linkResource(articleId: string, resourceId: string) {
+export async function linkResourceByLang(articleId: string, resourceId: string, lang: 'es' | 'en') {
   return adminFetch<{ data: unknown }>(`/api/v1/admin/articles/${articleId}/resources`, {
     method: 'POST',
-    body: JSON.stringify({ resource_id: resourceId }),
+    body: JSON.stringify({ resource_id: resourceId, lang }),
   });
 }
 
-export async function unlinkResource(articleId: string, resourceId: string) {
+export async function unlinkResourceByLang(articleId: string, resourceId: string, lang: 'es' | 'en') {
   return adminFetch<null>(
-    `/api/v1/admin/articles/${articleId}/resources/${resourceId}`,
+    `/api/v1/admin/articles/${articleId}/resources/${resourceId}?lang=${lang}`,
     { method: 'DELETE' }
   );
 }

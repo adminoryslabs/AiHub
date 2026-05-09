@@ -250,7 +250,7 @@ export default async function ArticlePage({ params }: PageProps) {
         </div>
       </main>
 
-      <SidebarRight toc={toc} resources={article.resources} />
+      <SidebarRight toc={toc} resources={article.resources} lang={lang} />
       <Footer />
     </>
   );

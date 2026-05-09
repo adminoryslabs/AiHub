@@ -12,8 +12,8 @@ import {
   verifyArticle,
   addRelation,
   removeRelation,
-  linkResource,
-  unlinkResource,
+  linkResourceByLang,
+  unlinkResourceByLang,
   createResource,
 } from '@/lib/admin-api-client';
 import { getCategories } from '@/lib/api-client';
@@ -44,7 +44,10 @@ interface ArticleData {
   applicable_as_of: string | null;
   contents: ArticleContent[];
   relations: { related: string[]; prerequisite: string[]; next: string[] };
-  resources: { id: string; title: string; type: string; url: string; description: string | null }[];
+  resources: {
+    es: { id: string; title: string; type: string; url: string; description: string | null }[];
+    en: { id: string; title: string; type: string; url: string; description: string | null }[];
+  };
 }
 
 interface ArticleOption {
@@ -678,13 +681,18 @@ function ResourcesTab({
   onMessage,
 }: {
   articleId: string;
-  resources: { id: string; title: string; type: string; url: string; description: string | null }[];
+  resources: {
+    es: { id: string; title: string; type: string; url: string; description: string | null }[];
+    en: { id: string; title: string; type: string; url: string; description: string | null }[];
+  };
   onSaved: () => void;
   onMessage: (msg: string) => void;
 }) {
+  const [activeLang, setActiveLang] = useState<'es' | 'en'>('es');
   const [newResource, setNewResource] = useState({ title: '', type: 'doc', url: '', description: '' });
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
+  const currentResources = resources[activeLang];
 
   async function handleCreate() {
     setSaving(true);
@@ -692,10 +700,10 @@ function ResourcesTab({
       const res = await createResource({ ...newResource, description: newResource.description || null });
       const created = (res?.data as { id: string })?.id;
       if (created) {
-        await linkResource(articleId, created);
+        await linkResourceByLang(articleId, created, activeLang);
       }
       onSaved();
-      onMessage('Recurso creado y vinculado');
+      onMessage(`Recurso creado y vinculado en ${activeLang.toUpperCase()}`);
       setShowForm(false);
       setNewResource({ title: '', type: 'doc', url: '', description: '' });
     } catch (err) {
@@ -707,9 +715,9 @@ function ResourcesTab({
 
   async function handleUnlink(resourceId: string) {
     try {
-      await unlinkResource(articleId, resourceId);
+      await unlinkResourceByLang(articleId, resourceId, activeLang);
       onSaved();
-      onMessage('Recurso desvinculado');
+      onMessage(`Recurso desvinculado de ${activeLang.toUpperCase()}`);
     } catch (err) {
       onMessage(err instanceof Error ? err.message : 'Error');
     }
@@ -718,7 +726,26 @@ function ResourcesTab({
   return (
     <div className="max-w-lg space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-medium text-on-surface">Recursos vinculados ({resources.length})</h3>
+        <div className="space-y-2">
+          <h3 className="font-medium text-on-surface">
+            Recursos vinculados en {activeLang.toUpperCase()} ({currentResources.length})
+          </h3>
+          <div className="inline-flex rounded-xl bg-surface-container-low p-1">
+            {(['es', 'en'] as const).map((lang) => (
+              <button
+                key={lang}
+                onClick={() => setActiveLang(lang)}
+                className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                  activeLang === lang
+                    ? 'bg-white text-primary shadow-sm'
+                    : 'text-on-surface-variant hover:text-on-surface'
+                }`}
+              >
+                {lang.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
         <Button size="sm" variant="secondary" onClick={() => setShowForm(!showForm)}>
           <Icon name="add" size="sm" />
           Nuevo recurso
@@ -767,11 +794,13 @@ function ResourcesTab({
         </div>
       )}
 
-      {resources.length === 0 ? (
-        <p className="text-sm text-on-surface-variant">Sin recursos vinculados.</p>
+      {currentResources.length === 0 ? (
+        <p className="text-sm text-on-surface-variant">
+          Sin recursos vinculados en {activeLang.toUpperCase()}.
+        </p>
       ) : (
         <div className="space-y-2">
-          {resources.map((resource) => (
+          {currentResources.map((resource) => (
             <div
               key={resource.id}
               className="flex items-center justify-between p-3 bg-surface-container-low rounded-xl"

@@ -27,6 +27,43 @@ function generateTestToken() {
 beforeAll(async () => {
   const pool = getPool();
 
+  await pool.query(`
+    ALTER TABLE article_resources DROP CONSTRAINT IF EXISTS uq_article_resource;
+    ALTER TABLE article_resources ADD COLUMN IF NOT EXISTS lang VARCHAR(2);
+    UPDATE article_resources SET lang = 'es' WHERE lang IS NULL;
+    INSERT INTO article_resources (article_id, resource_id, lang)
+    SELECT ar.article_id, ar.resource_id, 'en'
+    FROM article_resources ar
+    WHERE ar.lang = 'es'
+      AND NOT EXISTS (
+        SELECT 1
+        FROM article_resources existing
+        WHERE existing.article_id = ar.article_id
+          AND existing.resource_id = ar.resource_id
+          AND existing.lang = 'en'
+      );
+    ALTER TABLE article_resources ALTER COLUMN lang SET NOT NULL;
+  `);
+
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'chk_article_resources_lang'
+      ) THEN
+        ALTER TABLE article_resources
+          ADD CONSTRAINT chk_article_resources_lang CHECK (lang IN ('es', 'en'));
+      END IF;
+
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'uq_article_resource_lang'
+      ) THEN
+        ALTER TABLE article_resources
+          ADD CONSTRAINT uq_article_resource_lang UNIQUE (article_id, resource_id, lang);
+      END IF;
+    END $$;
+  `);
+
   // Limpiar datos de test (orden respeta FKs)
   await pool.query('DELETE FROM article_resources');
   await pool.query('DELETE FROM article_relations');
@@ -416,5 +453,109 @@ describe('PUT /api/v1/admin/articles/:id/status', () => {
       .send({ status: 'published' });
 
     expect(res.status).toBe(409);
+  });
+});
+
+// --- Recursos por idioma ---
+describe('Recursos por idioma', () => {
+  let localizedArticleId: string;
+  let resourceEsId: string;
+  let resourceEnId: string;
+
+  beforeAll(async () => {
+    const pool = getPool();
+
+    const articleResult = await pool.query(
+      `INSERT INTO articles (slug_uk, type, category, status)
+       VALUES ('test-localized-resources', 'concept', 'agents', 'published')
+       RETURNING id`
+    );
+    localizedArticleId = articleResult.rows[0].id;
+
+    await pool.query(
+      `INSERT INTO article_contents (article_id, lang, slug, title, summary, body)
+       VALUES
+       ($1, 'es', 'recursos-es', 'Recursos ES', 'Resumen ES', 'Cuerpo ES'),
+       ($1, 'en', 'resources-en', 'Resources EN', 'Summary EN', 'Body EN')`,
+      [localizedArticleId]
+    );
+
+    const resourceEsResult = await pool.query(
+      `INSERT INTO resources (title, type, url, description)
+       VALUES ('Guía ES', 'doc', 'https://example.com/es', 'Recurso en español')
+       RETURNING id`
+    );
+    resourceEsId = resourceEsResult.rows[0].id;
+
+    const resourceEnResult = await pool.query(
+      `INSERT INTO resources (title, type, url, description)
+       VALUES ('Guide EN', 'doc', 'https://example.com/en', 'English resource')
+       RETURNING id`
+    );
+    resourceEnId = resourceEnResult.rows[0].id;
+  });
+
+  it('vincula recursos por idioma desde admin', async () => {
+    const resEs = await request(app)
+      .post(`/api/v1/admin/articles/${localizedArticleId}/resources`)
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({ resource_id: resourceEsId, lang: 'es' });
+
+    const resEn = await request(app)
+      .post(`/api/v1/admin/articles/${localizedArticleId}/resources`)
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({ resource_id: resourceEnId, lang: 'en' });
+
+    expect(resEs.status).toBe(201);
+    expect(resEs.body.data).toMatchObject({ article_id: localizedArticleId, resource_id: resourceEsId, lang: 'es' });
+    expect(resEn.status).toBe(201);
+    expect(resEn.body.data).toMatchObject({ article_id: localizedArticleId, resource_id: resourceEnId, lang: 'en' });
+  });
+
+  it('devuelve recursos agrupados por idioma en admin', async () => {
+    const res = await request(app)
+      .get(`/api/v1/admin/articles/${localizedArticleId}`)
+      .set('Authorization', `Bearer ${authToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.resources.es).toEqual([
+      expect.objectContaining({ id: resourceEsId, title: 'Guía ES' }),
+    ]);
+    expect(res.body.data.resources.en).toEqual([
+      expect.objectContaining({ id: resourceEnId, title: 'Guide EN' }),
+    ]);
+  });
+
+  it('filtra recursos públicos según el idioma solicitado', async () => {
+    const resEs = await request(app).get('/api/v1/articles/recursos-es?lang=es');
+    const resEn = await request(app).get('/api/v1/articles/resources-en?lang=en');
+
+    expect(resEs.status).toBe(200);
+    expect(resEs.body.data.resources).toEqual([
+      expect.objectContaining({ id: resourceEsId, title: 'Guía ES' }),
+    ]);
+
+    expect(resEn.status).toBe(200);
+    expect(resEn.body.data.resources).toEqual([
+      expect.objectContaining({ id: resourceEnId, title: 'Guide EN' }),
+    ]);
+  });
+
+  it('desvincula recursos por idioma sin tocar el otro idioma', async () => {
+    const unlinkRes = await request(app)
+      .delete(`/api/v1/admin/articles/${localizedArticleId}/resources/${resourceEsId}?lang=es`)
+      .set('Authorization', `Bearer ${authToken}`);
+
+    expect(unlinkRes.status).toBe(204);
+
+    const adminRes = await request(app)
+      .get(`/api/v1/admin/articles/${localizedArticleId}`)
+      .set('Authorization', `Bearer ${authToken}`);
+
+    expect(adminRes.status).toBe(200);
+    expect(adminRes.body.data.resources.es).toEqual([]);
+    expect(adminRes.body.data.resources.en).toEqual([
+      expect.objectContaining({ id: resourceEnId, title: 'Guide EN' }),
+    ]);
   });
 });
