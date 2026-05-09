@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1.7
 # Dockerfile para AI Hub API (Express)
 # Build context esperado: raíz del monorepo.
 # Razón: necesita acceso al lockfile del workspace durante el build.
@@ -20,8 +19,7 @@ COPY packages/shared/package.json packages/shared/
 COPY packages/web/package.json packages/web/
 
 # Instalar solo lo necesario para construir el API.
-RUN --mount=type=cache,target=/root/.npm \
-  npm ci --workspace=@ai-hub/api --include-workspace-root=false
+RUN npm ci --workspace=@ai-hub/api --include-workspace-root=false
 
 # Copiar código fuente y construir solo la API
 COPY packages/api packages/api
@@ -45,8 +43,7 @@ COPY --from=builder /repo/package.json /repo/package-lock.json ./
 COPY --from=builder /repo/packages/api/package.json packages/api/
 COPY --from=builder /repo/packages/shared/package.json packages/shared/
 COPY --from=builder /repo/packages/web/package.json packages/web/
-RUN --mount=type=cache,target=/root/.npm \
-  npm ci --omit=dev --workspace=@ai-hub/api --include-workspace-root=false \
+RUN npm ci --omit=dev --workspace=@ai-hub/api --include-workspace-root=false \
   && npm cache clean --force \
   && apk del .build-deps
 
