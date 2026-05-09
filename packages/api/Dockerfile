@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7
 # Dockerfile para AI Hub API (Express)
 # Build context esperado: raíz del monorepo.
 # Razón: necesita acceso al lockfile del workspace durante el build.
@@ -10,14 +11,17 @@ WORKDIR /repo
 # Instalar dependencias del sistema necesarias para compilar bcrypt y otros paquetes nativos
 RUN apk add --no-cache python3 make g++
 
-# Copiar manifests primero para cachear instalación de dependencias
+# Copiar manifests primero para cachear instalación de dependencias.
+# Se conserva el manifest web porque el root declara workspaces packages/*,
+# pero la instalación se filtra al workspace del API.
 COPY package.json package-lock.json turbo.json ./
 COPY packages/api/package.json packages/api/
 COPY packages/shared/package.json packages/shared/
 COPY packages/web/package.json packages/web/
 
-# Instalar todas las dependencias del workspace
-RUN npm ci
+# Instalar solo lo necesario para construir el API.
+RUN --mount=type=cache,target=/root/.npm \
+  npm ci --workspace=@ai-hub/api --include-workspace-root=false
 
 # Copiar código fuente y construir solo la API
 COPY packages/api packages/api
@@ -41,7 +45,8 @@ COPY --from=builder /repo/package.json /repo/package-lock.json ./
 COPY --from=builder /repo/packages/api/package.json packages/api/
 COPY --from=builder /repo/packages/shared/package.json packages/shared/
 COPY --from=builder /repo/packages/web/package.json packages/web/
-RUN npm ci --omit=dev --workspace=@ai-hub/api --include-workspace-root=false \
+RUN --mount=type=cache,target=/root/.npm \
+  npm ci --omit=dev --workspace=@ai-hub/api --include-workspace-root=false \
   && npm cache clean --force \
   && apk del .build-deps
 
