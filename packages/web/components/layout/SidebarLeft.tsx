@@ -1,9 +1,7 @@
-// Sidebar izquierda con categorías y navegación
+// Sidebar izquierda — árbol de categorías estilo terminal
 'use client';
 
 import Link from 'next/link';
-import { Icon } from '../ui/Icon';
-import { getCategoryIcon } from '@/lib/i18n';
 import type { Category } from '@ai-hub/shared';
 import type { SupportedLang } from '@/lib/i18n';
 
@@ -15,55 +13,51 @@ interface SidebarLeftProps {
 
 export function SidebarLeft({ lang, categories, currentCategory }: SidebarLeftProps) {
   return (
-    <aside className="hidden md:flex flex-col w-64 fixed left-0 top-16 h-[calc(100vh-4rem)] bg-surface/50 dark:bg-inverse-surface/20 backdrop-blur-xl border-r border-outline-variant/15 overflow-y-auto z-40">
-      <nav className="p-4 space-y-1" aria-label="Categorías">
-        {/* Título de navegación */}
-        <p className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-on-surface-variant/60">
-          {lang === 'es' ? 'Categorías' : 'Categories'}
-        </p>
+    <aside className="hidden md:flex flex-col w-64 fixed left-0 top-[58px] h-[calc(100vh-58px)] bg-surface border-r border-outline-variant overflow-y-auto z-40 font-mono">
+      <p className="px-3 pt-5 pb-3 text-[11px] font-bold tracking-wide text-on-surface-variant">
+        ~/categorías
+      </p>
 
+      <nav className="flex flex-col gap-px px-2" aria-label="Categorías">
         {categories.map((category) => {
           const isActive = category.slug === currentCategory;
-          const icon = getCategoryIcon(category.slug);
-
           return (
             <Link
               key={category.slug}
               href={`/${lang}/${category.slug}`}
               className={`
-                flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-150 group
+                flex items-center gap-2 px-2.5 py-1.5 rounded-sm text-[13px] transition-colors
                 ${
                   isActive
-                    ? 'text-primary font-bold bg-primary/5 border-r-2 border-primary translate-x-0.5'
-                    : 'text-on-surface-variant hover:text-primary hover:bg-surface-container dark:hover:bg-surface-container/20'
+                    ? 'bg-primary-container text-on-surface font-semibold'
+                    : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
                 }
               `}
               aria-current={isActive ? 'page' : undefined}
             >
-              <Icon
-                name={icon}
-                size="sm"
-                className={`flex-shrink-0 transition-transform group-hover:scale-110 ${isActive ? 'text-primary' : ''}`}
-              />
-              <span className="font-headline">{category.name}</span>
-              {category.article_count > 0 && (
-                <span className="ml-auto text-xs text-on-surface-variant/60 font-normal">
-                  {category.article_count}
-                </span>
-              )}
+              <span
+                className={`w-3 text-center flex-shrink-0 ${isActive ? 'text-primary' : 'text-on-surface-variant/60'}`}
+                aria-hidden="true"
+              >
+                {isActive ? '▸' : '·'}
+              </span>
+              <span className="lowercase">{category.slug}</span>
+              <span className="ml-auto text-[12px] text-on-surface-variant/60">
+                [{category.article_count}]
+              </span>
             </Link>
           );
         })}
       </nav>
 
-      {/* Footer del sidebar */}
-      <div className="mt-auto p-4 border-t border-outline-variant/15">
+      {/* Pie del sidebar */}
+      <div className="mt-auto px-2 pt-3 pb-5 border-t border-outline-variant">
         <Link
           href="/admin"
-          className="flex items-center gap-2 px-3 py-2 text-sm text-on-surface-variant hover:text-on-surface rounded-xl hover:bg-surface-container transition-colors"
+          className="flex items-center gap-2 px-2.5 py-1.5 rounded-sm text-[13px] text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors"
         >
-          <Icon name="admin_panel_settings" size="sm" />
-          <span>Admin</span>
+          <span aria-hidden="true">›</span>
+          <span>admin</span>
         </Link>
       </div>
     </aside>

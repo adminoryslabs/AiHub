@@ -1,80 +1,93 @@
 /* Importar fuentes de Google — deben ir antes de @tailwind */
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ──────────────────────────────────────────────────────────────────────────
+   Terminal Orys — sistema de diseño
+   Mono-first · navy profundo + cyan eléctrico · esquinas afiladas · sin sombras
+   ────────────────────────────────────────────────────────────────────────── */
+
 /* Variables CSS para el sistema de diseño (canales RGB para soporte de opacidad con Tailwind) */
 :root {
-  /* Primario */
-  --color-primary: 41 79 219;              /* #294fdb */
-  --color-primary-dim: 21 65 207;          /* #1541cf */
-  --color-primary-container: 221 225 255;  /* #dde1ff */
-  --color-primary-fixed-dim: 203 210 255;  /* #cbd2ff */
-  --color-on-primary: 249 247 255;         /* #f9f7ff */
+  /* Primario — cyan-teal oscurecido, legible sobre claro */
+  --color-primary: 14 116 144;              /* #0e7490 */
+  --color-primary-dim: 12 99 122;           /* #0c637a */
+  --color-primary-container: 215 238 245;   /* #d7eef5 */
+  --color-primary-fixed-dim: 12 99 122;     /* #0c637a */
+  --color-on-primary: 255 255 255;          /* #ffffff */
 
-  /* Superficies */
-  --color-surface: 247 249 255;            /* #f7f9ff */
-  --color-surface-container: 231 239 248;        /* #e7eff8 */
-  --color-surface-container-low: 239 244 252;    /* #eff4fc */
-  --color-surface-container-lowest: 255 255 255; /* #ffffff */
-  --color-surface-container-high: 223 233 245;   /* #dfe9f5 */
-  --color-surface-container-highest: 215 228 242; /* #d7e4f2 */
+  /* Superficies — papel claro frío */
+  --color-surface: 244 246 248;             /* #f4f6f8 */
+  --color-surface-container: 233 237 242;   /* #e9edf2 */
+  --color-surface-container-low: 244 246 248;     /* #f4f6f8 */
+  --color-surface-container-lowest: 253 253 255;  /* #fdfdff */
+  --color-surface-container-high: 224 230 237;    /* #e0e6ed */
+  --color-surface-container-highest: 215 223 232; /* #d7dfe8 */
 
-  /* Texto */
-  --color-on-surface: 40 52 62;            /* #28343e */
-  --color-on-surface-variant: 84 96 108;   /* #54606c */
+  /* Texto — navy casi negro */
+  --color-on-surface: 15 23 34;             /* #0f1722 */
+  --color-on-surface-variant: 77 87 101;    /* #4d5765 (contraste AA sobre claro) */
 
   /* Bordes */
-  --color-outline: 111 124 136;            /* #6f7c88 */
-  --color-outline-variant: 166 179 193;    /* #a6b3c1 */
+  --color-outline: 123 135 150;             /* #7b8796 */
+  --color-outline-variant: 211 218 227;     /* #d3dae3 */
 
   /* Error */
-  --color-error: 158 63 78;               /* #9e3f4e */
-  --color-error-container: 255 139 154;   /* #ff8b9a */
+  --color-error: 158 63 78;                 /* #9e3f4e */
+  --color-error-container: 255 139 154;     /* #ff8b9a */
 
-  /* Tipografía */
-  --font-headline: 'Manrope', sans-serif;
+  /* Bloque de código — terminal incrustada navy incluso en light */
+  --color-code-bg: 10 14 23;                /* #0a0e17 */
+  --color-code-fg: 133 147 168;            /* #8593a8 texto muted sobre navy */
+
+  /* Tipografía — mono-first: titulares y UI en JetBrains Mono */
+  --font-headline: 'JetBrains Mono', monospace;
   --font-body: 'Inter', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 }
 
-/* Overrides dark mode */
+/* Overrides dark mode — protagonista, fiel a OrysLabs: navy + cyan */
 .dark {
-  /* Primario */
-  --color-primary: 109 136 255;            /* #6d88ff */
-  --color-primary-dim: 90 120 255;         /* #5a78ff */
-  --color-primary-container: 30 51 128;    /* #1e3380 */
-  --color-primary-fixed-dim: 74 106 223;   /* #4a6adf */
-  --color-on-primary: 13 29 86;            /* #0d1d56 */
+  /* Primario — cyan Orys */
+  --color-primary: 34 211 238;              /* #22d3ee */
+  --color-primary-dim: 45 196 232;          /* #2dc4e8 */
+  --color-primary-container: 12 42 54;      /* #0c2a36 */
+  --color-primary-fixed-dim: 45 196 232;    /* #2dc4e8 */
+  --color-on-primary: 4 20 27;              /* #04141b */
 
-  /* Superficies */
-  --color-surface: 11 15 18;               /* #0b0f12 */
-  --color-surface-container: 19 27 34;           /* #131b22 */
-  --color-surface-container-low: 15 22 32;       /* #0f1620 */
-  --color-surface-container-lowest: 8 12 15;     /* #080c0f */
-  --color-surface-container-high: 26 37 48;      /* #1a2530 */
-  --color-surface-container-highest: 31 45 56;   /* #1f2d38 */
+  /* Superficies — navy profundo */
+  --color-surface: 10 14 23;                /* #0a0e17 */
+  --color-surface-container: 15 20 33;      /* #0f1421 */
+  --color-surface-container-low: 12 17 27;  /* #0c111b */
+  --color-surface-container-lowest: 7 10 18; /* #070a12 */
+  --color-surface-container-high: 20 27 42;  /* #141b2a */
+  --color-surface-container-highest: 26 34 52; /* #1a2234 */
 
   /* Texto */
-  --color-on-surface: 232 237 242;         /* #e8edf2 */
-  --color-on-surface-variant: 166 179 193; /* #a6b3c1 */
+  --color-on-surface: 232 236 244;          /* #e8ecf4 */
+  --color-on-surface-variant: 133 147 168;  /* #8593a8 */
 
   /* Bordes */
-  --color-outline: 136 153 166;            /* #8899a6 */
-  --color-outline-variant: 61 79 92;       /* #3d4f5c */
+  --color-outline: 133 147 168;             /* #8593a8 */
+  --color-outline-variant: 30 39 56;        /* #1e2738 */
 
   /* Error */
-  --color-error: 248 123 137;             /* #f87b89 */
-  --color-error-container: 92 26 38;      /* #5c1a26 */
+  --color-error: 248 123 137;               /* #f87b89 */
+  --color-error-container: 92 26 38;        /* #5c1a26 */
+
+  /* Bloque de código — lo más oscuro */
+  --color-code-bg: 7 10 18;                 /* #070a12 */
+  --color-code-fg: 133 147 168;            /* #8593a8 */
 }
 
 /* Offset de scroll para que la navbar fija no tape los títulos al navegar por anclas */
 :target,
 .prose :is(h1, h2, h3, h4) {
-  scroll-margin-top: 5.5rem; /* 88px: navbar (64px) + margen visual cómodo */
+  scroll-margin-top: 5rem; /* navbar (58px) + margen visual cómodo */
 }
 
 /* Estilos base */
@@ -98,15 +111,24 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1;
 }
 
-/* Efecto glass para navbar */
-.glass-nav {
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+/* Cursor parpadeante — bloque y underscore. Respeta prefers-reduced-motion. */
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.blink-cursor {
+  animation: blink 1.1s step-end infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .blink-cursor {
+    animation: none;
+  }
 }
 
 /* Scrollbar personalizada */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -115,14 +137,16 @@ h1, h2, h3, h4, h5, h6 {
 
 ::-webkit-scrollbar-thumb {
   background: rgb(var(--color-outline-variant));
-  border-radius: 3px;
+  border-radius: 2px;
 }
 
 /* ─── Bloques de código: Shiki dual-theme (light / dark) ──────────────────── */
 
 /*
-  Shiki con keepBackground:true inyecta los colores de fondo directamente en
-  el style="" del pre. Solo necesitamos forma, fuente y el toggle light/dark.
+  Terminal Orys: el bloque de código es una terminal incrustada navy en ambos
+  modos. Usamos los tokens del tema oscuro de Shiki (--shiki-dark) siempre,
+  sobre fondo --color-code-bg, para que el resaltado se lea sobre navy.
+  Mantenemos el pipeline Shiki / rehype-pretty-code: solo encajamos forma/color.
 */
 
 [data-rehype-pretty-code-figure] {
@@ -131,49 +155,42 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 [data-rehype-pretty-code-figure] pre {
-  border-radius: 0.75rem;
+  border-radius: 3px;
   overflow: auto;
   padding: 1.25rem 1.5rem;
   font-family: var(--font-mono) !important;
-  font-size: 0.875rem;
-  line-height: 1.75;
+  font-size: 0.8125rem;
+  line-height: 1.7;
   position: relative;
 }
 
-/* Tokens: mostrar colores del tema activo */
+/* Tokens: siempre colores del tema oscuro (legibles sobre navy) */
 [data-rehype-pretty-code-figure] code[data-theme*=' '] span {
-  color: var(--shiki-light);
-}
-.dark [data-rehype-pretty-code-figure] code[data-theme*=' '] span {
   color: var(--shiki-dark);
 }
 
-/* Pre: fondo según tema activo (override del inline style de Shiki) */
+/* Pre: fondo navy fijo en ambos modos + borde sutil */
 [data-rehype-pretty-code-figure] pre[data-theme*=' '] {
-  background-color: var(--shiki-light-bg) !important;
-  border: 1px solid rgb(0 0 0 / 6%);
+  background-color: rgb(var(--color-code-bg)) !important;
+  border: 1px solid rgb(var(--color-outline-variant));
 }
 .dark [data-rehype-pretty-code-figure] pre[data-theme*=' '] {
-  background-color: var(--shiki-dark-bg) !important;
-  border: 1px solid rgb(255 255 255 / 8%);
+  border: 1px solid rgb(var(--color-outline-variant));
 }
 
-/* Título del bloque (nombre de archivo o lenguaje) */
+/* Título del bloque (nombre de archivo o lenguaje) — barra sobre navy */
 [data-rehype-pretty-code-title] {
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  color: rgb(var(--color-on-surface-variant));
+  color: rgb(var(--color-code-fg));
   padding: 0.4rem 1.25rem;
-  border-bottom: 1px solid rgb(0 0 0 / 8%);
-  border-radius: 0.75rem 0.75rem 0 0;
-  background-color: rgb(0 0 0 / 4%);
-}
-.dark [data-rehype-pretty-code-title] {
-  border-bottom-color: rgb(255 255 255 / 8%);
-  background-color: rgb(255 255 255 / 4%);
+  border-bottom: 1px solid rgb(var(--color-outline-variant));
+  border-radius: 3px 3px 0 0;
+  background-color: rgb(var(--color-code-bg));
 }
 [data-rehype-pretty-code-title] + pre {
-  border-radius: 0 0 0.75rem 0.75rem;
+  border-radius: 0 0 3px 3px;
+  border-top: none;
 }
 
 /* Botón "Copiar" */
@@ -183,22 +200,17 @@ h1, h2, h3, h4, h5, h6 {
   right: 0.6rem;
   padding: 0.2rem 0.55rem;
   font-size: 0.7rem;
-  font-family: var(--font-body);
+  font-family: var(--font-mono);
   font-weight: 600;
   letter-spacing: 0.02em;
-  border-radius: 0.375rem;
+  border-radius: 2px;
   opacity: 0;
   transition: opacity 150ms;
   cursor: pointer;
-  background: rgb(0 0 0 / 28%);
-  color: #fff;
-  border: none;
+  background: rgb(255 255 255 / 10%);
+  color: #e8ecf4;
+  border: 1px solid rgb(var(--color-outline-variant));
   backdrop-filter: blur(4px);
-}
-.dark .code-copy-btn {
-  background: rgb(255 255 255 / 12%);
-  color: rgb(var(--color-on-surface));
-  border: 1px solid rgb(var(--color-outline-variant) / 0.25);
 }
 [data-rehype-pretty-code-figure] pre:hover .code-copy-btn {
   opacity: 1;
@@ -208,21 +220,21 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ─── Código inline ────────────────────────────────────────────────────────── */
-/* Estilos para código inline */
 code:not(pre code) {
   background-color: rgb(var(--color-surface-container));
   color: rgb(var(--color-primary));
-  padding: 0.125rem 0.375rem;
-  border-radius: 0.25rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 2px;
   font-family: var(--font-mono);
-  font-size: 0.875em;
+  font-size: 0.85em;
+  border: 1px solid rgb(var(--color-outline-variant));
 }
 
 /* Imágenes en artículos */
 .img-contained {
   max-width: 100%;
   height: auto;
-  border-radius: theme('borderRadius.xl');
+  border-radius: 4px;
   margin: 1.5rem auto;
   display: block;
 }
@@ -230,8 +242,20 @@ code:not(pre code) {
 .img-full {
   width: 100%;
   height: auto;
-  border-radius: theme('borderRadius.xl');
+  border-radius: 4px;
   margin: 1.5rem 0;
+}
+
+/* ─── Cuerpo de artículo: prefijos markdown en subtítulos (# / ##) ─────────── */
+.article-prose h2::before {
+  content: '# ';
+  color: rgb(var(--color-primary));
+  font-weight: 700;
+}
+.article-prose h3::before {
+  content: '## ';
+  color: rgb(var(--color-primary));
+  font-weight: 700;
 }
 
 /* Ocultar texto de accesibilidad */

@@ -30,22 +30,26 @@ const config: Config = {
         error: 'rgb(var(--color-error) / <alpha-value>)',
         'error-container': 'rgb(var(--color-error-container) / <alpha-value>)',
         // Tokens estáticos — usados explícitamente con prefijo dark: en los componentes
-        'inverse-surface': '#0b0f12',
-        'inverse-primary': '#6d88ff',
+        'inverse-surface': '#0a0e17',
+        'inverse-primary': '#22d3ee',
       },
-      // Bordes redondeados del sistema de diseño
+      // Bordes afilados — Terminal Orys (2–4px). `full` se deja en el default
+      // de Tailwind para no romper elementos circulares (spinners de carga).
       borderRadius: {
-        DEFAULT: '0.125rem',
-        lg: '0.25rem',
-        xl: '0.5rem',
-        full: '0.75rem',
+        DEFAULT: '2px',
+        sm: '2px',
+        md: '3px',
+        lg: '3px',
+        xl: '4px',
+        '2xl': '4px',
+        '3xl': '4px',
       },
-      // Fuentes tipográficas
+      // Fuentes tipográficas — mono-first: titulares y UI en JetBrains Mono
       fontFamily: {
-        headline: ['var(--font-manrope)', 'Manrope', 'sans-serif'],
-        body: ['var(--font-inter)', 'Inter', 'sans-serif'],
-        mono: ['var(--font-jetbrains-mono)', 'JetBrains Mono', 'monospace'],
-        label: ['var(--font-inter)', 'Inter', 'sans-serif'],
+        headline: ['JetBrains Mono', 'monospace'],
+        body: ['Inter', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+        label: ['Inter', 'sans-serif'],
       },
     },
   },

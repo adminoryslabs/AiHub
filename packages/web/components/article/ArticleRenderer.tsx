@@ -10,17 +10,18 @@ export function ArticleRenderer({ html, className = '' }: ArticleRendererProps) 
   return (
     <div
       className={`
-        prose prose-lg max-w-none dark:prose-invert
-        prose-headings:font-headline
-        prose-h1:text-5xl prose-h1:font-bold prose-h1:leading-tight
-        prose-h2:text-2xl prose-h2:font-bold prose-h2:mt-12 prose-h2:mb-4
-        prose-h3:text-xl prose-h3:font-bold
-        prose-p:text-on-surface prose-p:leading-relaxed
+        prose max-w-none dark:prose-invert font-body
+        prose-headings:font-mono prose-headings:font-bold
+        prose-h2:text-[23px] prose-h2:mt-10 prose-h2:mb-4
+        prose-h3:text-[18px] prose-h3:mt-7 prose-h3:mb-3
+        prose-p:text-[16.5px] prose-p:leading-[1.72] prose-p:text-on-surface
         prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+        prose-strong:text-on-surface prose-strong:font-semibold
         prose-img:rounded-xl prose-img:mx-auto
-        prose-blockquote:border-primary prose-blockquote:text-on-surface-variant
-        prose-pre:p-0 prose-pre:bg-transparent prose-pre:rounded-xl prose-pre:overflow-hidden
+        prose-blockquote:border-primary prose-blockquote:text-on-surface-variant prose-blockquote:not-italic
+        prose-pre:p-0 prose-pre:bg-transparent prose-pre:rounded-md prose-pre:overflow-hidden
         prose-code:before:content-none prose-code:after:content-none
+        prose-li:text-on-surface
         ${className}
       `}
       dangerouslySetInnerHTML={{ __html: html }}

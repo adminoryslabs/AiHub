@@ -15,9 +15,38 @@ export const CATEGORY_ICONS: Record<string, string> = {
   tools: 'construction',
 };
 
+// Descripciones localizadas por categoría (la API no devuelve descripción)
+export const CATEGORY_DESCRIPTIONS: Record<string, { es: string; en: string }> = {
+  fundamentals: {
+    es: 'Las bases: cómo funcionan los modelos y por qué.',
+    en: 'The basics: how models work and why.',
+  },
+  agents: {
+    es: 'Sistemas que razonan, usan herramientas y actúan.',
+    en: 'Systems that reason, use tools and act.',
+  },
+  prompting: {
+    es: 'Técnicas para comunicarte con modelos con efectividad.',
+    en: 'Techniques to communicate with models effectively.',
+  },
+  patterns: {
+    es: 'Arquitecturas recurrentes en sistemas de IA.',
+    en: 'Recurring architectures in AI systems.',
+  },
+  tools: {
+    es: 'El stack práctico: frameworks, SDKs y plataformas.',
+    en: 'The practical stack: frameworks, SDKs and platforms.',
+  },
+};
+
 // Obtener el ícono de una categoría (con fallback)
 export function getCategoryIcon(slug: string): string {
   return CATEGORY_ICONS[slug] || 'folder';
+}
+
+// Obtener la descripción localizada de una categoría (con fallback al nombre)
+export function getCategoryDescription(slug: string, lang: SupportedLang): string {
+  return CATEGORY_DESCRIPTIONS[slug]?.[lang] ?? '';
 }
 
 // Detectar idioma preferido del usuario desde el header Accept-Language

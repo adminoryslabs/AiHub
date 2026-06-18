@@ -34,7 +34,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded-xl hover:bg-surface-container text-on-surface-variant transition-colors"
+      className="p-1.5 rounded-md hover:bg-surface-container text-on-surface-variant transition-colors font-mono"
       aria-label={theme === 'light' ? 'Activar modo oscuro' : 'Activar modo claro'}
       title={theme === 'light' ? 'Modo oscuro' : 'Modo claro'}
     >

@@ -1,13 +1,13 @@
-// Homepage por idioma: categorías + artículos destacados
+// Homepage por idioma: hero terminal + destacados + categorías
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Navbar } from '@/components/layout/Navbar';
 import { SidebarLeft } from '@/components/layout/SidebarLeft';
 import { Footer } from '@/components/layout/Footer';
-import { Icon } from '@/components/ui/Icon';
+import { SearchBar } from '@/components/search/SearchBar';
 import { getCategories, getFeatured } from '@/lib/api-client';
-import { isValidLang, getCategoryIcon, type SupportedLang } from '@/lib/i18n';
+import { isValidLang, getCategoryDescription, type SupportedLang } from '@/lib/i18n';
 
 interface PageProps {
   params: Promise<{ lang: string }>;
@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: 'AI Hub',
       description: isEs
         ? 'Conocimiento práctico sobre IA generativa'
-        : 'Practical AI generative knowledge',
+        : 'Practical generative AI knowledge',
     },
   };
 }
@@ -55,6 +55,9 @@ export default async function HomePage({ params }: PageProps) {
     getFeatured(validLang, 6),
   ]);
 
+  const totalConcepts = categories.reduce((acc, c) => acc + c.article_count, 0);
+  const updatedMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+
   return (
     <>
       <Navbar lang={validLang} currentPath={`/${lang}`} />
@@ -62,87 +65,105 @@ export default async function HomePage({ params }: PageProps) {
 
       {/* Contenido principal */}
       <main className="pt-24 pb-16 md:pl-72 px-6 min-h-screen">
-        <div className="max-w-4xl mx-auto">
-
+        <div className="max-w-4xl mx-auto font-mono">
           {/* Hero */}
-          <section className="mb-16">
-            <h1 className="font-headline text-5xl font-extrabold text-on-surface leading-tight mb-4">
-              {isEs ? (
-                <>Tu referencia sobre<br /><span className="text-primary">IA generativa</span></>
-              ) : (
-                <>Your reference for<br /><span className="text-primary">Generative AI</span></>
-              )}
+          <section className="mb-12">
+            <p className="text-primary text-xs tracking-wide mb-4">
+              // {isEs ? 'REFERENCIA · IA GENERATIVA · CURADA' : 'REFERENCE · GENERATIVE AI · CURATED'}
+            </p>
+
+            <h1 className="font-mono font-bold text-[44px] sm:text-[46px] leading-[1.1] tracking-tight text-on-surface mb-4">
+              {isEs ? 'Tu referencia sobre' : 'Your reference for'}
+              <br />
+              <span className="text-primary">
+                {isEs ? 'IA generativa' : 'Generative AI'}
+              </span>
+              <span
+                className="blink-cursor inline-block w-5 h-[38px] bg-primary ml-2 align-middle"
+                aria-hidden="true"
+              />
             </h1>
-            <p className="text-lg text-on-surface-variant max-w-2xl">
+
+            <p className="font-body text-base leading-relaxed text-on-surface-variant max-w-2xl mb-6">
               {isEs
-                ? 'Conceptos, patrones y herramientas. Bilingüe, enciclopédico, orientado a developers.'
-                : 'Concepts, patterns and tools. Bilingual, encyclopedic, developer-oriented.'}
+                ? 'Conceptos, patrones y herramientas. Bilingüe, enciclopédico, orientado a developers. Sin humo, sin noticias — solo lo que necesitas para construir.'
+                : 'Concepts, patterns and tools. Bilingual, encyclopedic, developer-oriented. No fluff, no news — just what you need to build.'}
+            </p>
+
+            {/* Prompt de búsqueda grande */}
+            <div className="max-w-[580px]">
+              <SearchBar lang={validLang} variant="hero" />
+            </div>
+
+            <p className="text-[12.5px] text-on-surface-variant mt-4">
+              {totalConcepts} {isEs ? 'conceptos' : 'concepts'} · {categories.length}{' '}
+              {isEs ? 'categorías' : 'categories'} ·{' '}
+              <span className="text-primary">●</span> updated {updatedMonth}
             </p>
           </section>
 
-          {/* Categorías */}
-          <section className="mb-16">
-            <h2 className="font-headline text-2xl font-bold text-on-surface mb-6">
-              {isEs ? 'Explorar por categoría' : 'Explore by category'}
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {categories.map((category) => (
-                <Link
-                  key={category.slug}
-                  href={`/${lang}/${category.slug}`}
-                  className="group p-8 bg-surface-container-lowest dark:bg-surface-container border border-outline-variant/5 rounded-2xl hover:shadow-2xl hover:shadow-primary/5 hover:bg-white transition-all duration-200"
-                >
-                  <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
-                    <Icon name={getCategoryIcon(category.slug)} size="lg" />
-                  </div>
-                  <h3 className="font-headline font-bold text-on-surface mb-1">
-                    {category.name}
-                  </h3>
-                  <p className="text-sm text-on-surface-variant">
-                    {category.article_count > 0
-                      ? `${category.article_count} ${isEs ? 'artículos' : 'articles'}`
-                      : isEs ? 'Sin artículos aún' : 'No articles yet'}
-                  </p>
-                </Link>
-              ))}
-            </div>
-          </section>
-
-          {/* Artículos destacados */}
+          {/* Destacados */}
           {featured.length > 0 && (
-            <section>
-              <h2 className="font-headline text-2xl font-bold text-on-surface mb-6">
-                {isEs ? 'Conceptos destacados' : 'Featured concepts'}
-              </h2>
-              <div className="space-y-3 bg-surface-container-low p-1 rounded-2xl">
+            <section className="mb-12">
+              <p className="text-[13.5px] text-on-surface mb-4">
+                <span className="text-primary">$</span> hub ls --featured
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
                 {featured.map((article, index) => (
                   <Link
                     key={article.id}
                     href={`/${lang}/${article.category}/${article.localized_slug}`}
-                    className="group block bg-white dark:bg-surface-container p-6 rounded-xl hover:bg-primary-container/20 transition-colors"
+                    className="group flex flex-col p-5 border border-outline-variant bg-surface-container-lowest dark:bg-surface-container rounded-md hover:border-primary/50 transition-colors min-h-[184px]"
                   >
-                    <div className="flex items-center gap-4">
-                      <span className="text-2xl font-bold text-outline-variant w-8 flex-shrink-0">
-                        {String(index + 1).padStart(2, '0')}
+                    <div className="flex items-center justify-between mb-3.5">
+                      <span className="text-primary font-bold text-[13px]">
+                        FIG. {String(index + 1).padStart(2, '0')}
                       </span>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-headline font-semibold text-on-surface group-hover:text-primary transition-colors">
-                          {article.title}
-                        </h3>
-                        <p className="text-sm text-on-surface-variant mt-1 line-clamp-1">
-                          {article.summary}
-                        </p>
-                      </div>
-                      <Icon
-                        name="chevron_right"
-                        className="text-on-surface-variant flex-shrink-0 group-hover:translate-x-2 transition-transform"
-                      />
+                      <span className="text-[11px] text-on-surface-variant">{article.category}</span>
                     </div>
+                    <h3 className="font-mono font-bold text-[15px] leading-snug text-on-surface mb-2">
+                      {article.title}
+                    </h3>
+                    <p className="font-body text-[13px] leading-relaxed text-on-surface-variant">
+                      {article.summary}
+                    </p>
+                    <span className="mt-auto pt-3.5 text-[12.5px] text-primary group-hover:underline">
+                      {isEs ? 'read →' : 'read →'}
+                    </span>
                   </Link>
                 ))}
               </div>
             </section>
           )}
+
+          {/* Categorías */}
+          <section>
+            <p className="text-[13.5px] text-on-surface mb-4">
+              <span className="text-primary">$</span> hub ls {isEs ? 'categorías/' : 'categories/'}
+            </p>
+            <div className="border border-outline-variant bg-surface-container-lowest dark:bg-surface-container rounded-md overflow-hidden">
+              {categories.map((category) => (
+                <Link
+                  key={category.slug}
+                  href={`/${lang}/${category.slug}`}
+                  className="group flex items-center gap-4 px-4 py-3.5 border-b border-outline-variant last:border-b-0 hover:bg-surface-container transition-colors"
+                >
+                  <span className="text-primary text-[12px] w-10 flex-shrink-0">[dir]</span>
+                  <span className="font-mono font-bold text-[14px] text-on-surface w-[120px] flex-shrink-0 lowercase">
+                    {category.slug}
+                  </span>
+                  <span className="font-body text-[13px] text-on-surface-variant flex-1 min-w-0 truncate">
+                    {getCategoryDescription(category.slug, validLang) || category.name}
+                  </span>
+                  <span className="text-[12px] text-on-surface-variant flex-shrink-0">
+                    {category.article_count > 0
+                      ? `${category.article_count} ${isEs ? 'art.' : 'art.'}`
+                      : isEs ? 'Próximamente' : 'Coming soon'}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </section>
         </div>
       </main>
 

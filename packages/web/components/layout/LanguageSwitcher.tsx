@@ -1,4 +1,4 @@
-// Selector de idioma ES/EN estilo pill
+// Selector de idioma ES/EN — estilo terminal `[es]` / `en`
 'use client';
 
 import Link from 'next/link';
@@ -26,24 +26,15 @@ export function LanguageSwitcher({ currentLang, currentPath, alternateUrl }: Lan
   }
 
   return (
-    <div className="flex items-center bg-surface-container-low p-1 rounded-full border border-outline-variant/15">
-      {(['es', 'en'] as SupportedLang[]).map((lang) => (
-        <Link
-          key={lang}
-          href={lang === currentLang ? '#' : otherPath}
-          className={`
-            px-3 py-1 text-xs font-semibold rounded-full transition-all duration-150
-            ${
-              lang === currentLang
-                ? 'bg-white dark:bg-surface-container text-primary shadow-sm pointer-events-none'
-                : 'text-on-surface-variant hover:text-on-surface'
-            }
-          `}
-          aria-current={lang === currentLang ? 'true' : undefined}
-        >
-          {lang.toUpperCase()}
-        </Link>
-      ))}
+    <div className="flex items-center gap-2 font-mono text-[12.5px]">
+      <span className="text-primary font-bold">[{currentLang}]</span>
+      <Link
+        href={currentLang === otherLang ? '#' : otherPath}
+        className="text-on-surface-variant hover:text-on-surface transition-colors"
+        aria-current={currentLang === otherLang ? 'true' : undefined}
+      >
+        {otherLang}
+      </Link>
     </div>
   );
 }

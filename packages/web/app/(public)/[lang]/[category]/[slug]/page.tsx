@@ -1,4 +1,4 @@
-// Página de artículo completo con SSR
+// Página de artículo completo con SSR — estilo terminal
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -9,17 +9,33 @@ import { Footer } from '@/components/layout/Footer';
 import { ArticleRenderer } from '@/components/article/ArticleRenderer';
 import { MermaidLoader } from '@/components/article/MermaidLoader';
 import { CodeCopyEnhancer } from '@/components/article/CodeCopyEnhancer';
-import { Icon } from '@/components/ui/Icon';
 import { Badge } from '@/components/ui/Badge';
 import { getCategories, getArticle, ApiClientError } from '@/lib/api-client';
 import { markdownToHtml, extractToc } from '@/lib/markdown';
 import { isValidLang, type SupportedLang } from '@/lib/i18n';
+import type { Volatility } from '@ai-hub/shared';
 
 interface PageProps {
   params: Promise<{ lang: string; category: string; slug: string }>;
 }
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://aihub.example.com';
+
+// Etiqueta de volatilidad localizada
+function volatilityLabel(v: Volatility, isEs: boolean): string {
+  const map: Record<Volatility, { es: string; en: string }> = {
+    low: { es: 'estable', en: 'stable' },
+    medium: { es: 'cambiante', en: 'changing' },
+    high: { es: 'volátil', en: 'volatile' },
+  };
+  return map[v]?.[isEs ? 'es' : 'en'] ?? v;
+}
+
+// Estimación de tiempo de lectura (palabras / 200)
+function readingMinutes(body: string): number {
+  const words = body.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 200));
+}
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { lang, category, slug } = await params;
@@ -88,6 +104,8 @@ export default async function ArticlePage({ params }: PageProps) {
   const toc = extractToc(article.body);
 
   const currentPath = `/${lang}/${category}/${slug}`;
+  const readMin = readingMinutes(article.body);
+  const updatedMonth = article.last_edited_at?.slice(0, 7) ?? '—';
 
   return (
     <>
@@ -96,80 +114,63 @@ export default async function ArticlePage({ params }: PageProps) {
 
       <main className="pt-24 pb-16 md:pl-72 xl:pr-[320px] px-6 min-h-screen">
         <div className="max-w-4xl mx-auto">
-
           {/* Breadcrumb */}
-          <nav
-            className="flex items-center gap-2 text-sm text-on-surface-variant mb-8"
-            aria-label="Breadcrumb"
-          >
+          <nav className="font-mono text-[13px] text-on-surface-variant mb-6" aria-label="Breadcrumb">
+            <span className="text-primary">~</span>/{' '}
             <Link href={`/${lang}`} className="hover:text-primary transition-colors">
-              {isEs ? 'Inicio' : 'Home'}
-            </Link>
-            <Icon name="chevron_right" size="sm" />
-            <Link
-              href={`/${lang}/${category}`}
-              className="hover:text-primary transition-colors capitalize"
-            >
-              {categories.find((c) => c.slug === category)?.name || category}
-            </Link>
-            <Icon name="chevron_right" size="sm" />
-            <span className="text-on-surface truncate max-w-[200px]">{article.title}</span>
+              {isEs ? 'inicio' : 'home'}
+            </Link>{' '}/{' '}
+            <Link href={`/${lang}/${category}`} className="hover:text-primary transition-colors lowercase">
+              {category}
+            </Link>{' '}/{' '}
+            <span className="text-on-surface lowercase">{slug}</span>
           </nav>
 
           {/* Header del artículo */}
-          <header className="mb-12">
-            {/* Badges de metadata */}
+          <header className="mb-8 font-mono">
+            {/* Tags */}
             <div className="flex flex-wrap items-center gap-2 mb-4">
               <Badge variant={article.type === 'concept' ? 'primary' : 'outline'}>
                 {article.type === 'concept'
-                  ? isEs ? 'Concepto' : 'Concept'
-                  : isEs ? 'Herramienta' : 'Tool'}
+                  ? isEs ? 'concepto' : 'concept'
+                  : isEs ? 'herramienta' : 'tool'}
               </Badge>
-              <Badge variant="muted">{article.volatility}</Badge>
+              <Badge variant="outline">{volatilityLabel(article.volatility, isEs)}</Badge>
               {article.applicable_as_of && (
                 <Badge variant="outline">v{article.applicable_as_of}</Badge>
               )}
             </div>
 
-            <h1 className="font-headline text-4xl sm:text-5xl font-extrabold text-on-surface leading-tight mb-4">
+            <h1 className="font-mono font-bold text-[40px] leading-[1.12] tracking-tight text-on-surface mb-4">
               {article.title}
             </h1>
 
-            <p className="text-lg text-on-surface-variant leading-relaxed">
+            <p className="font-body text-lg leading-relaxed text-on-surface-variant mb-4">
               {article.summary}
             </p>
 
-            {/* Enlace al idioma alternativo */}
-            {article.alternate_lang && (
-              <div className="mt-4">
-                <Link
-                  href={article.alternate_lang.url}
-                  className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
-                >
-                  <Icon name="language" size="sm" />
-                  {isEs ? 'Read in English' : 'Leer en español'}
-                  <Icon name="arrow_forward" size="sm" />
-                </Link>
-              </div>
-            )}
+            <p className="text-[12.5px] text-on-surface-variant py-3 border-y border-outline-variant">
+              // {readMin} {isEs ? 'min de lectura' : 'min read'} ·{' '}
+              <span className="text-primary">●</span> updated {updatedMonth}
+            </p>
           </header>
 
           {/* Ramas (tool-branches) del concepto */}
           {article.tool_branches && article.tool_branches.length > 0 && (
-            <section className="mb-12 p-6 bg-surface-container-low rounded-2xl">
-              <h2 className="font-headline text-lg font-bold text-on-surface mb-4">
-                {isEs ? 'Implementaciones específicas' : 'Specific implementations'}
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <section className="mb-8 font-mono">
+              <p className="text-[12.5px] text-on-surface-variant mb-3">
+                // {isEs ? 'implementaciones' : 'implementations'}
+              </p>
+              <div className="border border-outline-variant bg-surface-container-lowest dark:bg-surface-container rounded-md overflow-hidden">
                 {article.tool_branches.map((branch) => (
                   <Link
                     key={branch.id}
                     href={`/${lang}/${branch.category}/${branch.localized_slug}`}
-                    className="flex items-center gap-3 p-3 bg-white dark:bg-surface-container rounded-xl hover:bg-primary-container/20 transition-colors group"
+                    className="group flex items-center gap-3 px-4 py-3 border-b border-outline-variant last:border-b-0 hover:bg-surface-container transition-colors"
                   >
-                    <Icon name="construction" size="sm" className="text-primary" />
-                    <span className="text-sm font-medium text-on-surface group-hover:text-primary transition-colors">
-                      {branch.title}
+                    <span className="text-primary">→</span>
+                    <span className="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors lowercase">
+                      {branch.localized_slug}
                     </span>
                   </Link>
                 ))}
@@ -177,20 +178,20 @@ export default async function ArticlePage({ params }: PageProps) {
             </section>
           )}
 
-          {/* Prerrequisitos */}
+          {/* Callout "antes de leer" */}
           {article.relations.prerequisite && article.relations.prerequisite.length > 0 && (
-            <div className="mb-8 p-4 border border-outline-variant/20 rounded-xl bg-surface-container-low">
-              <p className="text-sm font-semibold text-on-surface-variant mb-2">
-                {isEs ? 'Antes de leer este artículo:' : 'Before reading this article:'}
+            <div className="mb-8 p-4 border border-outline-variant bg-surface-container rounded-md font-mono">
+              <p className="text-xs font-bold text-on-surface-variant mb-2">
+                // {isEs ? 'antes de leer' : 'before reading'}
               </p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-x-4 gap-y-1">
                 {article.relations.prerequisite.map((rel) => (
                   <Link
                     key={rel.id}
                     href={`/${lang}/${rel.category}/${rel.localized_slug}`}
-                    className="text-sm text-primary hover:underline"
+                    className="text-[13.5px] text-primary hover:underline"
                   >
-                    {rel.title}
+                    → {rel.localized_slug}
                   </Link>
                 ))}
               </div>
@@ -198,25 +199,28 @@ export default async function ArticlePage({ params }: PageProps) {
           )}
 
           {/* Cuerpo del artículo */}
-          <ArticleRenderer html={bodyHtml} />
+          <ArticleRenderer html={bodyHtml} className="article-prose" />
           <MermaidLoader />
           <CodeCopyEnhancer />
 
           {/* Artículos relacionados */}
           {article.relations.related && article.relations.related.length > 0 && (
-            <section className="mt-16 pt-8 border-t border-outline-variant/20">
-              <h2 className="font-headline text-xl font-bold text-on-surface mb-4">
-                {isEs ? 'Artículos relacionados' : 'Related articles'}
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <section className="mt-12 pt-6 border-t border-outline-variant font-mono">
+              <p className="text-[12.5px] text-on-surface-variant mb-3">
+                // {isEs ? 'relacionados' : 'related'}
+              </p>
+              <div className="border border-outline-variant bg-surface-container-lowest dark:bg-surface-container rounded-md overflow-hidden">
                 {article.relations.related.map((rel) => (
                   <Link
                     key={rel.id}
                     href={`/${lang}/${rel.category}/${rel.localized_slug}`}
-                    className="p-4 bg-surface-container-low rounded-xl hover:bg-surface-container transition-colors"
+                    className="group flex items-center gap-3 px-4 py-3 border-b border-outline-variant last:border-b-0 hover:bg-surface-container transition-colors"
                   >
-                    <p className="font-semibold text-on-surface text-sm">{rel.title}</p>
-                    <p className="text-xs text-on-surface-variant mt-1">{rel.category}</p>
+                    <span className="text-primary">→</span>
+                    <span className="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors lowercase">
+                      {rel.localized_slug}
+                    </span>
+                    <span className="ml-auto text-[11px] text-on-surface-variant">{rel.category}</span>
                   </Link>
                 ))}
               </div>
@@ -225,24 +229,22 @@ export default async function ArticlePage({ params }: PageProps) {
 
           {/* Siguiente artículo */}
           {article.relations.next && article.relations.next.length > 0 && (
-            <div className="mt-8">
+            <div className="mt-8 font-mono">
               {article.relations.next.map((rel) => (
                 <Link
                   key={rel.id}
                   href={`/${lang}/${rel.category}/${rel.localized_slug}`}
-                  className="flex items-center justify-between p-6 bg-primary/5 border border-primary/20 rounded-2xl hover:bg-primary/10 transition-colors group"
+                  className="group flex items-center justify-between gap-4 px-5 py-5 border-t-2 border-outline bg-primary-container/40 hover:bg-primary-container/70 rounded-md transition-colors"
                 >
-                  <div>
-                    <p className="text-xs font-bold text-primary uppercase tracking-wide mb-1">
-                      {isEs ? 'Siguiente' : 'Next'}
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-bold tracking-wide text-primary mb-1">
+                      // {isEs ? 'siguiente' : 'next'}
                     </p>
-                    <p className="font-headline font-bold text-on-surface">{rel.title}</p>
+                    <p className="font-bold text-base text-on-surface lowercase truncate">
+                      {rel.localized_slug}
+                    </p>
                   </div>
-                  <Icon
-                    name="arrow_forward"
-                    className="text-primary group-hover:translate-x-1 transition-transform"
-                    size="lg"
-                  />
+                  <span className="text-xl text-primary flex-shrink-0">→</span>
                 </Link>
               ))}
             </div>

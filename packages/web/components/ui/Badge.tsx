@@ -1,4 +1,4 @@
-// Componente Badge para estados, categorías y tipos
+// Componente Badge para estados, categorías y tipos — estilo terminal `[etiqueta]`
 import { ReactNode } from 'react';
 
 type BadgeVariant = 'primary' | 'success' | 'warning' | 'error' | 'outline' | 'muted';
@@ -10,20 +10,20 @@ interface BadgeProps {
 }
 
 const VARIANT_CLASSES: Record<BadgeVariant, string> = {
-  primary: 'bg-primary/10 text-primary',
-  success: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  warning: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-  error: 'bg-error/10 text-error',
+  primary: 'bg-primary text-on-primary',
+  success: 'text-on-surface-variant',
+  warning: 'border border-outline-variant text-on-surface-variant',
+  error: 'border border-error/40 text-error',
   outline: 'border border-outline-variant text-on-surface-variant',
-  muted: 'bg-surface-container text-on-surface-variant',
+  muted: 'text-on-surface-variant',
 };
 
 export function Badge({ variant = 'primary', children, className = '' }: BadgeProps) {
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide ${VARIANT_CLASSES[variant]} ${className}`}
+      className={`inline-flex items-center font-mono text-[11px] tracking-wide rounded-sm ${VARIANT_CLASSES[variant]} ${className}`}
     >
-      {children}
+      [{children}]
     </span>
   );
 }
@@ -31,12 +31,12 @@ export function Badge({ variant = 'primary', children, className = '' }: BadgePr
 // Badge de estado de artículo
 export function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { variant: BadgeVariant; label: string }> = {
-    published: { variant: 'success', label: 'Publicado' },
-    in_review: { variant: 'warning', label: 'En revisión' },
-    draft: { variant: 'muted', label: 'Borrador' },
-    deprecated: { variant: 'error', label: 'Obsoleto' },
+    published: { variant: 'success', label: 'publicado' },
+    in_review: { variant: 'warning', label: 'en revisión' },
+    draft: { variant: 'muted', label: 'borrador' },
+    deprecated: { variant: 'error', label: 'obsoleto' },
   };
 
-  const { variant, label } = config[status] || { variant: 'muted', label: status };
+  const { variant, label } = config[status] || { variant: 'muted' as BadgeVariant, label: status };
   return <Badge variant={variant}>{label}</Badge>;
 }
