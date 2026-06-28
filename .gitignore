@@ -39,3 +39,4 @@ coverage/
 
 # Skills locales no versionados
 /.claude/skills/aihub-deploy/
+/.claude/commands/
