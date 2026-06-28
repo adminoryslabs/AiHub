@@ -55,18 +55,23 @@ conectar el MCP de AI Hub antes de continuar. No inventar el contenido del artí
    o para sugerir mejores fuentes cuando aplique.
 4. **Verificar afirmaciones técnicas y código.** Si hay código, razona si es funcional y actual. Marca
    errores conceptuales o ejemplos obsoletos (modelos, APIs, precios que cambiaron).
-5. **Producir el informe** (formato abajo): puntaje por dimensión + total + banda, y una lista
-   numerada de hallazgos accionables. Si el artículo está impecable, dilo claramente — no inventes
-   problemas para justificar cambios.
-6. **Esperar aprobación.** Presenta los cambios propuestos y pregunta cuáles aplicar. NO apliques nada
+5. **Detectar blockers** (ver "Compuerta de publicación"). Un blocker impide publicar sin importar el
+   score. Marcar cada hallazgo que sea blocker como tal.
+6. **Producir el informe** (formato abajo): puntaje por dimensión + total + banda, lista de blockers,
+   veredicto de publicación, y una lista numerada de hallazgos accionables. Si el artículo está
+   impecable, dilo claramente — no inventes problemas para justificar cambios.
+7. **Esperar aprobación.** Presenta los cambios propuestos y pregunta cuáles aplicar. NO apliques nada
    sin un "sí" explícito. El usuario puede aceptar todos, algunos, o ninguno.
-7. **Aplicar** los cambios aprobados:
+8. **Aplicar** los cambios aprobados:
    - Texto → `patch_article_content` (find & replace exacto). Solo usar `update_article_content`
      si reescribes un body entero o cambias slug/title/summary.
    - Metadatos → `update_article_metadata`.
    - Recursos → `add_resource` / `remove_resource`. Relaciones → `add_relation` / `remove_relation`.
-   - Solo si el usuario lo pide explícitamente: `verify_article` y/o `set_article_status`.
-8. **Confirmar** qué se aplicó y qué quedó pendiente.
+9. **Publicar (con compuerta).** Tras aplicar correcciones, **reevaluar score y blockers**. Solo si el
+   usuario lo pide explícitamente Y se cumple la compuerta (cero blockers Y score ≥ 85) usar
+   `verify_article` (ES + EN) y luego `set_article_status` → `published`. Si NO se cumple la compuerta,
+   no publicar: dejar el artículo en `in_review` y reportar qué blocker(s) lo impide(n).
+10. **Confirmar** qué se aplicó, el veredicto de publicación, y qué quedó pendiente.
 
 ## Rúbrica de puntaje (0–100)
 
@@ -99,6 +104,40 @@ Reglas de puntuación:
 - Justifica cada deducción con un hallazgo concreto en el informe. Un puntaje sin sustento no sirve.
 - No infles el puntaje por amabilidad. El valor del feedback está en su honestidad.
 
+## Compuerta de publicación (blockers)
+
+El score es una métrica de calidad; **no es la compuerta de publicación**. Un artículo solo puede
+publicarse si cumple **las dos condiciones**:
+
+1. **Cero blockers**, y
+2. **Score ≥ 85**.
+
+Si falla cualquiera, el artículo se queda en `in_review`, sin importar lo demás. Un score de 94 con un
+blocker NO se publica (caso real: una referencia fabricada con score alto).
+
+### Lista de blockers
+
+Un **blocker** impide publicar siempre, aunque el score sea alto. Marca cada hallazgo que sea blocker
+con la etiqueta `BLOCKER` en el informe.
+
+1. **Referencia no verificable o engañosa** — un recurso cuyo enlace da 404 / no resuelve, o cuyo
+   contenido no corresponde a su título (cita fabricada o mal atribuida). Validar siempre con fetch/web.
+2. **Error factual o técnico grave** — afirmación incorrecta, o código que no funciona / enseña algo mal.
+3. **Sección obligatoria ausente o vacía** según la estructura canónica del `type` (§2).
+4. **Falta un idioma** — contenido en ES o EN ausente o claramente incompleto (el hub es bilingüe).
+5. **Metadato que rompe integridad** — categoría inexistente; `type`/`parent_id` incoherente
+   (tool-branch sin padre, concept con padre); slug inválido o duplicado.
+6. **Enlace roto a otro artículo del hub** (§9).
+7. **Contenido plagiado o copiado sin atribución.**
+8. **`summary` > 160 caracteres** (rompe meta description y cards de SEO).
+
+Los blockers, cuando son resolubles, se corrigen igual que cualquier hallazgo (previa aprobación) y
+luego se reevalúa la compuerta. Si un blocker no se puede resolver en la sesión, el artículo no se
+publica y se deja constancia del motivo.
+
+> Nota: tener menos de 2 recursos por idioma, o un `tool-branch` sin `applicable_as_of`, **no** son
+> blockers — penalizan el score (dimensiones correspondientes), pero no impiden publicar por sí solos.
+
 ## Formato del informe
 
 Presenta el informe en este orden:
@@ -120,10 +159,15 @@ Estado: <status> · Tipo: <type> · Categoría: <category>
 
 **Foco de mejora:** <la dimensión más baja, en una frase para el autor>
 
+### Veredicto de publicación: <PUBLICABLE | BLOQUEADO>
+- Score ≥ 85: <sí/no, valor>
+- Blockers: <ninguno | lista de blockers, cada uno con su número de hallazgo>
+- <Si BLOQUEADO: qué falta para desbloquear>
+
 ### Hallazgos
 
 Para cada hallazgo:
-- **[#] <severidad: crítico | importante | menor> — <dimensión>**
+- **[#] <severidad: crítico | importante | menor> <`BLOCKER` si aplica> — <dimensión>**
   - **Dónde:** <idioma + sección, o "metadatos">
   - **Problema:** <qué está mal y por qué importa>
   - **Propuesta:** <cambio concreto; si es de texto, mostrar el reemplazo>
