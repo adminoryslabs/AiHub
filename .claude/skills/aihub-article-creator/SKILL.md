@@ -1,6 +1,6 @@
 ---
 name: aihub-article-creator
-description: Crea artículos bilingües importables para AI Hub. Use when the user asks to generate, draft, or prepare a new AI Hub article in Spanish and English.
+description: Crea artículos bilingües importables para AI Hub y, opcionalmente, los empuja al hub como borrador vía el MCP de AI Hub. Use when the user asks to generate, draft, or prepare a new AI Hub article in Spanish and English.
 ---
 
 # AI Hub Article Creator
@@ -10,6 +10,10 @@ description: Crea artículos bilingües importables para AI Hub. Use when the us
 Create production-ready bilingual article drafts for AI Hub that can be imported directly into the admin panel.
 
 The primary outcome is **files written to disk**, not Markdown pasted into chat.
+
+After the files exist, the skill can **optionally push the article to the hub as a `draft`** via the
+AI Hub MCP (see "Publicación al hub vía MCP"). Pushing is never automatic: requires explicit user
+confirmation. The article lands in `draft` and luego pasa por `aihub-article-reviewer` antes de publicar.
 
 The skill must create exactly three artifacts:
 
@@ -150,6 +154,33 @@ Default behavior:
 Do not paste full article bodies into chat unless the user explicitly asks for a preview instead of files.
 
 When editing files, preserve existing unrelated content. If replacing existing article files, ask for confirmation first unless the user explicitly requested overwrite/regeneration.
+
+## Publicación al hub vía MCP (opcional)
+
+Tras escribir los archivos, ofrecer empujar el artículo al hub. **Solo proceder con confirmación
+explícita del usuario.** Operar exclusivamente con las herramientas `mcp__aihub__*`; nunca leer
+credenciales ni archivos de configuración. Si el MCP no está conectado, avisar y omitir
+este paso (los archivos quedan igual de válidos para importación manual).
+
+Flujo de push:
+
+1. **Crear el artículo** con `create_article`, tomando los valores de `admin.md` (`slug_uk`, `type`,
+   `category`, `volatility`, `featured`) y el contenido de `es.md` / `en.md`. Pasar `content_es` y
+   `content_en` con `slug`, `title`, `summary` y `body`. **El `body` va sin frontmatter** (el
+   frontmatter es metadato, no cuerpo). Nace en `draft`. Guardar el `id` devuelto.
+   - Si `type: tool-branch`, resolver el `parent_id` real (buscar el slug del padre con
+     `list_articles` / `read_article`). Si no se encuentra el padre, no crear: avisar al usuario.
+2. **Relaciones:** por cada relación sugerida en `admin.md`, resolver el `slug_uk` destino a su `id`
+   (vía `list_articles`). Si existe, aplicarla con `add_relation`. Las marcadas como `planned` o que
+   no existan todavía **no se aplican**: reportarlas como pendientes.
+3. **Recursos:** por cada recurso sugerido, **validar antes de adjuntar** que la URL es real, vigente
+   y on-topic (usar búsqueda/fetch web). Solo si pasa la validación, crearlo y vincularlo con
+   `add_resource` en el idioma correspondiente. **Nunca adjuntar una referencia sin verificarla** — un
+   enlace inventado o que no corresponde al título destruye la credibilidad del hub.
+4. **Reportar:** `id` del artículo creado, relaciones y recursos aplicados, y lo que quedó pendiente
+   (relaciones `planned`, recursos que no se pudieron verificar).
+
+No cambiar el estado del artículo ni marcar verificado: eso es trabajo del reviewer / del usuario.
 
 ## File Formats
 
