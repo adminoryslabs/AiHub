@@ -12,6 +12,8 @@ interface SidebarLeftProps {
 }
 
 export function SidebarLeft({ lang, categories, currentCategory }: SidebarLeftProps) {
+  const isEs = lang === 'es';
+
   return (
     <aside className="hidden md:flex flex-col w-64 fixed left-0 top-[58px] h-[calc(100vh-58px)] bg-surface border-r border-outline-variant overflow-y-auto z-40 font-mono">
       <p className="px-3 pt-5 pb-3 text-[11px] font-bold tracking-wide text-on-surface-variant">
@@ -50,15 +52,29 @@ export function SidebarLeft({ lang, categories, currentCategory }: SidebarLeftPr
         })}
       </nav>
 
-      {/* Pie del sidebar */}
+      {/* Comunidad */}
       <div className="mt-auto px-2 pt-3 pb-5 border-t border-outline-variant">
-        <Link
-          href="/admin"
+        <p className="px-2.5 pb-1.5 text-[11px] text-on-surface-variant/60 lowercase">
+          // {isEs ? 'comunidad' : 'community'}
+        </p>
+        <a
+          href="https://discord.gg/xEEzEmaDf"
+          target="_blank"
+          rel="noopener noreferrer"
           className="flex items-center gap-2 px-2.5 py-1.5 rounded-sm text-[13px] text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors"
         >
           <span aria-hidden="true">›</span>
-          <span>admin</span>
-        </Link>
+          <span>discord</span>
+        </a>
+        <a
+          href="https://oryslabs.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 px-2.5 py-1.5 rounded-sm text-[13px] text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors"
+        >
+          <span aria-hidden="true">›</span>
+          <span>oryslabs</span>
+        </a>
       </div>
     </aside>
   );
