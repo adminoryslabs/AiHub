@@ -26,7 +26,6 @@ export interface ArticleDetail {
   id: string;
   slug_uk: string;
   type: string;
-  parent_id: string | null;
   category: string;
   domains: string[];
   status: string;
@@ -159,9 +158,10 @@ export class AiHubClient {
   /** Crea la cáscara de un artículo (nace en estado draft, sin contenido). */
   createArticle(input: {
     slug_uk: string;
-    type: 'concept' | 'tool-branch';
+    type: 'concept' | 'tutorial';
     category: string;
-    parent_id?: string | null;
+    difficulty?: 'beginner' | 'intermediate' | 'advanced' | null;
+    estimated_time?: string | null;
     domains?: string[];
     volatility?: 'low' | 'medium' | 'high';
     featured?: boolean;

@@ -45,11 +45,11 @@ server.registerTool(
   {
     title: 'Listar artículos',
     description:
-      'Lista artículos del AI Hub con filtros opcionales. status: draft | in_review | published | deprecated (omitir = todos). type: concept | tool-branch.',
+      'Lista artículos del AI Hub con filtros opcionales. status: draft | in_review | published | deprecated (omitir = todos). type: concept | tutorial.',
     inputSchema: {
       status: z.enum(['draft', 'in_review', 'published', 'deprecated']).optional(),
       category: z.string().optional(),
-      type: z.enum(['concept', 'tool-branch']).optional(),
+      type: z.enum(['concept', 'tutorial']).optional(),
       search: z.string().optional(),
       page: z.number().int().positive().optional(),
       per_page: z.number().int().positive().max(100).optional(),
@@ -104,16 +104,27 @@ server.registerTool(
     description:
       'Crea un artículo nuevo (nace en estado draft). Crea la cáscara con metadatos y, si se ' +
       'proveen, carga el contenido inicial en español (content_es) y/o inglés (content_en). ' +
-      'Reglas: type "tool-branch" requiere parent_id; type "concept" no admite parent_id. ' +
-      'La categoría debe existir. Devuelve el artículo completo creado.',
+      'Reglas: si type es "tutorial", difficulty y estimated_time son requeridos; type "concept" ' +
+      'no admite difficulty ni estimated_time. La categoría debe existir. Devuelve el artículo ' +
+      'completo creado.',
     inputSchema: {
       slug_uk: z
         .string()
         .regex(/^[a-z0-9-]+$/, 'Solo minúsculas, números y guiones')
         .describe('Clave única del artículo (neutral al idioma)'),
-      type: z.enum(['concept', 'tool-branch']),
+      type: z.enum(['concept', 'tutorial']),
       category: z.string().describe('Slug de una categoría existente'),
-      parent_id: z.string().uuid().nullable().optional().describe('Requerido para tool-branch'),
+      difficulty: z
+        .enum(['beginner', 'intermediate', 'advanced'])
+        .nullable()
+        .optional()
+        .describe('Requerido cuando type=tutorial'),
+      estimated_time: z
+        .string()
+        .max(50)
+        .nullable()
+        .optional()
+        .describe('Requerido cuando type=tutorial (texto libre, ej: "30 min")'),
       domains: z.array(z.string()).optional(),
       volatility: z.enum(['low', 'medium', 'high']).optional(),
       featured: z.boolean().optional(),
@@ -121,13 +132,14 @@ server.registerTool(
       content_en: initialContent.optional(),
     },
   },
-  async ({ slug_uk, type, category, parent_id, domains, volatility, featured, content_es, content_en }) => {
+  async ({ slug_uk, type, category, difficulty, estimated_time, domains, volatility, featured, content_es, content_en }) => {
     try {
       const created = await client.createArticle({
         slug_uk,
         type,
         category,
-        parent_id,
+        difficulty,
+        estimated_time,
         domains,
         volatility,
         featured,
