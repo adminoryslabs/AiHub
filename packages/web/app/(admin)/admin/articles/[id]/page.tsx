@@ -43,6 +43,8 @@ interface ArticleData {
   featured: boolean;
   volatility: string;
   applicable_as_of: string | null;
+  difficulty: string | null;
+  estimated_time: string | null;
   contents: ArticleContent[];
   relations: { related: string[]; prerequisite: string[]; next: string[] };
   resources: {
@@ -282,6 +284,8 @@ function MetadataTab({
     volatility: article.volatility,
     featured: article.featured,
     applicable_as_of: article.applicable_as_of || '',
+    difficulty: article.difficulty || '',
+    estimated_time: article.estimated_time || '',
   });
   const [saving, setSaving] = useState(false);
 
@@ -289,8 +293,12 @@ function MetadataTab({
     setSaving(true);
     try {
       await updateArticle(article.id, {
-        ...form,
+        category: form.category,
+        volatility: form.volatility,
+        featured: form.featured,
         applicable_as_of: form.applicable_as_of || null,
+        difficulty: form.difficulty || null,
+        estimated_time: form.estimated_time || null,
       });
       onSaved();
       onMessage('Metadatos guardados');
@@ -329,18 +337,41 @@ function MetadataTab({
         </select>
       </div>
 
-      {article.type === 'tool-branch' && (
-        <div>
-          <label className="block text-sm font-medium text-on-surface mb-1.5">Versión (applicable_as_of)</label>
-          <input
-            type="text"
-            value={form.applicable_as_of}
-            onChange={(e) => setForm({ ...form, applicable_as_of: e.target.value })}
-            placeholder="v2.1.0"
-            className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
-          />
-        </div>
-      )}
+      <div>
+        <label className="block text-sm font-medium text-on-surface mb-1.5">Versión (applicable_as_of)</label>
+        <input
+          type="text"
+          value={form.applicable_as_of}
+          onChange={(e) => setForm({ ...form, applicable_as_of: e.target.value })}
+          placeholder="v2.1.0"
+          className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-on-surface mb-1.5">Dificultad</label>
+        <select
+          value={form.difficulty}
+          onChange={(e) => setForm({ ...form, difficulty: e.target.value })}
+          className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+        >
+          <option value="">N/A (concepto)</option>
+          <option value="beginner">Principiante</option>
+          <option value="intermediate">Intermedio</option>
+          <option value="advanced">Avanzado</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-on-surface mb-1.5">Tiempo estimado</label>
+        <input
+          type="text"
+          value={form.estimated_time}
+          onChange={(e) => setForm({ ...form, estimated_time: e.target.value })}
+          placeholder="30 min"
+          className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+        />
+      </div>
 
       <div className="flex items-center gap-3">
         <input

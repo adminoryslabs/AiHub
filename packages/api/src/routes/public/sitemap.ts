@@ -25,6 +25,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       query = `
         SELECT
           a.id,
+          a.type,
           a.category,
           ac.lang,
           ac.slug,
@@ -39,6 +40,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       query = `
         SELECT
           a.id,
+          a.type,
           a.category,
           ac.lang,
           ac.slug,
@@ -72,18 +74,27 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       const enRow = langs.en;
 
       const generateUrl = (row: typeof result.rows[0]) => {
-        const loc = `${siteUrl}/${row.lang}/${row.category}/${row.slug}`;
+        // Construir URL según el tipo de artículo
+        const loc = row.type === 'tutorial'
+          ? `${siteUrl}/${row.lang}/${row.lang === 'es' ? 'tutoriales' : 'tutorials'}/${row.slug}`
+          : `${siteUrl}/${row.lang}/${row.category}/${row.slug}`;
         const lastmod = new Date(row.last_edited_at).toISOString();
 
         const alternates: string[] = [];
         if (esRow) {
+          const esUrl = esRow.type === 'tutorial'
+            ? `${siteUrl}/es/tutoriales/${esRow.slug}`
+            : `${siteUrl}/es/${esRow.category}/${esRow.slug}`;
           alternates.push(
-            `    <xhtml:link rel="alternate" hreflang="es" href="${siteUrl}/es/${esRow.category}/${esRow.slug}"/>`
+            `    <xhtml:link rel="alternate" hreflang="es" href="${esUrl}"/>`
           );
         }
         if (enRow) {
+          const enUrl = enRow.type === 'tutorial'
+            ? `${siteUrl}/en/tutorials/${enRow.slug}`
+            : `${siteUrl}/en/${enRow.category}/${enRow.slug}`;
           alternates.push(
-            `    <xhtml:link rel="alternate" hreflang="en" href="${siteUrl}/en/${enRow.category}/${enRow.slug}"/>`
+            `    <xhtml:link rel="alternate" hreflang="en" href="${enUrl}"/>`
           );
         }
 

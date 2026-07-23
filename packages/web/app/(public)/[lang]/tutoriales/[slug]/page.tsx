@@ -1,4 +1,4 @@
-// Página de artículo completo con SSR — estilo terminal
+// Página de detalle de tutorial con SSR — estilo terminal
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -6,54 +6,37 @@ import { Navbar } from '@/components/layout/Navbar';
 import { SidebarLeft } from '@/components/layout/SidebarLeft';
 import { SidebarRight } from '@/components/layout/SidebarRight';
 import { Footer } from '@/components/layout/Footer';
-import { ArticleRenderer } from '@/components/article/ArticleRenderer';
+import { TutorialRenderer } from '@/components/article/TutorialRenderer';
 import { MermaidLoader } from '@/components/article/MermaidLoader';
 import { CodeCopyEnhancer } from '@/components/article/CodeCopyEnhancer';
-import { Badge } from '@/components/ui/Badge';
-import { getCategories, getArticle, ApiClientError } from '@/lib/api-client';
+import { getCategories, getTutorial, ApiClientError } from '@/lib/api-client';
 import { markdownToHtml, extractToc } from '@/lib/markdown';
-import { isValidLang, type SupportedLang } from '@/lib/i18n';
-import type { Volatility } from '@ai-hub/shared';
+import { isValidLang, buildTutorialUrl, type SupportedLang } from '@/lib/i18n';
 
 interface PageProps {
-  params: Promise<{ lang: string; category: string; slug: string }>;
+  params: Promise<{ lang: string; slug: string }>;
 }
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://aihub.example.com';
 
-// Etiqueta de volatilidad localizada
-function volatilityLabel(v: Volatility, isEs: boolean): string {
-  const map: Record<Volatility, { es: string; en: string }> = {
-    low: { es: 'estable', en: 'stable' },
-    medium: { es: 'cambiante', en: 'changing' },
-    high: { es: 'volátil', en: 'volatile' },
-  };
-  return map[v]?.[isEs ? 'es' : 'en'] ?? v;
-}
-
-// Estimación de tiempo de lectura (palabras / 200)
-function readingMinutes(body: string): number {
-  const words = body.trim().split(/\s+/).filter(Boolean).length;
-  return Math.max(1, Math.round(words / 200));
-}
-
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { lang, category, slug } = await params;
+  const { lang, slug } = await params;
 
   if (!isValidLang(lang)) return {};
 
   const validLang = lang as SupportedLang;
 
   try {
-    const article = await getArticle(slug, validLang);
+    const article = await getTutorial(slug, validLang);
 
-    const canonical = `${SITE_URL}/${lang}/${category}/${slug}`;
+    const canonical = `${SITE_URL}${buildTutorialUrl(validLang, slug)}`;
     const alternateLangs: Record<string, string> = {
       [lang]: canonical,
     };
     if (article.alternate_lang) {
-      alternateLangs[article.alternate_lang.lang] =
-        `${SITE_URL}${article.alternate_lang.url}`;
+      const altLang = article.alternate_lang.lang as SupportedLang;
+      alternateLangs[altLang] =
+        `${SITE_URL}${buildTutorialUrl(altLang, article.alternate_lang.slug)}`;
     }
 
     return {
@@ -76,8 +59,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-export default async function ArticlePage({ params }: PageProps) {
-  const { lang, category, slug } = await params;
+export default async function TutorialPage({ params }: PageProps) {
+  const { lang, slug } = await params;
 
   if (!isValidLang(lang)) notFound();
 
@@ -89,7 +72,7 @@ export default async function ArticlePage({ params }: PageProps) {
 
   try {
     [article, categories] = await Promise.all([
-      getArticle(slug, validLang),
+      getTutorial(slug, validLang),
       getCategories(validLang),
     ]);
   } catch (err) {
@@ -103,14 +86,13 @@ export default async function ArticlePage({ params }: PageProps) {
   const bodyHtml = await markdownToHtml(article.body);
   const toc = extractToc(article.body);
 
-  const currentPath = `/${lang}/${category}/${slug}`;
-  const readMin = readingMinutes(article.body);
+  const currentPath = buildTutorialUrl(validLang, slug);
   const updatedMonth = article.last_edited_at?.slice(0, 7) ?? '—';
 
   return (
     <>
       <Navbar lang={validLang} currentPath={currentPath} alternateUrl={article.alternate_lang?.url} />
-      <SidebarLeft lang={validLang} categories={categories} currentCategory={category} />
+      <SidebarLeft lang={validLang} categories={categories} />
 
       <main className="pt-24 pb-16 md:pl-72 xl:pr-[320px] px-6 min-h-screen">
         <div className="max-w-4xl mx-auto">
@@ -120,25 +102,14 @@ export default async function ArticlePage({ params }: PageProps) {
             <Link href={`/${lang}`} className="hover:text-primary transition-colors">
               {isEs ? 'inicio' : 'home'}
             </Link>{' '}/{' '}
-            <Link href={`/${lang}/${category}`} className="hover:text-primary transition-colors lowercase">
-              {category}
+            <Link href={`/${lang}/tutoriales`} className="hover:text-primary transition-colors lowercase">
+              {isEs ? 'tutoriales' : 'tutorials'}
             </Link>{' '}/{' '}
             <span className="text-on-surface lowercase">{slug}</span>
           </nav>
 
-          {/* Header del artículo */}
+          {/* Header del tutorial */}
           <header className="mb-8 font-mono">
-            {/* Tags */}
-            <div className="flex flex-wrap items-center gap-2 mb-4">
-              <Badge variant="primary">
-                {isEs ? 'concepto' : 'concept'}
-              </Badge>
-              <Badge variant="outline">{volatilityLabel(article.volatility, isEs)}</Badge>
-              {article.applicable_as_of && (
-                <Badge variant="outline">v{article.applicable_as_of}</Badge>
-              )}
-            </div>
-
             <h1 className="font-mono font-bold text-[40px] leading-[1.12] tracking-tight text-on-surface mb-4">
               {article.title}
             </h1>
@@ -146,18 +117,13 @@ export default async function ArticlePage({ params }: PageProps) {
             <p className="font-body text-lg leading-relaxed text-on-surface-variant mb-4">
               {article.summary}
             </p>
-
-            <p className="text-[12.5px] text-on-surface-variant py-3 border-y border-outline-variant">
-              // {readMin} {isEs ? 'min de lectura' : 'min read'} ·{' '}
-              <span className="text-primary">●</span> updated {updatedMonth}
-            </p>
           </header>
 
-          {/* Callout "antes de leer" */}
+          {/* Callout "antes de leer" (prerrequisitos) */}
           {article.relations.prerequisite && article.relations.prerequisite.length > 0 && (
             <div className="mb-8 p-4 border border-outline-variant bg-surface-container rounded-md font-mono">
               <p className="text-xs font-bold text-on-surface-variant mb-2">
-                // {isEs ? 'antes de leer' : 'before reading'}
+                // {isEs ? 'prerrequisitos' : 'prerequisites'}
               </p>
               <div className="flex flex-wrap gap-x-4 gap-y-1">
                 {article.relations.prerequisite.map((rel) => (
@@ -173,8 +139,18 @@ export default async function ArticlePage({ params }: PageProps) {
             </div>
           )}
 
-          {/* Cuerpo del artículo */}
-          <ArticleRenderer html={bodyHtml} className="article-prose" />
+          {/* Cuerpo del tutorial con badges */}
+          <TutorialRenderer
+            title={article.title}
+            summary={article.summary}
+            difficulty={(article.difficulty || 'intermediate') as 'beginner' | 'intermediate' | 'advanced'}
+            estimatedTime={article.estimated_time || ''}
+            applicableAsOf={article.applicable_as_of}
+            html={bodyHtml}
+            updatedMonth={updatedMonth}
+            slug={slug}
+            lang={lang}
+          />
           <MermaidLoader />
           <CodeCopyEnhancer />
 

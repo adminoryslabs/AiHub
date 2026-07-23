@@ -4,15 +4,18 @@
 import Link from 'next/link';
 import type { Category } from '@ai-hub/shared';
 import type { SupportedLang } from '@/lib/i18n';
+import { DIFFICULTY_LABELS_ES, DIFFICULTY_LABELS_EN } from '@/lib/i18n';
 
 interface SidebarLeftProps {
   lang: SupportedLang;
   categories: Category[];
   currentCategory?: string;
+  currentTutorialDifficulty?: string;
 }
 
-export function SidebarLeft({ lang, categories, currentCategory }: SidebarLeftProps) {
+export function SidebarLeft({ lang, categories, currentCategory, currentTutorialDifficulty }: SidebarLeftProps) {
   const isEs = lang === 'es';
+  const difficultyLabels = isEs ? DIFFICULTY_LABELS_ES : DIFFICULTY_LABELS_EN;
 
   return (
     <aside className="hidden md:flex flex-col w-64 fixed left-0 top-[58px] h-[calc(100vh-58px)] bg-surface border-r border-outline-variant overflow-y-auto z-40 font-mono">
@@ -51,6 +54,36 @@ export function SidebarLeft({ lang, categories, currentCategory }: SidebarLeftPr
           );
         })}
       </nav>
+
+      {/* Sección Tutoriales */}
+      <div className="mt-3 pt-3 border-t border-outline-variant mx-2">
+        <p className="px-2.5 pb-1.5 text-[11px] font-bold tracking-wide text-on-surface-variant">
+          ~/{isEs ? 'tutoriales' : 'tutorials'}
+        </p>
+        {(['beginner', 'intermediate', 'advanced'] as const).map((d) => {
+          const isActive = currentTutorialDifficulty === d;
+          return (
+            <Link
+              key={d}
+              href={`/${lang}/tutoriales?difficulty=${d}`}
+              className={`
+                flex items-center gap-2 px-2.5 py-1.5 rounded-sm text-[12px] transition-colors
+                ${
+                  isActive
+                    ? 'bg-primary-container text-on-surface font-semibold'
+                    : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
+                }
+              `}
+              aria-current={isActive ? 'page' : undefined}
+            >
+              <span aria-hidden="true" className={`w-3 text-center flex-shrink-0 ${isActive ? 'text-primary' : 'text-on-surface-variant/60'}`}>
+                {isActive ? '▸' : '·'}
+              </span>
+              <span>{difficultyLabels[d]}</span>
+            </Link>
+          );
+        })}
+      </div>
 
       {/* Comunidad */}
       <div className="mt-auto px-2 pt-3 pb-5 border-t border-outline-variant">

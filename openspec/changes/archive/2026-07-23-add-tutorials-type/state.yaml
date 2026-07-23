@@ -1,0 +1,18 @@
+change: add-tutorials-type
+status: archived
+archived_at: 2026-07-23
+phases:
+  explore: completed
+  propose: completed
+  spec: completed
+  design: completed
+  tasks: completed
+  apply: completed
+  verify: pass_with_findings
+  archive: completed
+specs_created:
+  - article-type-system
+  - article-structure
+  - article-url-routing
+follow_up_issues:
+  - packages/mcp/ still references tool-branch and parent_id — MCP tools will return 400 against new API. Needs separate change to update MCP.

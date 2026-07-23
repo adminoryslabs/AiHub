@@ -12,6 +12,7 @@ import { setupMeilisearchIndex } from './services/meilisearch';
 // Rutas públicas
 import healthRouter from './routes/public/health';
 import articlesRouter from './routes/public/articles';
+import tutorialsRouter from './routes/public/tutorials';
 import categoriesRouter from './routes/public/categories';
 import featuredRouter from './routes/public/featured';
 import searchRouter from './routes/public/search';
@@ -63,6 +64,7 @@ export function createApp() {
   // Rutas públicas
   app.use('/api/v1/health', healthRouter);
   app.use('/api/v1/articles', articlesRouter);
+  app.use('/api/v1/tutorials', tutorialsRouter);
   app.use('/api/v1/categories', categoriesRouter);
   app.use('/api/v1/featured', featuredRouter);
   app.use('/api/v1/search', searchRouter);

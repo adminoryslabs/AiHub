@@ -1,4 +1,4 @@
-// Endpoints públicos de artículos: lista y detalle
+// Endpoints públicos de tutoriales: lista y detalle
 import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { getPool } from '../../services/db';
@@ -6,22 +6,20 @@ import { ValidationError, NotFoundError } from '../../middleware/error-handler';
 
 const router = Router();
 
-// Schema de validación para lista de artículos
+// Schema de validación para lista de tutoriales
 const ListQuerySchema = z.object({
   lang: z.enum(['es', 'en']),
-  category: z.string().optional(),
-  domain: z.string().optional(),
-  type: z.enum(['concept', 'tutorial']).optional(),
+  difficulty: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
   page: z.coerce.number().int().min(1).default(1),
   per_page: z.coerce.number().int().min(1).max(50).default(20),
 });
 
-// Schema de validación para detalle de artículo
+// Schema de validación para detalle de tutorial
 const DetailQuerySchema = z.object({
   lang: z.enum(['es', 'en']),
 });
 
-// GET /api/v1/articles — lista paginada de artículos publicados
+// GET /api/v1/tutorials — lista paginada de tutoriales publicados
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const parsed = ListQuerySchema.safeParse(req.query);
@@ -31,31 +29,26 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       );
     }
 
-    const { lang, category, domain, type, page, per_page } = parsed.data;
+    const { lang, difficulty, page, per_page } = parsed.data;
     const pool = getPool();
 
-    // Construir condiciones de filtro dinámicas
-    const conditions: string[] = ['a.status = \'published\'', 'ac.lang = $1'];
+    // Construir condiciones de filtro
+    const conditions: string[] = [
+      'a.status = \'published\'',
+      'a.type = \'tutorial\'',
+      'ac.lang = $1',
+    ];
     const params: unknown[] = [lang];
     let paramIndex = 2;
 
-    if (category) {
-      conditions.push(`a.category = $${paramIndex++}`);
-      params.push(category);
-    }
-    if (domain) {
-      conditions.push(`$${paramIndex++} = ANY(a.domains)`);
-      params.push(domain);
-    }
-    if (type) {
-      conditions.push(`a.type = $${paramIndex++}`);
-      params.push(type);
+    if (difficulty) {
+      conditions.push(`a.difficulty = $${paramIndex++}`);
+      params.push(difficulty);
     }
 
     const whereClause = conditions.join(' AND ');
     const offset = (page - 1) * per_page;
 
-    // Query principal
     const query = `
       SELECT
         a.id,
@@ -63,11 +56,10 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         ac.slug AS localized_slug,
         ac.title,
         ac.summary,
-        a.type,
+        a.difficulty,
+        a.estimated_time,
         a.category,
         a.domains,
-        a.volatility,
-        a.featured,
         ac.last_edited_at,
         ac.last_verified_at
       FROM articles a
@@ -78,7 +70,6 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     `;
     params.push(per_page, offset);
 
-    // Query de conteo total
     const countQuery = `
       SELECT COUNT(*)::int AS total
       FROM articles a
@@ -103,7 +94,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-// GET /api/v1/articles/:slug — detalle completo de un artículo publicado
+// GET /api/v1/tutorials/:slug — detalle de un tutorial publicado
 router.get('/:slug', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const parsed = DetailQuerySchema.safeParse(req.query);
@@ -115,7 +106,7 @@ router.get('/:slug', async (req: Request, res: Response, next: NextFunction) => 
     const { slug } = req.params;
     const pool = getPool();
 
-    // Buscar artículo por slug localizado
+    // Buscar tutorial por slug localizado (solo type = 'tutorial')
     const articleResult = await pool.query(
       `SELECT
         a.id,
@@ -135,12 +126,12 @@ router.get('/:slug', async (req: Request, res: Response, next: NextFunction) => 
         ac.last_verified_at
       FROM articles a
       JOIN article_contents ac ON ac.article_id = a.id AND ac.lang = $1
-      WHERE ac.slug = $2 AND a.status = 'published'`,
+      WHERE ac.slug = $2 AND a.type = 'tutorial' AND a.status = 'published'`,
       [lang, slug]
     );
 
     if (articleResult.rows.length === 0) {
-      throw new NotFoundError('Artículo no encontrado o no está publicado');
+      throw new NotFoundError('Tutorial no encontrado o no está publicado');
     }
 
     const article = articleResult.rows[0];
@@ -206,17 +197,10 @@ router.get('/:slug', async (req: Request, res: Response, next: NextFunction) => 
     let alternate_lang = null;
     if (alternateLangResult.rows.length > 0) {
       const alt = alternateLangResult.rows[0];
-      // Construir URL según el tipo de artículo
-      let altUrl: string;
-      if (article.type === 'tutorial') {
-        altUrl = `/${alt.lang}/${alt.lang === 'es' ? 'tutoriales' : 'tutorials'}/${alt.slug}`;
-      } else {
-        altUrl = `/${alt.lang}/${alt.category}/${alt.slug}`;
-      }
       alternate_lang = {
         lang: alt.lang,
         slug: alt.slug,
-        url: altUrl,
+        url: `/${alt.lang}/${alt.lang === 'es' ? 'tutoriales' : 'tutorials'}/${alt.slug}`,
       };
     }
 

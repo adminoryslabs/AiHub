@@ -3,38 +3,28 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createArticle, listAdminArticles } from '@/lib/admin-api-client';
+import { createArticle } from '@/lib/admin-api-client';
 import { getCategories } from '@/lib/api-client';
 import { Button } from '@/components/ui/Button';
 
 export default function NewArticlePage() {
   const router = useRouter();
   const [categories, setCategories] = useState<{ slug: string; name: string }[]>([]);
-  const [parentOptions, setParentOptions] = useState<{ id: string; slug_uk: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const [form, setForm] = useState({
     slug_uk: '',
-    type: 'concept' as 'concept' | 'tool-branch',
-    parent_id: '',
+    type: 'concept' as 'concept' | 'tutorial',
+    difficulty: '' as '' | 'beginner' | 'intermediate' | 'advanced',
+    estimated_time: '',
     category: '',
     volatility: 'low' as 'low' | 'medium' | 'high',
     featured: false,
   });
 
   useEffect(() => {
-    async function loadData() {
-      const [cats, articles] = await Promise.all([
-        getCategories('es'),
-        listAdminArticles({ type: 'concept', per_page: 100 }),
-      ]);
-      setCategories(cats);
-      setParentOptions(
-        (articles?.data as { id: string; slug_uk: string }[] || [])
-      );
-    }
-    loadData().catch(() => {});
+    getCategories('es').then(setCategories).catch(() => {});
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -43,10 +33,21 @@ export default function NewArticlePage() {
     setLoading(true);
 
     try {
-      const res = await createArticle({
-        ...form,
-        parent_id: form.type === 'tool-branch' ? form.parent_id || null : null,
-      });
+      const payload: Record<string, unknown> = {
+        slug_uk: form.slug_uk,
+        type: form.type,
+        category: form.category,
+        volatility: form.volatility,
+        featured: form.featured,
+      };
+
+      // Solo enviar difficulty y estimated_time si es tutorial
+      if (form.type === 'tutorial') {
+        payload.difficulty = form.difficulty || null;
+        payload.estimated_time = form.estimated_time || null;
+      }
+
+      const res = await createArticle(payload as Parameters<typeof createArticle>[0]);
       const created = (res?.data as { id: string })?.id;
       if (created) {
         router.push(`/admin/articles/${created}`);
@@ -94,11 +95,11 @@ export default function NewArticlePage() {
             </label>
             <select
               value={form.type}
-              onChange={(e) => setForm({ ...form, type: e.target.value as 'concept' | 'tool-branch' })}
+              onChange={(e) => setForm({ ...form, type: e.target.value as 'concept' | 'tutorial' })}
               className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
             >
               <option value="concept">Concepto</option>
-              <option value="tool-branch">Herramienta (tool-branch)</option>
+              <option value="tutorial">Tutorial</option>
             </select>
           </div>
 
@@ -120,24 +121,40 @@ export default function NewArticlePage() {
             </select>
           </div>
 
-          {/* Padre (solo tool-branch) */}
-          {form.type === 'tool-branch' && (
-            <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-on-surface mb-1.5">
-                Artículo padre <span className="text-error ml-1">*</span>
-              </label>
-              <select
-                value={form.parent_id}
-                onChange={(e) => setForm({ ...form, parent_id: e.target.value })}
-                required
-                className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
-              >
-                <option value="">Seleccionar concepto padre</option>
-                {parentOptions.map((art) => (
-                  <option key={art.id} value={art.id}>{art.slug_uk}</option>
-                ))}
-              </select>
-            </div>
+          {/* Campos condicionales para tutorial */}
+          {form.type === 'tutorial' && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-on-surface mb-1.5">
+                  Dificultad <span className="text-error ml-1">*</span>
+                </label>
+                <select
+                  value={form.difficulty}
+                  onChange={(e) => setForm({ ...form, difficulty: e.target.value as '' | 'beginner' | 'intermediate' | 'advanced' })}
+                  required
+                  className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+                >
+                  <option value="">Seleccionar</option>
+                  <option value="beginner">Principiante</option>
+                  <option value="intermediate">Intermedio</option>
+                  <option value="advanced">Avanzado</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-on-surface mb-1.5">
+                  Tiempo estimado <span className="text-error ml-1">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={form.estimated_time}
+                  onChange={(e) => setForm({ ...form, estimated_time: e.target.value })}
+                  required
+                  placeholder="30 min"
+                  className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+                />
+              </div>
+            </>
           )}
 
           {/* Volatilidad */}

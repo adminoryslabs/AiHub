@@ -26,6 +26,7 @@ export interface MeilisearchDocument {
   body: string;
   category: string;
   type: string;
+  difficulty?: string;
   status: string;
   domains: string[];
   last_edited_at: string;
@@ -38,7 +39,7 @@ export async function setupMeilisearchIndex(): Promise<void> {
 
   await index.updateSettings({
     searchableAttributes: ['title', 'summary', 'body'],
-    filterableAttributes: ['lang', 'category', 'type', 'status', 'domains'],
+    filterableAttributes: ['lang', 'category', 'type', 'difficulty', 'status', 'domains'],
     sortableAttributes: ['last_edited_at', 'title'],
     rankingRules: ['words', 'typo', 'proximity', 'attribute', 'sort', 'exactness'],
   });
@@ -82,6 +83,39 @@ export async function checkMeilisearchConnection(): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+// Reindexar todos los artículos publicados (post-migración o mantenimiento)
+export async function reindexAllArticles(pool: { query: (text: string, params?: unknown[]) => Promise<{ rows: Record<string, unknown>[] }> }): Promise<number> {
+  const result = await pool.query(`
+    SELECT
+      a.id, a.type, a.difficulty, a.category, a.domains, a.status,
+      ac.lang, ac.slug, ac.title, ac.summary, ac.body, ac.last_edited_at
+    FROM articles a
+    JOIN article_contents ac ON ac.article_id = a.id
+    WHERE a.status = 'published'
+  `);
+
+  let count = 0;
+  for (const row of result.rows) {
+    await upsertDocument({
+      document_id: `${row.id}--${row.lang}`,
+      article_id: row.id as string,
+      lang: row.lang as string,
+      slug: row.slug as string,
+      title: row.title as string,
+      summary: row.summary as string,
+      body: row.body as string,
+      category: row.category as string,
+      type: row.type as string,
+      difficulty: (row.difficulty as string) || undefined,
+      status: row.status as string,
+      domains: row.domains as string[],
+      last_edited_at: row.last_edited_at as string,
+    });
+    count++;
+  }
+  return count;
 }
 
 // Buscar artículos en Meilisearch

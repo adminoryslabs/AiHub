@@ -19,7 +19,7 @@ Para la visión completa, incluyendo capacidades futuras, ver `hub_vision.md`.
 ## 2. Objetivos del MVP
 
 - Publicar artículos estructurados de alta calidad sobre conceptos de IA generativa
-- Soportar la estructura en árbol: artículo principal (concepto) + ramas (implementaciones por herramienta)
+- Soportar artículos tipo concepto y tutorial con relaciones tipadas
 - Ser bilingüe desde el primer día: español neutral e inglés
 - Ofrecer navegación intuitiva entre conceptos relacionados
 - Curar y mostrar recursos externos de calidad por artículo
@@ -63,33 +63,32 @@ Nivel de entrada: alguien que ya programa, pero que no conoce el ecosistema de I
 
 ### 6.1 Artículos
 
-Cada artículo tiene estructura fija con las siguientes secciones:
+Cada artículo de tipo concepto tiene estructura fija con las siguientes secciones:
 
 | Sección | Notas |
 |--------|-------|
 | Qué es | Definición directa, sin jerga |
 | Modelo mental | La intuición detrás del concepto |
 | Cómo se usa | Práctico, con ejemplos |
-| Implementaciones por herramienta | Solo para artículos principales con ramas |
 | Cuándo usarlo / cuándo no | Criterio de decisión |
 | Conceptos relacionados | Links a otros artículos |
 | Recursos externos | Documentación, videos, cursos, artículos curados |
 | Historia y evolución | Colapsable, secundario |
 
-Las ramas tool-specific tienen su propia estructura:
+Los tutoriales tienen su propia estructura canónica:
 
 | Sección | Notas |
 |--------|-------|
-| Contexto | Cómo esta herramienta implementa el concepto padre |
-| Configuración / setup | Pasos concretos |
-| Ejemplos | Código real |
-| Particularidades | Diferencias o limitaciones |
-| Recursos oficiales | Docs, changelog de la herramienta |
-| Aplica para | Versión o fecha de validación |
+| Objetivo | Qué va a lograr el lector |
+| Prerrequisitos | Qué necesita saber o tener instalado |
+| Pasos | Numerados, con verificación por paso |
+| Resultado esperado | Criterio de éxito verificable |
+| Troubleshooting | Problemas comunes y soluciones (opcional) |
+| Siguiente paso | Link al siguiente tutorial o concepto (opcional) |
 
-### 6.2 Estructura en árbol
+### 6.2 Relaciones entre artículos
 
-El sistema soporta artículos padre e hijos. Un artículo principal puede tener N ramas tool-specific. Las ramas aparecen listadas en el artículo principal bajo "Implementaciones por herramienta".
+El sistema soporta relaciones tipadas entre artículos vía `article_relations` (tipos: `related`, `prerequisite`, `next`). Un tutorial puede declarar como `prerequisite` uno o más conceptos. No existe `parent_id`; todas las relaciones se gestionan exclusivamente mediante esta tabla.
 
 ### 6.3 Bilingüismo
 
@@ -122,11 +121,9 @@ Categorías principales:
 | **Agentes** | Agentes, tipos, memoria, tool use, ReAct, sub-agentes, skills, rules |
 | **Prompting** | Diseño de prompts, técnicas, patrones de instrucción |
 | **Patrones** | RAG, workflows, arquitecturas de sistema |
-| **Herramientas** | Claude Code, Cursor, MCP, OpenCode — directorio con ramas tool-specific |
+| **Herramientas** | Conceptos sobre herramientas concretas (Stitch, Warp, etc.) |
 
-Cada artículo pertenece a una categoría. Las ramas tool-specific pertenecen a la misma categoría que su artículo padre y también aparecen bajo "Herramientas".
-
-Conceptos como Skills y Rules/Guardrails viven como artículos dentro de Agentes. Sus implementaciones concretas por herramienta son ramas tool-specific bajo Herramientas.
+Cada artículo pertenece a una categoría. La sección Tutoriales no es una categoría — es un namespace transversal (`/es/tutoriales/`, `/en/tutorials/`).
 
 ### 6.6 Dominios
 
@@ -192,13 +189,14 @@ Lo que queda preparado para Fase 2:
 
 ### 6.10 Estructura de URLs
 
-Formato: `/{lang}/{category}/{slug}`
+Formato para conceptos: `/{lang}/{category}/{slug}`
+Formato para tutoriales: `/es/tutoriales/{slug}` y `/en/tutorials/{slug}`
 
 Ejemplos:
-- `/es/agentes/que-es-un-agente`
-- `/en/agents/what-is-an-agent`
-- `/es/herramientas/mcp-protocol`
-- `/en/tools/mcp-protocol`
+- `/es/fundamentos/que-es-un-llm`
+- `/en/fundamentals/what-is-an-llm`
+- `/es/tutoriales/claude-code-for-testing`
+- `/en/tutorials/claude-code-for-testing`
 
 El `slug` del artículo es único por idioma y vive en `ArticleContent`. El slug en inglés es el canónico para referencias internas. Las URLs con idioma en la ruta son obligatorias para SEO (hreflang entre versiones, indexación separada por idioma).
 
@@ -220,7 +218,7 @@ Funcionalidades del panel en el MVP:
 
 **Gestión de artículos**
 - Lista de artículos con estado, categoría e indicador de completitud por idioma
-- Importar artículo: subir archivo `.md` y asignar metadatos (categoría, tipo, artículo padre si es rama, dominio, volatilidad)
+- Importar artículo: subir archivo `.md` y asignar metadatos (categoría, tipo, dominio, volatilidad, dificultad y tiempo estimado si es tutorial)
 - Actualizar versión de un idioma: reimportar el `.md` para ES o EN de forma independiente
 - Cambiar estado: Borrador → Publicado → Deprecado
 - Marcar como verificado (actualiza `last_verified_at` sin crear nueva versión)
@@ -252,14 +250,15 @@ El panel de admin es accesible mediante login con email y contraseña. En el MVP
 ```
 id
 slug              -- slug canónico en inglés, usado para referencias internas
-type              -- "concept" | "tool-branch"
-parent_id         -- null si es concepto principal
+type              -- "concept" | "tutorial"
 category          -- "fundamentals" | "agents" | "prompting" | "patterns" | "tools"
+difficulty        -- null | "beginner" | "intermediate" | "advanced" (requerido para tutorial)
+estimated_time    -- null | string (ej: "30 min") (requerido para tutorial)
 domains           -- string[] ej. ["programming"]
 status            -- "draft" | "published" | "deprecated"
 featured          -- boolean, selección manual del admin para la homepage
 volatility        -- "low" | "medium" | "high"
-applicable_as_of  -- solo para ramas tool-specific (versión o fecha)
+applicable_as_of  -- opcional para cualquier type (versión o fecha)
 created_at
 ```
 

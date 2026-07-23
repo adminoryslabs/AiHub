@@ -95,3 +95,22 @@ export function isValidLang(lang: string): lang is SupportedLang {
 export function getAlternateLang(lang: SupportedLang): SupportedLang {
   return lang === 'es' ? 'en' : 'es';
 }
+
+// Construir URL de tutorial según el idioma
+export function buildTutorialUrl(lang: SupportedLang, slug: string): string {
+  const namespace = lang === 'es' ? 'tutoriales' : 'tutorials';
+  return `/${lang}/${namespace}/${slug}`;
+}
+
+// Labels de dificultad localizados
+export const DIFFICULTY_LABELS_ES: Record<string, string> = {
+  beginner: 'Principiante',
+  intermediate: 'Intermedio',
+  advanced: 'Avanzado',
+};
+
+export const DIFFICULTY_LABELS_EN: Record<string, string> = {
+  beginner: 'Beginner',
+  intermediate: 'Intermediate',
+  advanced: 'Advanced',
+};

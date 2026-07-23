@@ -122,10 +122,8 @@ export default async function CategoryPage({ params }: PageProps) {
                 >
                   <div className="flex items-center gap-2.5 mb-2">
                     <span className="text-primary">›</span>
-                    <Badge variant={article.type === 'concept' ? 'primary' : 'outline'}>
-                      {article.type === 'concept'
-                        ? isEs ? 'concepto' : 'concept'
-                        : isEs ? 'herramienta' : 'tool'}
+                    <Badge variant="primary">
+                      {isEs ? 'concepto' : 'concept'}
                     </Badge>
                     {article.featured && (
                       <Badge variant="success">★ {isEs ? 'destacado' : 'featured'}</Badge>

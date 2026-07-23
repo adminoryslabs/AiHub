@@ -1,5 +1,37 @@
 BEGIN;
 
+-- Asegurar que pgcrypto está disponible para gen_random_uuid().
+-- Si la extensión se instaló DESPUÉS de crear las tablas, los DEFAULTs de id
+-- se perdieron silenciosamente — por eso hacemos ALTER explícito abajo.
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Reponer DEFAULTs de id en tablas que se crearon sin pgcrypto.
+-- Idempotente: si ya tienen DEFAULT, no hace nada.
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'roles')
+     AND NOT EXISTS (
+       SELECT 1 FROM pg_attrdef
+       JOIN pg_attribute ON pg_attribute.attrelid = pg_attrdef.adrelid
+                          AND pg_attribute.attname = 'id'
+       WHERE pg_attrdef.adrelid = 'roles'::regclass
+         AND pg_get_expr(pg_attrdef.adbin, pg_attrdef.adrelid) LIKE '%gen_random_uuid%'
+     ) THEN
+    ALTER TABLE roles ALTER COLUMN id SET DEFAULT gen_random_uuid();
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'users')
+     AND NOT EXISTS (
+       SELECT 1 FROM pg_attrdef
+       JOIN pg_attribute ON pg_attribute.attrelid = pg_attrdef.adrelid
+                          AND pg_attribute.attname = 'id'
+       WHERE pg_attrdef.adrelid = 'users'::regclass
+         AND pg_get_expr(pg_attrdef.adbin, pg_attrdef.adrelid) LIKE '%gen_random_uuid%'
+     ) THEN
+    ALTER TABLE users ALTER COLUMN id SET DEFAULT gen_random_uuid();
+  END IF;
+END $$;
+
 CREATE TABLE IF NOT EXISTS roles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   slug VARCHAR(50) NOT NULL UNIQUE,

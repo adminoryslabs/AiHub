@@ -17,7 +17,7 @@ const router = Router();
 const ListQuerySchema = z.object({
   status: z.enum(['draft', 'in_review', 'published', 'deprecated']).optional(),
   category: z.string().optional(),
-  type: z.enum(['concept', 'tool-branch']).optional(),
+  type: z.enum(['concept', 'tutorial']).optional(),
   search: z.string().optional(),
   page: z.coerce.number().int().min(1).default(1),
   per_page: z.coerce.number().int().min(1).max(100).default(20),
@@ -29,8 +29,9 @@ const CreateArticleSchema = z.object({
     .min(1)
     .max(200)
     .regex(/^[a-z0-9-]+$/, 'Solo letras minúsculas, números y guiones'),
-  type: z.enum(['concept', 'tool-branch']),
-  parent_id: z.string().uuid().nullable().optional(),
+  type: z.enum(['concept', 'tutorial']),
+  difficulty: z.enum(['beginner', 'intermediate', 'advanced']).nullable().optional(),
+  estimated_time: z.string().max(50).nullable().optional(),
   category: z.string().min(1),
   domains: z.array(z.string()).default(['programming']),
   volatility: z.enum(['low', 'medium', 'high']).default('low'),
@@ -43,6 +44,8 @@ const UpdateArticleSchema = z.object({
   featured: z.boolean().optional(),
   domains: z.array(z.string()).optional(),
   applicable_as_of: z.string().nullable().optional(),
+  difficulty: z.enum(['beginner', 'intermediate', 'advanced']).nullable().optional(),
+  estimated_time: z.string().max(50).nullable().optional(),
 });
 
 const ContentSchema = z.object({
@@ -159,13 +162,9 @@ router.get(
         a.featured,
         a.volatility,
         a.domains,
+        a.difficulty,
         a.created_at,
-        a.updated_at,
-        (
-          SELECT COUNT(*)::int
-          FROM articles child
-          WHERE child.parent_id = a.id
-        ) AS children_count
+        a.updated_at
       FROM articles a
       ${whereClause}
       ORDER BY a.updated_at DESC
@@ -264,7 +263,7 @@ router.post('/', requirePermission('article.create'), async (req: Request, res: 
       );
     }
 
-    const { slug_uk, type, parent_id, category, domains, volatility, featured } = parsed.data;
+    const { slug_uk, type, difficulty, estimated_time, category, domains, volatility, featured } = parsed.data;
     const pool = getPool();
 
     // Validar que category existe
@@ -274,16 +273,20 @@ router.post('/', requirePermission('article.create'), async (req: Request, res: 
     }
 
     // Validar reglas de tipo
-    if (type === 'tool-branch' && !parent_id) {
-      throw new ValidationError('parent_id es requerido para artículos de tipo tool-branch');
+    if (type === 'tutorial') {
+      if (!difficulty) {
+        throw new ValidationError('difficulty es requerido para artículos de tipo tutorial');
+      }
+      if (!estimated_time) {
+        throw new ValidationError('estimated_time es requerido para artículos de tipo tutorial');
+      }
     }
-    if (type === 'concept' && parent_id) {
-      throw new ValidationError('Los artículos de tipo concept no pueden tener parent_id');
-    }
-    if (parent_id) {
-      const parentResult = await pool.query('SELECT id FROM articles WHERE id = $1', [parent_id]);
-      if (parentResult.rows.length === 0) {
-        throw new ValidationError('El artículo padre no existe');
+    if (type === 'concept') {
+      if (difficulty) {
+        throw new ValidationError('Los artículos de tipo concept no pueden tener difficulty');
+      }
+      if (estimated_time) {
+        throw new ValidationError('Los artículos de tipo concept no pueden tener estimated_time');
       }
     }
 
@@ -294,10 +297,10 @@ router.post('/', requirePermission('article.create'), async (req: Request, res: 
     }
 
     const result = await pool.query(
-      `INSERT INTO articles (slug_uk, type, parent_id, category, domains, volatility, featured, created_by, updated_by)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $8)
+      `INSERT INTO articles (slug_uk, type, difficulty, estimated_time, category, domains, volatility, featured, created_by, updated_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9)
        RETURNING id, slug_uk, type, category, status, created_at`,
-      [slug_uk, type, parent_id || null, category, domains, volatility, featured, req.authUser?.id]
+      [slug_uk, type, difficulty || null, estimated_time || null, category, domains, volatility, featured, req.authUser?.id]
     );
 
     res.status(201).json({ data: result.rows[0] });
@@ -316,8 +319,8 @@ router.get(
     const pool = getPool();
 
     const articleResult = await pool.query(
-      `SELECT id, slug_uk, type, parent_id, category, domains, status, featured, volatility,
-              applicable_as_of, created_at, updated_at
+      `SELECT id, slug_uk, type, category, domains, status, featured, volatility,
+              applicable_as_of, difficulty, estimated_time, created_at, updated_at
        FROM articles WHERE id = $1`,
       [id]
     );
@@ -366,28 +369,12 @@ router.get(
       }
     }
 
-    // Obtener artículos hijos
-    const childrenResult = await pool.query(
-      `SELECT
-        a.id,
-        a.slug_uk,
-        a.status,
-        MAX(CASE WHEN ac.lang = 'es' THEN ac.title END) AS title_es,
-        MAX(CASE WHEN ac.lang = 'en' THEN ac.title END) AS title_en
-      FROM articles a
-      LEFT JOIN article_contents ac ON ac.article_id = a.id
-      WHERE a.parent_id = $1
-      GROUP BY a.id, a.slug_uk, a.status`,
-      [id]
-    );
-
     res.json({
       data: {
         ...article,
         contents: contentsResult.rows,
         relations,
         resources,
-        children: childrenResult.rows,
       },
     });
   } catch (err) {
@@ -445,6 +432,14 @@ router.put('/:id', requirePermission('article.edit'), async (req: Request, res: 
       setClauses.push(`applicable_as_of = $${paramIndex++}`);
       params.push(updates.applicable_as_of);
     }
+    if (updates.difficulty !== undefined) {
+      setClauses.push(`difficulty = $${paramIndex++}`);
+      params.push(updates.difficulty);
+    }
+    if (updates.estimated_time !== undefined) {
+      setClauses.push(`estimated_time = $${paramIndex++}`);
+      params.push(updates.estimated_time);
+    }
 
     if (setClauses.length === 0) {
       throw new ValidationError('No se proporcionaron campos para actualizar');
@@ -481,7 +476,7 @@ router.post('/:id/content', requirePermission('article.edit'), async (req: Reque
 
     // Verificar que el artículo existe
     const articleResult = await pool.query(
-      'SELECT id, category, type, status, domains FROM articles WHERE id = $1',
+      'SELECT id, category, type, difficulty, status, domains FROM articles WHERE id = $1',
       [id]
     );
     if (articleResult.rows.length === 0) {
@@ -518,6 +513,7 @@ router.post('/:id/content', requirePermission('article.edit'), async (req: Reque
       body,
       category: article.category,
       type: article.type,
+      difficulty: article.difficulty || undefined,
       status: article.status,
       domains: article.domains,
       last_edited_at: result.rows[0].last_edited_at,

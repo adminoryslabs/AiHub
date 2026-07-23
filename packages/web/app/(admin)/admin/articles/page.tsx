@@ -16,8 +16,8 @@ interface ArticleItem {
   category: string;
   status: string;
   featured: boolean;
+  difficulty: string | null;
   updated_at: string;
-  children_count: number;
   content_status: {
     es?: { title: string; has_body: boolean; last_verified_at: string | null; last_edited_at: string };
     en?: { title: string; has_body: boolean; last_verified_at: string | null; last_edited_at: string };
@@ -149,7 +149,7 @@ export default function ArticlesListPage() {
         >
           <option value="">Todos los tipos</option>
           <option value="concept">Concepto</option>
-          <option value="tool-branch">Herramienta</option>
+          <option value="tutorial">Tutorial</option>
         </select>
       </div>
 
@@ -166,6 +166,7 @@ export default function ArticlesListPage() {
                 <th className="text-left p-4 font-semibold text-on-surface-variant">Título</th>
                 <th className="text-left p-4 font-semibold text-on-surface-variant hidden lg:table-cell">Categoría</th>
                 <th className="text-left p-4 font-semibold text-on-surface-variant hidden md:table-cell">Estado</th>
+                <th className="text-left p-4 font-semibold text-on-surface-variant hidden lg:table-cell">Dificultad</th>
                 <th className="text-center p-4 font-semibold text-on-surface-variant">ES</th>
                 <th className="text-center p-4 font-semibold text-on-surface-variant">EN</th>
                 <th className="text-right p-4 font-semibold text-on-surface-variant">Acciones</th>
@@ -183,8 +184,8 @@ export default function ArticlesListPage() {
                         {getTitle(article)}
                       </Link>
                       <div className="flex items-center gap-1 mt-1">
-                        <Badge variant={article.type === 'concept' ? 'primary' : 'outline'}>
-                          {article.type === 'concept' ? 'concepto' : 'tool'}
+                        <Badge variant={article.type === 'concept' ? 'primary' : 'success'}>
+                          {article.type === 'concept' ? 'concepto' : 'tutorial'}
                         </Badge>
                         {article.featured && <Badge variant="success">destacado</Badge>}
                       </div>
@@ -195,6 +196,9 @@ export default function ArticlesListPage() {
                   </td>
                   <td className="p-4 hidden md:table-cell">
                     <StatusBadge status={article.status} />
+                  </td>
+                  <td className="p-4 text-on-surface-variant hidden lg:table-cell">
+                    {article.difficulty || '—'}
                   </td>
                   <td className="p-4 text-center">{getContentIndicator(article.content_status?.es)}</td>
                   <td className="p-4 text-center">{getContentIndicator(article.content_status?.en)}</td>

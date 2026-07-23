@@ -94,6 +94,31 @@ export interface SearchResponse {
   };
 }
 
+// Interfaces para tutoriales
+export interface TutorialListItem {
+  id: string;
+  slug: string;
+  localized_slug: string;
+  title: string;
+  summary: string;
+  difficulty: string;
+  estimated_time: string;
+  category: string;
+  domains: string[];
+  last_edited_at: string;
+  last_verified_at: string | null;
+}
+
+export interface TutorialsResponse {
+  data: TutorialListItem[];
+  pagination: {
+    page: number;
+    per_page: number;
+    total: number;
+    total_pages: number;
+  };
+}
+
 // Obtener categorías
 export async function getCategories(lang: 'es' | 'en'): Promise<Category[]> {
   const res = await apiFetch<CategoriesResponse>(`/api/v1/categories?lang=${lang}`);
@@ -142,5 +167,27 @@ export async function searchArticles(params: {
     // La búsqueda no se cachea
     next: { revalidate: 0 },
   } as RequestInit);
+  return res.data;
+}
+
+// Obtener lista de tutoriales
+export async function getTutorials(params: {
+  lang: 'es' | 'en';
+  difficulty?: string;
+  page?: number;
+  per_page?: number;
+}): Promise<TutorialsResponse> {
+  const query = new URLSearchParams({
+    lang: params.lang,
+    ...(params.difficulty && { difficulty: params.difficulty }),
+    ...(params.page && { page: String(params.page) }),
+    ...(params.per_page && { per_page: String(params.per_page) }),
+  });
+  return apiFetch<TutorialsResponse>(`/api/v1/tutorials?${query}`);
+}
+
+// Obtener tutorial por slug
+export async function getTutorial(slug: string, lang: 'es' | 'en'): Promise<Article> {
+  const res = await apiFetch<ArticleResponse>(`/api/v1/tutorials/${slug}?lang=${lang}`);
   return res.data;
 }

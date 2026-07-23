@@ -139,6 +139,16 @@ beforeAll(async () => {
         NULL;
       END;
       BEGIN
+        ALTER TABLE articles ADD COLUMN difficulty VARCHAR(15);
+      EXCEPTION WHEN duplicate_column THEN
+        NULL;
+      END;
+      BEGIN
+        ALTER TABLE articles ADD COLUMN estimated_time VARCHAR(50);
+      EXCEPTION WHEN duplicate_column THEN
+        NULL;
+      END;
+      BEGIN
         ALTER TABLE article_contents ADD COLUMN last_edited_by UUID NULL;
       EXCEPTION WHEN duplicate_column THEN
         NULL;
@@ -288,7 +298,6 @@ describe('GET /api/v1/articles', () => {
       expect(article).toHaveProperty('id');
       expect(article).toHaveProperty('slug');
       expect(article).toHaveProperty('title');
-      expect(article).toHaveProperty('children_count');
     }
   });
 

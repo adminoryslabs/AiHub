@@ -1,6 +1,6 @@
 // Tipos de artículos compartidos entre API y Web
 
-export type ArticleType = 'concept' | 'tool-branch';
+export type ArticleType = 'concept' | 'tutorial';
 export type ArticleStatus = 'draft' | 'in_review' | 'published' | 'deprecated';
 export type Volatility = 'low' | 'medium' | 'high';
 export type Lang = 'es' | 'en';
@@ -30,7 +30,6 @@ export interface ArticleListItem {
   featured: boolean;
   last_edited_at: string;
   last_verified_at: string | null;
-  children_count: number;
 }
 
 // Recurso externo
@@ -75,10 +74,10 @@ export interface Article {
   domains: string[];
   volatility: Volatility;
   applicable_as_of: string | null;
+  difficulty: string | null;
+  estimated_time: string | null;
   last_edited_at: string;
   last_verified_at: string | null;
-  tool_branches: ArticleRef[];
-  parent: ArticleRef | null;
   relations: ArticleRelations;
   resources: Resource[];
   alternate_lang: AlternateLang | null;
@@ -119,7 +118,6 @@ export interface AdminArticleListItem {
     es?: ContentStatus;
     en?: ContentStatus;
   };
-  children_count: number;
 }
 
 // Artículo completo en admin (para edición)
@@ -127,13 +125,14 @@ export interface AdminArticle {
   id: string;
   slug_uk: string;
   type: ArticleType;
-  parent_id: string | null;
   category: string;
   domains: string[];
   status: ArticleStatus;
   featured: boolean;
   volatility: Volatility;
   applicable_as_of: string | null;
+  difficulty: string | null;
+  estimated_time: string | null;
   created_at: string;
   updated_at: string;
   contents: ArticleContent[];
@@ -143,13 +142,6 @@ export interface AdminArticle {
     next: string[];
   };
   resources: LocalizedResources;
-  children: {
-    id: string;
-    slug_uk: string;
-    title_es: string | null;
-    title_en: string | null;
-    status: ArticleStatus;
-  }[];
 }
 
 // Categoría

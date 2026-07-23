@@ -96,7 +96,8 @@ export async function getAdminArticle(id: string) {
 export async function createArticle(data: {
   slug_uk: string;
   type: string;
-  parent_id?: string | null;
+  difficulty?: string | null;
+  estimated_time?: string | null;
   category: string;
   domains?: string[];
   volatility?: string;
@@ -116,6 +117,8 @@ export async function updateArticle(
     featured?: boolean;
     domains?: string[];
     applicable_as_of?: string | null;
+    difficulty?: string | null;
+    estimated_time?: string | null;
   }
 ) {
   return adminFetch<{ data: unknown }>(`/api/v1/admin/articles/${id}`, {

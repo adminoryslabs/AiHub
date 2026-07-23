@@ -30,8 +30,8 @@ const config: Config = {
         error: 'rgb(var(--color-error) / <alpha-value>)',
         'error-container': 'rgb(var(--color-error-container) / <alpha-value>)',
         // Tokens estáticos — usados explícitamente con prefijo dark: en los componentes
-        'inverse-surface': '#0a0e17',
-        'inverse-primary': '#22d3ee',
+        'inverse-surface': '#0c0e1f',
+        'inverse-primary': '#a3e635',
       },
       // Bordes afilados — Terminal Orys (2–4px). `full` se deja en el default
       // de Tailwind para no romper elementos circulares (spinners de carga).

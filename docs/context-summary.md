@@ -31,21 +31,13 @@ AI Hub es la Fase 1 de un plan mayor (ver `El_gran_plan.md`): construir una AI A
 
 ## Modelo de contenido
 
-### Estructura en árbol
-Los artículos se organizan en concepto principal + ramas por herramienta:
-
-```
-MCP (artículo principal — concepto agnóstico)
-├── MCP en Claude Code
-├── MCP en Cursor
-└── MCP en OpenCode
-```
-
-El artículo principal cubre el concepto de forma tool-agnostic. Las ramas cubren la implementación concreta en cada herramienta.
-
 ### Tipos de artículo
-- `concept` — artículo principal, cubre el concepto
-- `tool-branch` — rama tool-specific, cubre la implementación en una herramienta concreta
+- `concept` — artículo de referencia, cubre un concepto de forma tool-agnostic o tool-specific
+- `tutorial` — guía práctica paso a paso con `difficulty` y `estimated_time`. Transversal a las categorías.
+
+### Relaciones
+Las relaciones entre artículos usan `article_relations` con tipos `related`, `prerequisite`, `next`.
+No existe `parent_id`. Un tutorial puede declarar como `prerequisite` uno o más conceptos.
 
 ### Categorías (5)
 
@@ -55,7 +47,9 @@ El artículo principal cubre el concepto de forma tool-agnostic. Las ramas cubre
 | Agentes | Agentes, memoria, tool use, ReAct, skills, rules |
 | Prompting | Diseño de prompts, técnicas |
 | Patrones | RAG, workflows, arquitecturas |
-| Herramientas | Claude Code, Cursor, MCP, OpenCode — con ramas tool-specific |
+| Herramientas | Conceptos sobre herramientas concretas (Stitch, Warp, etc.) |
+
+Los tutorials no tienen categoría propia; se agrupan bajo la sección Tutoriales con namespace URL `/es/tutoriales/` y `/en/tutorials/`.
 
 ### Dominios
 Los dominios son etiquetas (`domains: string[]`) transversales a las categorías. En el MVP todos los artículos tienen el dominio `programming`. El selector de dominio no aparece en la UI hasta que exista más de un dominio. Esto permite escalar a `marketing`, `video`, etc. sin cambios estructurales.

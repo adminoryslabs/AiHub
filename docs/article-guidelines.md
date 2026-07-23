@@ -10,15 +10,15 @@
 
 ### 1.1 Concepto (`type: concept`)
 
-Cubre un concepto de IA generativa de forma **tool-agnostic**. No depende de ninguna herramienta específica.
+Cubre un concepto de IA generativa de forma **tool-agnostic** o **tool-specific**. No depende de ninguna herramienta específica en su forma pura, pero puede cubrir herramientas concretas como categoría.
 
-Ejemplos: *Qué es un LLM*, *Qué es RAG*, *Qué es un agente*, *Qué es el contexto*.
+Ejemplos: *Qué es un LLM*, *Qué es RAG*, *Qué es un agente*, *Stitch*, *Warp Terminal*.
 
-### 1.2 Rama tool-specific (`type: tool-branch`)
+### 1.2 Tutorial (`type: tutorial`)
 
-Cubre cómo **una herramienta concreta** implementa el concepto padre. Siempre está vinculada a un artículo concepto mediante `parent_id`.
+Guía práctica paso a paso que cubre un **resultado específico y verificable**. Tiene `difficulty` (beginner/intermediate/advanced) y `estimated_time` (ej: "30 min"). No pertenece a una categoría propia — se agrupa bajo la sección transversal "Tutoriales".
 
-Ejemplos: *RAG en LangChain*, *Agentes en Claude Code*, *MCP en Cursor*.
+Ejemplos: *Claude Code para testing*, *Diseño UI con Stitch pantalla a pantalla*, *Conectar MCP de Supabase*.
 
 ---
 
@@ -33,20 +33,21 @@ Las secciones deben aparecer en este orden. No omitir ninguna salvo que se indiq
 | 1 | **Qué es** | Sí | Definición directa. Máximo 3 párrafos. Sin jerga innecesaria. |
 | 2 | **Modelo mental** | Sí | La intuición detrás del concepto. Una analogía, diagrama Mermaid o comparativa. |
 | 3 | **Cómo se usa** | Sí | Práctico. Con ejemplos de código cuando aplique. |
-| 4 | **Implementaciones por herramienta** | Solo si existen ramas | Lista de links a las ramas tool-specific del artículo. |
-| 5 | **Cuándo usarlo / cuándo no** | Sí | Dos columnas o dos listas. Criterio de decisión real, no marketing. |
-| 6 | **Historia y evolución** | No | Colapsable (`<details>`). Solo si aporta contexto relevante. |
+| 4 | **Cuándo usarlo / cuándo no** | Sí | Dos columnas o dos listas. Criterio de decisión real, no marketing. |
+| 5 | **Historia y evolución** | No | Colapsable (`<details>`). Solo si aporta contexto relevante. |
 
 Los **conceptos relacionados** y **recursos externos** no van dentro del Markdown importable. Se gestionan como metadatos relacionales desde el panel admin para evitar links rotos, duplicidad y contenido difícil de mantener.
 
-### 2.2 Rama tool-specific
+### 2.2 Tutorial
 
 | # | Sección | Obligatoria | Notas |
 |---|---------|-------------|-------|
-| 1 | **Contexto** | Sí | Cómo esta herramienta implementa el concepto padre. 1-2 párrafos. |
-| 2 | **Configuración / setup** | Sí | Pasos concretos. Comandos reales. Versión de la herramienta indicada. |
-| 3 | **Ejemplos** | Sí | Código real y funcional. Casos de uso representativos. |
-| 4 | **Particularidades** | Sí | Diferencias, limitaciones o ventajas respecto a otras herramientas. |
+| 1 | **Objetivo** | Sí | Qué va a lograr el lector. Máximo 2 párrafos. |
+| 2 | **Prerrequisitos** | Sí | Qué necesita saber o tener instalado. Links a conceptos relacionados. |
+| 3 | **Pasos** | Sí | Numerados, cada uno con input esperado y verificación. |
+| 4 | **Resultado esperado** | Sí | Qué se logra al terminar. Criterio de éxito verificable. |
+| 5 | **Troubleshooting** | No | Problemas comunes y soluciones. Colapsable si es largo. |
+| 6 | **Siguiente paso** | No | Link al siguiente tutorial o concepto relacionado. |
 
 ---
 
@@ -57,12 +58,13 @@ Cada artículo tiene metadatos estructurales que deben definirse antes de redact
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
 | `slug_uk` | string | Slug canónico en inglés. Ej: `what-is-an-llm`. Solo minúsculas y guiones. |
-| `type` | enum | `concept` o `tool-branch` |
-| `parent_id` | uuid \| null | Requerido si `type = tool-branch`. Null para conceptos. |
-| `category` | string | Ver sección 4. |
+| `type` | enum | `concept` o `tutorial` |
+| `category` | string | Ver sección 4. Para tutoriales, se usa solo como referencia interna (no aparece en la URL). |
+| `difficulty` | enum \| null | `beginner` / `intermediate` / `advanced`. Requerido para tutoriales, null para conceptos. |
+| `estimated_time` | string \| null | Duración estimada. Ej: `"30 min"`, `"1 hour"`. Requerido para tutoriales, null para conceptos. |
 | `volatility` | enum | `low` / `medium` / `high`. Ver criterios abajo. |
 | `featured` | boolean | Solo marcar si el artículo es adecuado para la homepage. Ser selectivo. |
-| `applicable_as_of` | string \| null | Solo para `tool-branch`. Versión o fecha del estado de la herramienta. Ej: `v2.1`, `abril 2026`. |
+| `applicable_as_of` | string \| null | Opcional para cualquier type. Versión o fecha del estado de la herramienta cuando el artículo describe comportamiento tool-specific. Ej: `v2.1`, `abril 2026`. |
 
 ### Criterios de volatilidad
 
@@ -82,9 +84,9 @@ Cada artículo tiene metadatos estructurales que deben definirse antes de redact
 | `agents` | Agentes | Agents | Agentes, herramientas, memoria, orquestación, multi-agente |
 | `prompting` | Prompting | Prompting | Técnicas de prompting, chain-of-thought, few-shot, system prompts |
 | `patterns` | Patrones | Patterns | RAG, function calling, structured output, evals, guardrails |
-| `tools` | Herramientas | Tools | Ramas tool-specific de frameworks y modelos concretos |
+| `tools` | Herramientas | Tools | Conceptos sobre herramientas concretas (Stitch, Warp, etc.) |
 
-Regla: las ramas tool-specific van en `tools`, no en la categoría del concepto padre.
+Regla: los conceptos sobre herramientas van en `tools`. Los tutorials no tienen categoría propia; se agrupan bajo la sección Tutoriales de la navegación.
 
 ---
 
@@ -271,6 +273,20 @@ resources_suggested:
 image_suggestions: []
 ```
 
+Para tutoriales, el admin.md incluye `difficulty` y `estimated_time`:
+
+```yaml
+metadata:
+  slug_uk: mcp-in-claude-code
+  type: tutorial
+  category: tools
+  volatility: high
+  featured: false
+  applicable_as_of: julio 2026
+  difficulty: intermediate
+  estimated_time: "30 min"
+```
+
 ---
 
 ## 9. Checklist antes de publicar
@@ -283,7 +299,8 @@ Antes de cambiar el estado de un artículo a `published`, verificar:
 - [ ] La `volatility` está asignada según los criterios de la sección 3
 - [ ] Al menos 2 recursos externos están propuestos o vinculados desde el panel admin
 - [ ] Las relaciones sugeridas están definidas fuera del Markdown
-- [ ] Si es `tool-branch`, `applicable_as_of` está informado
+- [ ] Si es tutorial, `difficulty` y `estimated_time` están informados
+- [ ] Si es tutorial, tiene secciones Objetivo, Prerrequisitos, Pasos, Resultado esperado
 - [ ] El código compila / es funcional (si aplica)
 - [ ] No hay links rotos a otros artículos
 - [ ] Revisión ortográfica básica en ambos idiomas
@@ -292,11 +309,12 @@ Antes de cambiar el estado de un artículo a `published`, verificar:
 
 ## 10. Lo que NO es un artículo del Hub
 
-- Un tutorial paso a paso de principio a fin (eso es un curso)
 - Una review o comparativa de productos con scoring
 - Una opinión o predicción sin sustento técnico
 - Un artículo de noticias o changelog
 - Contenido que no sea relevante para developers y builders
+
+Los **tutorials paso a paso SÍ son parte del Hub**. Son guías técnicas concisas, con un resultado específico y verificable. No son cursos multi-módulo ni reemplazan documentación oficial de herramientas. La extensión del tutorial la define el `estimated_time` declarado por el autor, no un tope fijo de palabras.
 
 ---
 
