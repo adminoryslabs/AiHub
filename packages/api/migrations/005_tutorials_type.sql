@@ -3,6 +3,10 @@
 -- Ejecutar: psql $DATABASE_URL -f 005_tutorials_type.sql
 -- Rollback: ver sección "Down migration" al final de este archivo
 -- Idempotente: puede correrse múltiples veces sin fallar.
+--
+-- ORDEN IMPORTANTE: el UPDATE que migra los datos debe correr ANTES de
+-- agregar el nuevo CHECK constraint, sino el constraint rechaza las filas
+-- tool-branch que aún no fueron migradas.
 
 BEGIN;
 
@@ -27,26 +31,12 @@ BEGIN
     END IF;
 END $$;
 
--- 3. Agregar nuevo CHECK constraint (idempotente: salta si ya existe)
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_constraint
-        WHERE conrelid = 'articles'::regclass
-          AND conname = 'articles_type_check'
-    ) THEN
-        ALTER TABLE articles
-          ADD CONSTRAINT articles_type_check
-          CHECK (type IN ('concept', 'tutorial'));
-    END IF;
-END $$;
-
--- 4. Agregar nuevas columnas (idempotente)
+-- 3. Agregar nuevas columnas (idempotente)
 ALTER TABLE articles
   ADD COLUMN IF NOT EXISTS difficulty VARCHAR(15),
   ADD COLUMN IF NOT EXISTS estimated_time VARCHAR(50);
 
--- 4b. CHECK constraint sobre difficulty (idempotente)
+-- 4. CHECK constraint sobre difficulty (idempotente)
 DO $$
 BEGIN
     IF NOT EXISTS (
@@ -61,7 +51,7 @@ BEGIN
 END $$;
 
 -- 5. Migrar TODOS los artículos con type='tool-branch' a type='concept'
---    con category='tools'.
+--    con category='tools'. Debe correr ANTES de agregar el nuevo CHECK.
 -- Decisión 2026-07-23: la exploración inicial asumió 8 tool-branches
 -- (los del filesystem local + aihub_test), pero producción tiene 32.
 -- Todos tienen `category='tools'` y un `parent_id` seteado, lo que indica
@@ -73,10 +63,24 @@ END $$;
 UPDATE articles SET type = 'concept', category = 'tools'
 WHERE type = 'tool-branch';
 
--- 6. Eliminar la columna parent_id (ya no se usa)
+-- 6. Agregar el nuevo CHECK constraint (idempotente, después del UPDATE)
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conrelid = 'articles'::regclass
+          AND conname = 'articles_type_check'
+    ) THEN
+        ALTER TABLE articles
+          ADD CONSTRAINT articles_type_check
+          CHECK (type IN ('concept', 'tutorial'));
+    END IF;
+END $$;
+
+-- 7. Eliminar la columna parent_id (ya no se usa)
 ALTER TABLE articles DROP COLUMN IF EXISTS parent_id;
 
--- 7. Crear índices para las nuevas columnas
+-- 8. Crear índices para las nuevas columnas
 CREATE INDEX IF NOT EXISTS idx_articles_difficulty ON articles(difficulty);
 CREATE INDEX IF NOT EXISTS idx_articles_type_difficulty ON articles(type, difficulty);
 
@@ -92,18 +96,7 @@ COMMIT;
 -- -- 1. Restaurar parent_id
 -- ALTER TABLE articles ADD COLUMN IF NOT EXISTS parent_id UUID REFERENCES articles(id) ON DELETE SET NULL;
 --
--- -- 2. Restaurar type a tool-branch en todos los que originalmente lo eran
--- --    (no se puede saber con certeza cuáles eran tool-branch antes sin
--- --    un backup; este rollback es aproximado)
--- UPDATE articles SET type = 'tool-branch', difficulty = NULL, estimated_time = NULL
--- WHERE category = 'tools'
---   AND id IN (
---     SELECT id FROM articles WHERE id NOT IN (
---       SELECT id FROM articles WHERE difficulty IS NOT NULL
---     )
---   );
---
--- -- 3. Eliminar CHECK actual
+-- -- 2. Eliminar el CHECK actual
 -- DO $$
 -- DECLARE
 --     constraint_name text;
@@ -120,10 +113,24 @@ COMMIT;
 --     END IF;
 -- END $$;
 --
--- -- 4. Restaurar CHECK original
--- ALTER TABLE articles
---   ADD CONSTRAINT articles_type_check
---   CHECK (type IN ('concept', 'tool-branch'));
+-- -- 3. Restaurar el CHECK original
+-- DO $$
+-- BEGIN
+--     IF NOT EXISTS (
+--         SELECT 1 FROM pg_constraint
+--         WHERE conrelid = 'articles'::regclass
+--           AND conname = 'articles_type_check'
+--     ) THEN
+--         ALTER TABLE articles
+--           ADD CONSTRAINT articles_type_check
+--           CHECK (type IN ('concept', 'tool-branch'));
+--     END IF;
+-- END $$;
+--
+-- -- 4. Restaurar type a tool-branch donde category=tools
+-- --    (aproximación — no podemos saber cuáles eran tool-branch sin backup)
+-- UPDATE articles SET type = 'tool-branch'
+-- WHERE category = 'tools';
 --
 -- -- 5. Eliminar columnas nuevas
 -- ALTER TABLE articles DROP COLUMN IF EXISTS difficulty, DROP COLUMN IF EXISTS estimated_time;
