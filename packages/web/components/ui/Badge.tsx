@@ -1,4 +1,4 @@
-// Componente Badge para estados, categorías y tipos — estilo terminal `[etiqueta]`
+// Componente Badge para estados, categorías y tipos — chip recto
 import { ReactNode } from 'react';
 
 type BadgeVariant = 'primary' | 'success' | 'warning' | 'error' | 'outline' | 'muted';
@@ -11,7 +11,7 @@ interface BadgeProps {
 
 const VARIANT_CLASSES: Record<BadgeVariant, string> = {
   primary: 'bg-primary text-on-primary',
-  success: 'text-on-surface-variant',
+  success: 'bg-primary-container text-primary-text',
   warning: 'border border-outline-variant text-on-surface-variant',
   error: 'border border-error/40 text-error',
   outline: 'border border-outline-variant text-on-surface-variant',
@@ -21,9 +21,9 @@ const VARIANT_CLASSES: Record<BadgeVariant, string> = {
 export function Badge({ variant = 'primary', children, className = '' }: BadgeProps) {
   return (
     <span
-      className={`inline-flex items-center font-mono text-[11px] tracking-wide rounded-sm ${VARIANT_CLASSES[variant]} ${className}`}
+      className={`inline-flex items-center font-mono text-[10.5px] font-medium tracking-[0.06em] px-2 py-0.5 ${VARIANT_CLASSES[variant]} ${className}`}
     >
-      [{children}]
+      {children}
     </span>
   );
 }

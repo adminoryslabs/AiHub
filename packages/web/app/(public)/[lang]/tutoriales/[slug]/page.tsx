@@ -1,4 +1,4 @@
-// Página de detalle de tutorial con SSR — estilo terminal
+// Página de detalle de tutorial con SSR — mismo shell que artículo de concepto
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -6,6 +6,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { SidebarLeft } from '@/components/layout/SidebarLeft';
 import { SidebarRight } from '@/components/layout/SidebarRight';
 import { Footer } from '@/components/layout/Footer';
+import { Icon } from '@/components/ui/Icon';
 import { TutorialRenderer } from '@/components/article/TutorialRenderer';
 import { MermaidLoader } from '@/components/article/MermaidLoader';
 import { CodeCopyEnhancer } from '@/components/article/CodeCopyEnhancer';
@@ -82,7 +83,6 @@ export default async function TutorialPage({ params }: PageProps) {
     throw err;
   }
 
-  // Renderizar markdown en el servidor
   const bodyHtml = await markdownToHtml(article.body);
   const toc = extractToc(article.body);
 
@@ -92,118 +92,144 @@ export default async function TutorialPage({ params }: PageProps) {
   return (
     <>
       <Navbar lang={validLang} currentPath={currentPath} alternateUrl={article.alternate_lang?.url} />
-      <SidebarLeft lang={validLang} categories={categories} />
 
-      <main className="pt-24 pb-16 md:pl-72 xl:pr-[320px] px-6 min-h-screen">
-        <div className="max-w-4xl mx-auto">
-          {/* Breadcrumb */}
-          <nav className="font-mono text-[13px] text-on-surface-variant mb-6" aria-label="Breadcrumb">
-            <span className="text-primary">~</span>/{' '}
-            <Link href={`/${lang}`} className="hover:text-primary transition-colors">
-              {isEs ? 'inicio' : 'home'}
-            </Link>{' '}/{' '}
-            <Link href={`/${lang}/tutoriales`} className="hover:text-primary transition-colors lowercase">
-              {isEs ? 'tutoriales' : 'tutorials'}
-            </Link>{' '}/{' '}
-            <span className="text-on-surface lowercase">{slug}</span>
-          </nav>
+      <div className="mx-auto max-w-[1220px] flex items-start">
+        <SidebarLeft lang={validLang} categories={categories} />
 
-          {/* Header del tutorial */}
-          <header className="mb-8 font-mono">
-            <h1 className="font-mono font-bold text-[40px] leading-[1.12] tracking-tight text-on-surface mb-4">
-              {article.title}
-            </h1>
-
-            <p className="font-body text-lg leading-relaxed text-on-surface-variant mb-4">
-              {article.summary}
-            </p>
-          </header>
-
-          {/* Callout "antes de leer" (prerrequisitos) */}
-          {article.relations.prerequisite && article.relations.prerequisite.length > 0 && (
-            <div className="mb-8 p-4 border border-outline-variant bg-surface-container rounded-md font-mono">
-              <p className="text-xs font-bold text-on-surface-variant mb-2">
-                // {isEs ? 'prerrequisitos' : 'prerequisites'}
-              </p>
-              <div className="flex flex-wrap gap-x-4 gap-y-1">
-                {article.relations.prerequisite.map((rel) => (
-                  <Link
-                    key={rel.id}
-                    href={`/${lang}/${rel.category}/${rel.localized_slug}`}
-                    className="text-[13.5px] text-primary hover:underline"
-                  >
-                    → {rel.localized_slug}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Cuerpo del tutorial con badges */}
-          <TutorialRenderer
-            title={article.title}
-            summary={article.summary}
-            difficulty={(article.difficulty || 'intermediate') as 'beginner' | 'intermediate' | 'advanced'}
-            estimatedTime={article.estimated_time || ''}
-            applicableAsOf={article.applicable_as_of}
-            html={bodyHtml}
-            updatedMonth={updatedMonth}
-            slug={slug}
-            lang={lang}
-          />
-          <MermaidLoader />
-          <CodeCopyEnhancer />
-
-          {/* Artículos relacionados */}
-          {article.relations.related && article.relations.related.length > 0 && (
-            <section className="mt-12 pt-6 border-t border-outline-variant font-mono">
-              <p className="text-[12.5px] text-on-surface-variant mb-3">
-                // {isEs ? 'relacionados' : 'related'}
-              </p>
-              <div className="border border-outline-variant bg-surface-container-lowest dark:bg-surface-container rounded-md overflow-hidden">
-                {article.relations.related.map((rel) => (
-                  <Link
-                    key={rel.id}
-                    href={`/${lang}/${rel.category}/${rel.localized_slug}`}
-                    className="group flex items-center gap-3 px-4 py-3 border-b border-outline-variant last:border-b-0 hover:bg-surface-container transition-colors"
-                  >
-                    <span className="text-primary">→</span>
-                    <span className="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors lowercase">
-                      {rel.localized_slug}
-                    </span>
-                    <span className="ml-auto text-[11px] text-on-surface-variant">{rel.category}</span>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Siguiente artículo */}
-          {article.relations.next && article.relations.next.length > 0 && (
-            <div className="mt-8 font-mono">
-              {article.relations.next.map((rel) => (
+        <main className="flex-1 min-w-0 px-6 sm:px-11 pb-16">
+          <div className="flex gap-8 xl:gap-11 items-start">
+            <article className="flex-1 min-w-0 max-w-[760px]">
+              {/* Breadcrumb */}
+              <nav
+                className="font-mono text-[12px] text-on-surface-variant pt-10 mb-5"
+                aria-label="Breadcrumb"
+              >
                 <Link
-                  key={rel.id}
-                  href={`/${lang}/${rel.category}/${rel.localized_slug}`}
-                  className="group flex items-center justify-between gap-4 px-5 py-5 border-t-2 border-outline bg-primary-container/40 hover:bg-primary-container/70 rounded-md transition-colors"
+                  href={`/${lang}`}
+                  className="text-on-surface-variant hover:text-on-surface transition-colors"
                 >
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-bold tracking-wide text-primary mb-1">
-                      // {isEs ? 'siguiente' : 'next'}
-                    </p>
-                    <p className="font-bold text-base text-on-surface lowercase truncate">
-                      {rel.localized_slug}
-                    </p>
-                  </div>
-                  <span className="text-xl text-primary flex-shrink-0">→</span>
+                  {isEs ? 'Inicio' : 'Home'}
                 </Link>
-              ))}
-            </div>
-          )}
-        </div>
-      </main>
+                <span className="mx-2 text-outline-variant">/</span>
+                <Link
+                  href={`/${lang}/tutoriales`}
+                  className="text-on-surface-variant hover:text-on-surface transition-colors"
+                >
+                  {isEs ? 'Tutoriales' : 'Tutorials'}
+                </Link>
+                <span className="mx-2 text-outline-variant">/</span>
+                <span className="text-on-surface">{article.title}</span>
+              </nav>
 
-      <SidebarRight toc={toc} resources={article.resources} lang={lang} />
+              <header className="mb-7">
+                <p className="font-mono text-[11.5px] font-medium tracking-[0.1em] text-primary-text mb-4">
+                  TUTORIAL
+                </p>
+
+                <h1 className="font-headline font-semibold text-[36px] sm:text-[48px] leading-[1.03] tracking-[-0.03em] text-on-surface mb-5">
+                  {article.title}
+                </h1>
+
+                <p className="font-body text-[19px] sm:text-[20px] leading-[1.55] text-on-surface-variant max-w-[56ch] mb-5">
+                  {article.summary}
+                </p>
+              </header>
+
+              {/* Prerrequisitos */}
+              {article.relations.prerequisite && article.relations.prerequisite.length > 0 && (
+                <div className="mb-8 p-4 border border-outline-variant bg-surface-container">
+                  <p className="font-mono text-[10.5px] font-semibold tracking-[0.1em] text-on-surface-variant mb-2.5">
+                    {isEs ? 'PRERREQUISITOS' : 'PREREQUISITES'}
+                  </p>
+                  <div className="flex flex-wrap gap-x-5 gap-y-1.5">
+                    {article.relations.prerequisite.map((rel) => (
+                      <Link
+                        key={rel.id}
+                        href={`/${lang}/${rel.category}/${rel.localized_slug}`}
+                        className="text-[14px] text-primary-text hover:underline font-medium"
+                      >
+                        {rel.title}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <TutorialRenderer
+                title={article.title}
+                summary={article.summary}
+                difficulty={(article.difficulty || 'intermediate') as 'beginner' | 'intermediate' | 'advanced'}
+                estimatedTime={article.estimated_time || ''}
+                applicableAsOf={article.applicable_as_of}
+                html={bodyHtml}
+                updatedMonth={updatedMonth}
+                slug={slug}
+                lang={lang}
+              />
+              <MermaidLoader />
+              <CodeCopyEnhancer />
+
+              {/* Artículos relacionados */}
+              {article.relations.related && article.relations.related.length > 0 && (
+                <section className="mt-14 pt-6 border-t border-outline-variant">
+                  <h2 className="font-mono text-[12.5px] font-semibold tracking-[0.1em] text-on-surface-variant mb-4">
+                    {isEs ? 'RELACIONADOS' : 'RELATED'}
+                  </h2>
+                  <div className="flex flex-col">
+                    {article.relations.related.map((rel) => (
+                      <Link
+                        key={rel.id}
+                        href={`/${lang}/${rel.category}/${rel.localized_slug}`}
+                        className="group flex items-center gap-3 py-3 border-b border-outline-variant hover:bg-surface-container transition-colors -mx-3 px-3"
+                      >
+                        <span className="font-headline font-semibold text-[16px] text-on-surface group-hover:text-primary-text transition-colors flex-1 min-w-0 truncate">
+                          {rel.title}
+                        </span>
+                        <span className="font-mono text-[11px] text-on-surface-variant flex-shrink-0">
+                          {rel.category}
+                        </span>
+                        <Icon
+                          name="arrow_forward"
+                          className="text-[18px] text-on-surface-variant group-hover:text-primary-text transition-colors"
+                        />
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Siguiente artículo */}
+              {article.relations.next && article.relations.next.length > 0 && (
+                <div className="mt-8">
+                  {article.relations.next.map((rel) => (
+                    <Link
+                      key={rel.id}
+                      href={`/${lang}/${rel.category}/${rel.localized_slug}`}
+                      className="group flex items-center justify-between gap-4 px-5 sm:px-6 py-5 border border-outline hover:bg-surface-container transition-colors"
+                    >
+                      <div className="min-w-0">
+                        <p className="font-mono text-[11px] font-semibold tracking-[0.1em] text-primary-text mb-1.5">
+                          {isEs ? 'SIGUIENTE' : 'NEXT'}
+                        </p>
+                        <p className="font-headline font-semibold text-[19px] sm:text-[20px] tracking-[-0.02em] text-on-surface truncate">
+                          {rel.title}
+                        </p>
+                      </div>
+                      <Icon
+                        name="arrow_forward"
+                        className="text-[24px] sm:text-[26px] text-on-surface flex-shrink-0 group-hover:text-primary-text transition-colors"
+                      />
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </article>
+
+            <SidebarRight toc={toc} resources={article.resources} lang={lang} />
+          </div>
+        </main>
+      </div>
+
       <Footer />
     </>
   );

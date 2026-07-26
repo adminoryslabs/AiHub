@@ -1,4 +1,4 @@
-// Página de artículo completo con SSR — estilo terminal
+// Página de artículo completo con SSR — kicker + meta entre bordes + TOC derecho
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -6,14 +6,13 @@ import { Navbar } from '@/components/layout/Navbar';
 import { SidebarLeft } from '@/components/layout/SidebarLeft';
 import { SidebarRight } from '@/components/layout/SidebarRight';
 import { Footer } from '@/components/layout/Footer';
+import { Icon } from '@/components/ui/Icon';
 import { ArticleRenderer } from '@/components/article/ArticleRenderer';
 import { MermaidLoader } from '@/components/article/MermaidLoader';
 import { CodeCopyEnhancer } from '@/components/article/CodeCopyEnhancer';
-import { Badge } from '@/components/ui/Badge';
 import { getCategories, getArticle, ApiClientError } from '@/lib/api-client';
 import { markdownToHtml, extractToc } from '@/lib/markdown';
 import { isValidLang, type SupportedLang } from '@/lib/i18n';
-import type { Volatility } from '@ai-hub/shared';
 
 interface PageProps {
   params: Promise<{ lang: string; category: string; slug: string }>;
@@ -21,17 +20,6 @@ interface PageProps {
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://aihub.example.com';
 
-// Etiqueta de volatilidad localizada
-function volatilityLabel(v: Volatility, isEs: boolean): string {
-  const map: Record<Volatility, { es: string; en: string }> = {
-    low: { es: 'estable', en: 'stable' },
-    medium: { es: 'cambiante', en: 'changing' },
-    high: { es: 'volátil', en: 'volatile' },
-  };
-  return map[v]?.[isEs ? 'es' : 'en'] ?? v;
-}
-
-// Estimación de tiempo de lectura (palabras / 200)
 function readingMinutes(body: string): number {
   const words = body.trim().split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.round(words / 200));
@@ -99,7 +87,6 @@ export default async function ArticlePage({ params }: PageProps) {
     throw err;
   }
 
-  // Renderizar markdown en el servidor
   const bodyHtml = await markdownToHtml(article.body);
   const toc = extractToc(article.body);
 
@@ -107,127 +94,155 @@ export default async function ArticlePage({ params }: PageProps) {
   const readMin = readingMinutes(article.body);
   const updatedMonth = article.last_edited_at?.slice(0, 7) ?? '—';
 
+  const typeLabel = isEs
+    ? article.type === 'tutorial' ? 'Concepto' : 'Concepto'
+    : article.type === 'tutorial' ? 'Concept' : 'Concept';
+  const categoryUpper = category.toUpperCase();
+
   return (
     <>
       <Navbar lang={validLang} currentPath={currentPath} alternateUrl={article.alternate_lang?.url} />
-      <SidebarLeft lang={validLang} categories={categories} currentCategory={category} />
 
-      <main className="pt-24 pb-16 md:pl-72 xl:pr-[320px] px-6 min-h-screen">
-        <div className="max-w-4xl mx-auto">
-          {/* Breadcrumb */}
-          <nav className="font-mono text-[13px] text-on-surface-variant mb-6" aria-label="Breadcrumb">
-            <span className="text-primary">~</span>/{' '}
-            <Link href={`/${lang}`} className="hover:text-primary transition-colors">
-              {isEs ? 'inicio' : 'home'}
-            </Link>{' '}/{' '}
-            <Link href={`/${lang}/${category}`} className="hover:text-primary transition-colors lowercase">
-              {category}
-            </Link>{' '}/{' '}
-            <span className="text-on-surface lowercase">{slug}</span>
-          </nav>
+      <div className="mx-auto max-w-[1220px] flex items-start">
+        <SidebarLeft
+          lang={validLang}
+          categories={categories}
+          currentCategory={category}
+        />
 
-          {/* Header del artículo */}
-          <header className="mb-8 font-mono">
-            {/* Tags */}
-            <div className="flex flex-wrap items-center gap-2 mb-4">
-              <Badge variant="primary">
-                {isEs ? 'concepto' : 'concept'}
-              </Badge>
-              <Badge variant="outline">{volatilityLabel(article.volatility, isEs)}</Badge>
-              {article.applicable_as_of && (
-                <Badge variant="outline">v{article.applicable_as_of}</Badge>
-              )}
-            </div>
-
-            <h1 className="font-mono font-bold text-[40px] leading-[1.12] tracking-tight text-on-surface mb-4">
-              {article.title}
-            </h1>
-
-            <p className="font-body text-lg leading-relaxed text-on-surface-variant mb-4">
-              {article.summary}
-            </p>
-
-            <p className="text-[12.5px] text-on-surface-variant py-3 border-y border-outline-variant">
-              // {readMin} {isEs ? 'min de lectura' : 'min read'} ·{' '}
-              <span className="text-primary">●</span> updated {updatedMonth}
-            </p>
-          </header>
-
-          {/* Callout "antes de leer" */}
-          {article.relations.prerequisite && article.relations.prerequisite.length > 0 && (
-            <div className="mb-8 p-4 border border-outline-variant bg-surface-container rounded-md font-mono">
-              <p className="text-xs font-bold text-on-surface-variant mb-2">
-                // {isEs ? 'antes de leer' : 'before reading'}
-              </p>
-              <div className="flex flex-wrap gap-x-4 gap-y-1">
-                {article.relations.prerequisite.map((rel) => (
-                  <Link
-                    key={rel.id}
-                    href={`/${lang}/${rel.category}/${rel.localized_slug}`}
-                    className="text-[13.5px] text-primary hover:underline"
-                  >
-                    → {rel.localized_slug}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Cuerpo del artículo */}
-          <ArticleRenderer html={bodyHtml} className="article-prose" />
-          <MermaidLoader />
-          <CodeCopyEnhancer />
-
-          {/* Artículos relacionados */}
-          {article.relations.related && article.relations.related.length > 0 && (
-            <section className="mt-12 pt-6 border-t border-outline-variant font-mono">
-              <p className="text-[12.5px] text-on-surface-variant mb-3">
-                // {isEs ? 'relacionados' : 'related'}
-              </p>
-              <div className="border border-outline-variant bg-surface-container-lowest dark:bg-surface-container rounded-md overflow-hidden">
-                {article.relations.related.map((rel) => (
-                  <Link
-                    key={rel.id}
-                    href={`/${lang}/${rel.category}/${rel.localized_slug}`}
-                    className="group flex items-center gap-3 px-4 py-3 border-b border-outline-variant last:border-b-0 hover:bg-surface-container transition-colors"
-                  >
-                    <span className="text-primary">→</span>
-                    <span className="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors lowercase">
-                      {rel.localized_slug}
-                    </span>
-                    <span className="ml-auto text-[11px] text-on-surface-variant">{rel.category}</span>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Siguiente artículo */}
-          {article.relations.next && article.relations.next.length > 0 && (
-            <div className="mt-8 font-mono">
-              {article.relations.next.map((rel) => (
+        <main className="flex-1 min-w-0 px-6 sm:px-11 pb-16">
+          <div className="flex gap-8 xl:gap-11 items-start">
+            <article className="flex-1 min-w-0 max-w-[760px]">
+              {/* Breadcrumb */}
+              <nav
+                className="font-mono text-[12px] text-on-surface-variant pt-10 mb-5"
+                aria-label="Breadcrumb"
+              >
                 <Link
-                  key={rel.id}
-                  href={`/${lang}/${rel.category}/${rel.localized_slug}`}
-                  className="group flex items-center justify-between gap-4 px-5 py-5 border-t-2 border-outline bg-primary-container/40 hover:bg-primary-container/70 rounded-md transition-colors"
+                  href={`/${lang}`}
+                  className="text-on-surface-variant hover:text-on-surface transition-colors"
                 >
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-bold tracking-wide text-primary mb-1">
-                      // {isEs ? 'siguiente' : 'next'}
-                    </p>
-                    <p className="font-bold text-base text-on-surface lowercase truncate">
-                      {rel.localized_slug}
-                    </p>
-                  </div>
-                  <span className="text-xl text-primary flex-shrink-0">→</span>
+                  {isEs ? 'Inicio' : 'Home'}
                 </Link>
-              ))}
-            </div>
-          )}
-        </div>
-      </main>
+                <span className="mx-2 text-outline-variant">/</span>
+                <Link
+                  href={`/${lang}/${category}`}
+                  className="text-on-surface-variant hover:text-on-surface transition-colors"
+                >
+                  {category}
+                </Link>
+                <span className="mx-2 text-outline-variant">/</span>
+                <span className="text-on-surface">{article.title}</span>
+              </nav>
 
-      <SidebarRight toc={toc} resources={article.resources} lang={lang} />
+              {/* Header del artículo */}
+              <header className="mb-7">
+                <p className="font-mono text-[11.5px] font-medium tracking-[0.1em] text-primary-text mb-4">
+                  {typeLabel.toUpperCase()} · {categoryUpper}
+                </p>
+
+                <h1 className="font-headline font-semibold text-[36px] sm:text-[48px] leading-[1.03] tracking-[-0.03em] text-on-surface mb-5">
+                  {article.title}
+                </h1>
+
+                <p className="font-body text-[19px] sm:text-[20px] leading-[1.55] text-on-surface-variant max-w-[56ch] mb-5">
+                  {article.summary}
+                </p>
+
+                <p className="font-mono text-[12px] text-on-surface-variant py-3.5 border-y border-outline-variant">
+                  {article.estimated_time
+                    ? `${article.estimated_time} · `
+                    : `${readMin} ${isEs ? 'min de lectura' : 'min read'} · `}
+                  {isEs ? 'actualizado' : 'updated'} {updatedMonth}
+                </p>
+              </header>
+
+              {/* Prerrequisitos */}
+              {article.relations.prerequisite && article.relations.prerequisite.length > 0 && (
+                <div className="mb-8 p-4 border border-outline-variant bg-surface-container">
+                  <p className="font-mono text-[10.5px] font-semibold tracking-[0.1em] text-on-surface-variant mb-2.5">
+                    {isEs ? 'ANTES DE LEER' : 'BEFORE READING'}
+                  </p>
+                  <div className="flex flex-wrap gap-x-5 gap-y-1.5">
+                    {article.relations.prerequisite.map((rel) => (
+                      <Link
+                        key={rel.id}
+                        href={`/${lang}/${rel.category}/${rel.localized_slug}`}
+                        className="text-[14px] text-primary-text hover:underline font-medium"
+                      >
+                        {rel.title}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Cuerpo del artículo */}
+              <ArticleRenderer html={bodyHtml} className="article-prose" />
+              <MermaidLoader />
+              <CodeCopyEnhancer />
+
+              {/* Artículos relacionados */}
+              {article.relations.related && article.relations.related.length > 0 && (
+                <section className="mt-14 pt-6 border-t border-outline-variant">
+                  <h2 className="font-mono text-[12.5px] font-semibold tracking-[0.1em] text-on-surface-variant mb-4">
+                    {isEs ? 'RELACIONADOS' : 'RELATED'}
+                  </h2>
+                  <div className="flex flex-col">
+                    {article.relations.related.map((rel) => (
+                      <Link
+                        key={rel.id}
+                        href={`/${lang}/${rel.category}/${rel.localized_slug}`}
+                        className="group flex items-center gap-3 py-3 border-b border-outline-variant hover:bg-surface-container transition-colors -mx-3 px-3"
+                      >
+                        <span className="font-headline font-semibold text-[16px] text-on-surface group-hover:text-primary-text transition-colors flex-1 min-w-0 truncate">
+                          {rel.title}
+                        </span>
+                        <span className="font-mono text-[11px] text-on-surface-variant flex-shrink-0">
+                          {rel.category}
+                        </span>
+                        <Icon
+                          name="arrow_forward"
+                          className="text-[18px] text-on-surface-variant group-hover:text-primary-text transition-colors"
+                        />
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Siguiente artículo */}
+              {article.relations.next && article.relations.next.length > 0 && (
+                <div className="mt-8">
+                  {article.relations.next.map((rel) => (
+                    <Link
+                      key={rel.id}
+                      href={`/${lang}/${rel.category}/${rel.localized_slug}`}
+                      className="group flex items-center justify-between gap-4 px-5 sm:px-6 py-5 border border-outline hover:bg-surface-container transition-colors"
+                    >
+                      <div className="min-w-0">
+                        <p className="font-mono text-[11px] font-semibold tracking-[0.1em] text-primary-text mb-1.5">
+                          {isEs ? 'SIGUIENTE' : 'NEXT'}
+                        </p>
+                        <p className="font-headline font-semibold text-[19px] sm:text-[20px] tracking-[-0.02em] text-on-surface truncate">
+                          {rel.title}
+                        </p>
+                      </div>
+                      <Icon
+                        name="arrow_forward"
+                        className="text-[24px] sm:text-[26px] text-on-surface flex-shrink-0 group-hover:text-primary-text transition-colors"
+                      />
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </article>
+
+            <SidebarRight toc={toc} resources={article.resources} lang={lang} />
+          </div>
+        </main>
+      </div>
+
       <Footer />
     </>
   );

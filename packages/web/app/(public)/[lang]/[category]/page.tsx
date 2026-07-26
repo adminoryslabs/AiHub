@@ -1,11 +1,11 @@
-// Página de listado de artículos por categoría — estilo terminal
+// Página de listado de artículos por categoría — filas con número, meta, título y flecha
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Navbar } from '@/components/layout/Navbar';
 import { SidebarLeft } from '@/components/layout/SidebarLeft';
 import { Footer } from '@/components/layout/Footer';
-import { Badge } from '@/components/ui/Badge';
+import { Icon } from '@/components/ui/Icon';
 import { getCategories, getArticles, ApiClientError } from '@/lib/api-client';
 import {
   isValidLang,
@@ -74,82 +74,109 @@ export default async function CategoryPage({ params }: PageProps) {
   return (
     <>
       <Navbar lang={validLang} currentPath={`/${lang}/${category}`} />
-      <SidebarLeft lang={validLang} categories={categories} currentCategory={category} />
 
-      <main className="pt-24 pb-16 md:pl-72 px-6 min-h-screen">
-        <div className="max-w-4xl mx-auto font-mono">
-          {/* Breadcrumb */}
-          <nav className="text-[13px] text-on-surface-variant mb-7" aria-label="Breadcrumb">
-            <span className="text-primary">~</span>/{' '}
-            <Link href={`/${lang}`} className="hover:text-primary transition-colors">
-              {isEs ? 'inicio' : 'home'}
-            </Link>{' '}/{' '}
-            <span className="text-on-surface lowercase">{category}</span>
-          </nav>
+      <div className="mx-auto max-w-[1220px] flex items-start">
+        <SidebarLeft
+          lang={validLang}
+          categories={categories}
+          currentCategory={category}
+        />
 
-          {/* Cabecera de categoría */}
-          <div className="flex items-baseline gap-3 mb-2">
-            <span className="text-primary text-[13px]">[dir]</span>
-            <h1 className="font-mono font-bold text-[34px] tracking-tight text-on-surface lowercase">
-              {category}
-            </h1>
-            <span className="text-[13px] text-on-surface-variant">
-              {articles.pagination.total} {isEs ? 'artículos' : 'articles'}
-            </span>
+        <main className="flex-1 min-w-0 px-6 sm:px-11 pb-16">
+          <div className="max-w-[760px] mx-auto">
+            {/* Breadcrumb */}
+            <nav
+              className="font-mono text-[12px] text-on-surface-variant pt-7"
+              aria-label="Breadcrumb"
+            >
+              <Link
+                href={`/${lang}`}
+                className="text-on-surface-variant hover:text-on-surface transition-colors"
+              >
+                {isEs ? 'Inicio' : 'Home'}
+              </Link>
+              <span className="mx-2 text-outline-variant">/</span>
+              <span className="text-on-surface">{currentCategory?.name ?? category}</span>
+            </nav>
+
+            {/* Cabecera de categoría */}
+            <header className="pt-5 pb-6 border-b border-outline">
+              <div className="flex items-baseline gap-3.5 mb-3.5">
+                <h1 className="font-headline font-semibold text-[40px] sm:text-[48px] leading-[1] tracking-[-0.03em] text-on-surface">
+                  {currentCategory?.name ?? category}
+                </h1>
+                <span className="font-mono text-[13px] text-on-surface-variant">
+                  {articles.pagination.total}{' '}
+                  {isEs
+                    ? articles.pagination.total === 1
+                      ? 'artículo'
+                      : 'artículos'
+                    : articles.pagination.total === 1
+                      ? 'article'
+                      : 'articles'}
+                </span>
+              </div>
+              {description && (
+                <p className="font-body text-[18px] leading-[1.5] text-on-surface-variant max-w-[54ch]">
+                  {description}
+                </p>
+              )}
+            </header>
+
+            {/* Lista de artículos */}
+            {articles.data.length > 0 ? (
+              <div className="flex flex-col">
+                {articles.data.map((article, index) => {
+                  const typeLabel = isEs
+                    ? article.type === 'tutorial' ? 'Tutorial' : 'Concepto'
+                    : article.type === 'tutorial' ? 'Tutorial' : 'Concept';
+                  return (
+                    <Link
+                      key={article.id}
+                      href={`/${lang}/${category}/${article.localized_slug}`}
+                      className="group grid grid-cols-[48px_minmax(0,1fr)_auto] gap-5 sm:gap-6 items-center py-6 border-b border-outline-variant hover:bg-surface-container transition-colors -mx-3 px-3"
+                    >
+                      <span className="font-mono text-[14px] font-medium text-primary-text">
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2.5 mb-2">
+                          <span className="font-mono text-[10.5px] font-medium tracking-[0.09em] text-on-surface-variant">
+                            {typeLabel.toUpperCase()}
+                          </span>
+                          {article.featured && (
+                            <span className="font-mono text-[10.5px] font-semibold text-primary-text bg-primary-container px-2 py-0.5">
+                              {isEs ? 'Destacado' : 'Featured'}
+                            </span>
+                          )}
+                        </div>
+                        <h2 className="font-headline font-semibold text-[20px] sm:text-[22px] leading-[1.15] tracking-[-0.02em] text-on-surface mb-1.5">
+                          {article.title}
+                        </h2>
+                        <p className="font-body text-[14px] leading-[1.5] text-on-surface-variant max-w-[62ch] line-clamp-2">
+                          {article.summary}
+                        </p>
+                      </div>
+                      <Icon
+                        name="arrow_forward"
+                        className="text-[22px] text-on-surface-variant group-hover:text-primary-text transition-colors"
+                      />
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="py-16 text-center">
+                <p className="font-body text-[15px] text-on-surface-variant">
+                  {isEs
+                    ? 'Sin artículos en esta categoría aún.'
+                    : 'No articles in this category yet.'}
+                </p>
+              </div>
+            )}
           </div>
-
-          {description && (
-            <p className="font-body text-sm text-on-surface-variant max-w-2xl mb-6">
-              {description}
-            </p>
-          )}
-
-          {/* Línea de filtros decorativa */}
-          <p className="text-[13px] text-on-surface-variant mb-4">
-            filter: <span className="text-primary">--all</span>{' '}
-            <span className="opacity-60">--concepts</span>{' '}
-            <span className="opacity-60">--tools</span>
-          </p>
-
-          {/* Lista de artículos */}
-          {articles.data.length > 0 ? (
-            <div className="border border-outline-variant bg-surface-container-lowest dark:bg-surface-container rounded-md overflow-hidden">
-              {articles.data.map((article) => (
-                <Link
-                  key={article.id}
-                  href={`/${lang}/${category}/${article.localized_slug}`}
-                  className="group block px-4 py-4 border-b border-outline-variant last:border-b-0 hover:bg-surface-container transition-colors"
-                >
-                  <div className="flex items-center gap-2.5 mb-2">
-                    <span className="text-primary">›</span>
-                    <Badge variant="primary">
-                      {isEs ? 'concepto' : 'concept'}
-                    </Badge>
-                    {article.featured && (
-                      <Badge variant="success">★ {isEs ? 'destacado' : 'featured'}</Badge>
-                    )}
-                    <span className="ml-auto text-[12px] text-on-surface-variant">
-                      updated {article.last_edited_at?.slice(0, 7) ?? '—'}
-                    </span>
-                  </div>
-                  <h2 className="font-mono font-bold text-[18px] text-on-surface group-hover:text-primary transition-colors pl-5">
-                    {article.title}
-                  </h2>
-                  <p className="font-body text-[13.5px] leading-relaxed text-on-surface-variant mt-1.5 pl-5">
-                    {article.summary}
-                  </p>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="border border-outline-variant bg-surface-container-lowest dark:bg-surface-container rounded-md p-10 text-center">
-              <p className="font-mono text-sm text-on-surface-variant">
-                {isEs ? 'sin artículos en esta categoría aún' : 'no articles in this category yet'}
-              </p>
-            </div>
-          )}
-        </div>
-      </main>
+        </main>
+      </div>
 
       <Footer />
     </>

@@ -1,8 +1,7 @@
-// Toggle de tema oscuro/claro con persistencia en localStorage
+// Toggle de tema oscuro/claro — botón cuadrado 34×34, borde outline-variant
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Icon } from '../ui/Icon';
 
 export function ThemeToggle() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
@@ -10,7 +9,6 @@ export function ThemeToggle() {
 
   useEffect(() => {
     setMounted(true);
-    // Leer preferencia guardada o preferencia del sistema
     const saved = localStorage.getItem('aihub_theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const initial = saved ? (saved as 'light' | 'dark') : prefersDark ? 'dark' : 'light';
@@ -29,16 +27,21 @@ export function ThemeToggle() {
     applyTheme(next);
   }
 
-  if (!mounted) return null;
+  if (!mounted) {
+    // Placeholder del mismo tamaño para evitar layout shift
+    return <span className="w-[34px] h-[34px] block" aria-hidden="true" />;
+  }
 
   return (
     <button
       onClick={toggleTheme}
-      className="p-1.5 rounded-md hover:bg-surface-container text-on-surface-variant transition-colors font-mono"
+      className="w-[34px] h-[34px] flex items-center justify-center bg-surface border border-outline-variant text-on-surface hover:bg-surface-container transition-colors"
       aria-label={theme === 'light' ? 'Activar modo oscuro' : 'Activar modo claro'}
       title={theme === 'light' ? 'Modo oscuro' : 'Modo claro'}
     >
-      <Icon name={theme === 'light' ? 'dark_mode' : 'light_mode'} size="md" />
+      <span className="material-symbols-outlined text-[19px]" aria-hidden="true">
+        {theme === 'light' ? 'dark_mode' : 'light_mode'}
+      </span>
     </button>
   );
 }

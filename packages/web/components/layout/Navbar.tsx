@@ -1,16 +1,12 @@
-// Componente Navbar: status bar terminal fija
+// Navbar — sticky, fondo surface translúcido + backdrop-blur, borde inferior outline-variant
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
-import { Icon } from '../ui/Icon';
+import { useEffect, useState } from 'react';
+import { SearchBar } from '../search/SearchBar';
 import { ThemeToggle } from './ThemeToggle';
 import { LanguageSwitcher } from './LanguageSwitcher';
-import { SearchBar } from '../search/SearchBar';
 import type { SupportedLang } from '@/lib/i18n';
-
-// Versión mostrada en el logo (alineada con la marca OrysLabs)
-const HUB_VERSION = 'v2026.06';
 
 interface NavbarProps {
   lang: SupportedLang;
@@ -21,50 +17,54 @@ interface NavbarProps {
 export function Navbar({ lang, currentPath = '', alternateUrl }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Cerrar menú al navegar
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [currentPath]);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-[58px] bg-surface-container border-b border-outline-variant font-mono">
-      <div className="flex items-center h-full px-5 gap-4">
-        {/* Logo — cuadrado cyan + ai-hub + versión */}
-        <Link href={`/${lang}`} className="flex items-center gap-2.5 flex-shrink-0">
-          <span className="block w-[11px] h-[18px] bg-primary" aria-hidden="true" />
-          <span className="font-bold text-[15px] tracking-tight text-on-surface leading-none">
-            ai-hub
-          </span>
-          <span className="text-xs text-on-surface-variant leading-none hidden sm:inline">
-            {HUB_VERSION}
+    <header className="sticky top-0 z-50 h-[58px] bg-surface/85 border-b border-outline-variant backdrop-blur-md">
+      <div className="mx-auto max-w-[1220px] h-full flex items-center gap-5 px-6 sm:px-8">
+        {/* Logo — cuadrito chartreuse + AI Hub en Space Grotesk */}
+        <Link
+          href={`/${lang}`}
+          className="flex items-center gap-2.5 flex-shrink-0"
+          aria-label="AI Hub"
+        >
+          <span className="block w-[11px] h-[11px] bg-primary flex-shrink-0" aria-hidden="true" />
+          <span className="font-headline font-bold text-[17px] tracking-tight text-on-surface leading-none">
+            AI Hub
           </span>
         </Link>
 
-        {/* Búsqueda — centro, estilo prompt */}
-        <div className="flex-1 max-w-[560px] mx-auto hidden md:block">
-          <SearchBar lang={lang} />
+        {/* Búsqueda — empujada a la derecha con ml-auto */}
+        <div className="ml-auto w-full max-w-[520px] hidden md:block">
+          <SearchBar lang={lang} variant="navbar" />
         </div>
 
         {/* Controles — derecha */}
-        <div className="flex items-center gap-3 ml-auto flex-shrink-0 text-[12.5px]">
+        <div className="flex items-center gap-3 flex-shrink-0">
           {/* Búsqueda mobile */}
-          <button
-            className="md:hidden p-1.5 rounded-md hover:bg-surface-container text-on-surface-variant"
+          <Link
+            href={`/${lang}#search`}
+            className="md:hidden p-1.5 text-on-surface-variant hover:text-on-surface transition-colors"
             aria-label="Buscar"
           >
-            <Icon name="search" size="md" />
-          </button>
+            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">search</span>
+          </Link>
 
           <LanguageSwitcher currentLang={lang} currentPath={currentPath} alternateUrl={alternateUrl} />
           <ThemeToggle />
 
           {/* Botón menú hamburger mobile */}
           <button
-            className="md:hidden p-1.5 rounded-md hover:bg-surface-container text-on-surface-variant"
+            className="md:hidden p-1.5 text-on-surface-variant hover:text-on-surface transition-colors"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Menú"
+            aria-expanded={mobileMenuOpen}
           >
-            <Icon name={mobileMenuOpen ? 'close' : 'menu'} size="md" />
+            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+              {mobileMenuOpen ? 'close' : 'menu'}
+            </span>
           </button>
         </div>
       </div>

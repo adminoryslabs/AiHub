@@ -1,87 +1,88 @@
 /* Importar fuentes de Google — deben ir antes de @tailwind */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Acid Rain — sistema de diseño (variante brandbook)
-   Chartreuse neón sobre índigo profundo · esquinas afiladas · sin sombras
-   Dark: paleta fiel al brandbook. Light: derivada (superficies claras +
-   hues de marca oscurecidas para contraste AA, ya que el brandbook es solo-oscuro).
+   AI Hub — sistema de diseño "Minimal"
+   Light protagonista: papel verde-piedra + tinta índigo + acento chartreuse.
+   Dark fiel a OrysLabs: índigo profundo + chartreuse neón.
+   Esquinas afiladas, sin sombras, sin motivos de terminal.
    ────────────────────────────────────────────────────────────────────────── */
 
 /* Variables CSS para el sistema de diseño (canales RGB para soporte de opacidad con Tailwind) */
 :root {
-  /* Primario — chartreuse oscurecido, legible sobre claro (deriva de --acid-brand-deep) */
-  --color-primary: 101 163 13;              /* #65a30d */
-  --color-primary-dim: 77 124 15;           /* #4d7c0f */
-  --color-primary-container: 234 247 213;   /* #eaf7d5 */
-  --color-primary-fixed-dim: 77 124 15;     /* #4d7c0f */
-  --color-on-primary: 255 255 255;          /* #ffffff */
+  /* Primario — chartreuse puro solo para sólidos. Texto de acento usa --color-primary-text */
+  --color-primary: 163 230 53;              /* #a3e635 chartreuse puro */
+  --color-primary-dim: 132 204 22;           /* #84cc16 hover del acento sólido */
+  --color-primary-container: 230 243 201;   /* #e6f3c9 fondo suave de acento */
+  --color-primary-fixed-dim: 132 204 22;     /* #84cc16 */
+  --color-on-primary: 18 20 31;             /* #12141f texto sobre chartreuse sólido */
+  --color-primary-text: 77 124 15;          /* #4d7c0f chartreuse oscuro para TEXTO (AA) */
 
-  /* Superficies — papel claro con leve tinte del verde de marca */
-  --color-surface: 246 247 243;             /* #f6f7f3 */
-  --color-surface-container: 236 238 231;   /* #eceee7 */
-  --color-surface-container-low: 246 247 243;     /* #f6f7f3 */
-  --color-surface-container-lowest: 253 254 251;  /* #fdfefb */
-  --color-surface-container-high: 228 231 222;    /* #e4e7de */
-  --color-surface-container-highest: 219 223 211; /* #dbdfd3 */
+  /* Superficies — papel verde-piedra muy claro */
+  --color-surface: 246 247 243;             /* #f6f7f3 fondo de página */
+  --color-surface-container: 238 240 230;   /* #eef0e6 tarjetas, inputs, hover */
+  --color-surface-container-low: 241 243 235;   /* #f1f3eb */
+  --color-surface-container-lowest: 255 255 255; /* #ffffff */
+  --color-surface-container-high: 232 235 222;  /* #e8ebde */
+  --color-surface-container-highest: 226 230 214; /* #e2e6d6 */
 
-  /* Texto — tinta índigo de marca */
-  --color-on-surface: 12 14 31;             /* #0c0e1f */
-  --color-on-surface-variant: 74 88 60;     /* #4a583c (olive muted, contraste AA sobre claro) */
+  /* Texto — tinta índigo de marca (casi negro en light) */
+  --color-on-surface: 18 20 31;             /* #12141f */
+  --color-on-surface-variant: 90 97 80;     /* #5a6150 olive muted, contraste AA sobre claro */
 
   /* Bordes */
-  --color-outline: 123 135 120;             /* #7b8778 */
-  --color-outline-variant: 214 220 206;     /* #d6dcce */
+  --color-outline: 18 20 31;                /* #12141f borde fuerte (tinta) */
+  --color-outline-variant: 220 222 209;     /* #dcded1 bordes/divisores sutiles */
 
-  /* Error — status.fail del brandbook, oscurecido para contraste sobre claro */
+  /* Error */
   --color-error: 190 50 50;                 /* #be3232 */
   --color-error-container: 255 200 200;     /* #ffc8c8 */
 
-  /* Bloque de código — terminal índigo incrustada incluso en light */
-  --color-code-bg: 9 11 26;                 /* #090b1a (--acid-bg-input) */
-  --color-code-fg: 106 138 88;             /* #6a8a58 (--acid-text-mute) */
+  /* Bloque de código — navy fijo (terminal incrustada incluso en light, del brandbook) */
+  --color-code-bg: 9 11 26;                 /* #090b1a */
+  --color-code-fg: 106 138 88;             /* #6a8a58 */
 
-  /* Tipografía — mono-first: titulares y UI en JetBrains Mono */
-  --font-headline: 'JetBrains Mono', monospace;
+  /* Tipografía — Space Grotesk para titulares, Inter para cuerpo, JetBrains Mono para micro-etiquetas */
+  --font-headline: 'Space Grotesk', sans-serif;
   --font-body: 'Inter', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 }
 
-/* Overrides dark mode — Acid Rain fiel al brandbook: índigo profundo + chartreuse */
+/* Overrides dark mode — índigo profundo + chartreuse (fiel a OrysLabs) */
 .dark {
-  /* Primario — chartreuse neón (--acid-brand-primary) */
+  /* Primario — chartreuse neón (sólido y texto) */
   --color-primary: 163 230 53;              /* #a3e635 */
-  --color-primary-dim: 101 163 13;          /* #65a30d (--acid-brand-deep) */
-  --color-primary-container: 23 27 66;      /* #171b42 (--acid-bg-higher) */
-  --color-primary-fixed-dim: 101 163 13;    /* #65a30d */
-  --color-on-primary: 12 14 31;             /* #0c0e1f (tinta índigo sobre chartreuse) */
+  --color-primary-dim: 132 204 22;          /* #84cc16 */
+  --color-primary-container: 31 42 18;      /* #1f2a12 fondo suave de acento */
+  --color-primary-fixed-dim: 132 204 22;    /* #84cc16 */
+  --color-on-primary: 12 14 31;             /* #0c0e1f tinta sobre chartreuse */
+  --color-primary-text: 163 230 53;         /* #a3e635 acento de texto en dark = chartreuse puro */
 
-  /* Superficies — índigo profundo (escala --acid-bg-*) */
-  --color-surface: 12 14 31;                /* #0c0e1f (--acid-bg-base) */
-  --color-surface-container: 17 20 48;      /* #111430 (--acid-bg-raised) */
-  --color-surface-container-low: 14 16 38;  /* #0e1026 (--acid-bg-panel) */
-  --color-surface-container-lowest: 9 11 26; /* #090b1a (--acid-bg-input) */
-  --color-surface-container-high: 23 27 66;  /* #171b42 (--acid-bg-higher) */
-  --color-surface-container-highest: 29 34 80; /* #1d2250 */
+  /* Superficies — índigo profundo */
+  --color-surface: 12 14 31;                /* #0c0e1f fondo de página */
+  --color-surface-container: 20 23 58;      /* #14173a tarjetas, inputs, hover */
+  --color-surface-container-low: 15 18 42;  /* #0f122a */
+  --color-surface-container-lowest: 9 11 26; /* #090b1a */
+  --color-surface-container-high: 26 30 72;  /* #1a1e48 */
+  --color-surface-container-highest: 31 37 88; /* #1f2558 */
 
-  /* Texto — jerarquía de legibilidad del brandbook */
-  --color-on-surface: 234 245 228;          /* #eaf5e4 (--acid-text-primary) */
-  --color-on-surface-variant: 168 196 154;  /* #a8c49a (--acid-text-dim) */
+  /* Texto */
+  --color-on-surface: 234 245 228;          /* #eaf5e4 */
+  --color-on-surface-variant: 154 164 143;  /* #9aa48f */
 
   /* Bordes */
-  --color-outline: 106 138 88;              /* #6a8a58 (--acid-text-mute) */
-  --color-outline-variant: 36 42 82;        /* #242a52 (borde índigo sutil) */
+  --color-outline: 234 245 228;             /* #eaf5e4 borde fuerte (casi blanco) */
+  --color-outline-variant: 36 42 82;        /* #242a52 bordes sutiles */
 
-  /* Error — status.fail del brandbook */
-  --color-error: 239 68 68;                 /* #ef4444 (--acid-status-fail) */
+  /* Error */
+  --color-error: 239 68 68;                 /* #ef4444 */
   --color-error-container: 92 26 38;        /* #5c1a26 */
 
-  /* Bloque de código — lo más oscuro */
+  /* Bloque de código — mismo navy (terminal) */
   --color-code-bg: 9 11 26;                 /* #090b1a */
   --color-code-fg: 106 138 88;             /* #6a8a58 */
 }
@@ -248,16 +249,11 @@ code:not(pre code) {
   margin: 1.5rem 0;
 }
 
-/* ─── Cuerpo de artículo: prefijos markdown en subtítulos (# / ##) ─────────── */
-.article-prose h2::before {
-  content: '# ';
-  color: rgb(var(--color-primary));
-  font-weight: 700;
-}
+/* ─── Cuerpo de artículo: prefijos markdown en subtítulos (DESACTIVADO en UI "Minimal") ─
+   Si más adelante se quiere volver al estilo terminal, descomentar:           */
+.article-prose h2::before,
 .article-prose h3::before {
-  content: '## ';
-  color: rgb(var(--color-primary));
-  font-weight: 700;
+  content: none;
 }
 
 /* Ocultar texto de accesibilidad */

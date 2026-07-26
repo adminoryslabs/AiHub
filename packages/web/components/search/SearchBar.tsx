@@ -1,4 +1,4 @@
-// Barra de búsqueda con overlay de resultados — estética terminal
+// Barra de búsqueda con overlay de resultados — estilo "Minimal"
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -18,7 +18,7 @@ interface SearchResult {
 
 interface SearchBarProps {
   lang: SupportedLang;
-  // Renderiza la variante "prompt" grande del hero (con `hub search` y cursor `_`)
+  // "navbar" para el header, "hero" para el hero de la portada
   variant?: 'navbar' | 'hero';
 }
 
@@ -34,12 +34,13 @@ export function SearchBar({ lang, variant = 'navbar' }: SearchBarProps) {
 
   const placeholder =
     variant === 'hero'
-      ? 'search'
+      ? lang === 'es'
+        ? 'Busca un concepto, p. ej. "¿qué es un LLM?"'
+        : 'Search a concept, e.g. "what is an LLM?"'
       : lang === 'es'
-        ? 'grep concepto · herramienta · patrón'
-        : 'grep concept · tool · pattern';
+        ? 'Buscar conceptos, herramientas…'
+        : 'Search concepts, tools…';
 
-  // Buscar con debounce de 300ms
   const handleSearch = useCallback(
     (value: string) => {
       setQuery(value);
@@ -69,14 +70,12 @@ export function SearchBar({ lang, variant = 'navbar' }: SearchBarProps) {
     [lang]
   );
 
-  // Navegar a artículo
   function navigateTo(result: SearchResult) {
     router.push(`/${result.lang}/${result.category}/${result.slug}`);
     setIsOpen(false);
     setQuery('');
   }
 
-  // Navegación por teclado
   function handleKeyDown(e: React.KeyboardEvent) {
     if (!isOpen) return;
 
@@ -95,7 +94,6 @@ export function SearchBar({ lang, variant = 'navbar' }: SearchBarProps) {
     }
   }
 
-  // Cerrar overlay al hacer click afuera
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (inputRef.current && !inputRef.current.closest('[data-search]')?.contains(e.target as Node)) {
@@ -106,7 +104,7 @@ export function SearchBar({ lang, variant = 'navbar' }: SearchBarProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Atajo `/` para enfocar el buscador (cross-platform, no ⌘K)
+  // Atajo `/` para enfocar el buscador
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === '/' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
@@ -122,15 +120,21 @@ export function SearchBar({ lang, variant = 'navbar' }: SearchBarProps) {
 
   return (
     <div data-search className="relative w-full">
-      {/* Input de búsqueda — prompt terminal */}
       <div
-        className={`relative flex items-center gap-2.5 ${isHero ? 'h-[52px] px-4' : 'h-[38px] px-3'} bg-surface-container-lowest dark:bg-surface-container-low border border-outline-variant rounded-md font-mono focus-within:border-primary/60 transition-colors`}
+        className={`
+          relative flex items-center gap-2.5
+          ${isHero ? 'h-[54px] px-5' : 'h-[38px] px-3.5'}
+          bg-surface-container border ${isHero ? 'border-outline' : 'border-outline-variant'}
+          focus-within:border-primary-text
+          transition-colors
+        `}
       >
-        <span className="text-primary font-bold text-sm select-none">$</span>
-
-        {isHero && (
-          <span className="text-on-surface text-sm select-none hidden sm:inline">hub</span>
-        )}
+        <span
+          className={`material-symbols-outlined flex-shrink-0 ${isHero ? 'text-[22px]' : 'text-[18px]'} text-on-surface`}
+          aria-hidden="true"
+        >
+          search
+        </span>
 
         <input
           ref={inputRef}
@@ -140,43 +144,31 @@ export function SearchBar({ lang, variant = 'navbar' }: SearchBarProps) {
           onKeyDown={handleKeyDown}
           onFocus={() => results.length > 0 && setIsOpen(true)}
           placeholder={placeholder}
-          className={`flex-1 min-w-0 bg-transparent ${isHero ? 'text-sm' : 'text-[13px]'} text-on-surface placeholder-on-surface-variant focus:outline-none`}
+          className={`
+            flex-1 min-w-0 bg-transparent font-body appearance-none border-0 outline-none
+            focus:[outline:none] focus:[box-shadow:none] focus:[border-color:transparent]
+            ${isHero ? 'text-[15.5px]' : 'text-[13.5px]'}
+            text-on-surface placeholder-on-surface-variant
+          `}
           aria-label={lang === 'es' ? 'Buscar' : 'Search'}
           aria-expanded={isOpen}
           aria-autocomplete="list"
         />
 
-        {isHero && !query && (
-          <span className="blink-cursor text-primary text-sm select-none hidden sm:inline">_</span>
-        )}
-
-        {/* Hint de atajo `/` */}
-        {!isHero && (
-          <kbd className="flex-shrink-0 font-mono text-[11px] text-on-surface-variant border border-outline-variant rounded-sm px-1.5 py-px select-none">
-            /
-          </kbd>
-        )}
-
-        {isHero && (
-          <kbd className="flex-shrink-0 ml-auto font-mono text-xs text-on-surface-variant border border-outline-variant rounded-sm px-2 py-0.5 select-none">
-            /
-          </kbd>
-        )}
-
         {loading && (
-          <span className="absolute right-12 top-1/2 -translate-y-1/2 animate-spin w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full" />
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 border-2 border-primary-text border-t-transparent rounded-full animate-spin" />
         )}
       </div>
 
       {/* Overlay de resultados */}
       {isOpen && results.length > 0 && (
-        <div className="absolute top-full mt-1.5 left-0 right-0 bg-surface-container-lowest dark:bg-surface-container border border-outline-variant rounded-md overflow-hidden z-50 max-h-96 overflow-y-auto">
+        <div className="absolute top-full mt-1.5 left-0 right-0 bg-surface-container-lowest dark:bg-surface-container border border-outline-variant overflow-hidden z-50 max-h-96 overflow-y-auto">
           {results.map((result, index) => (
             <button
               key={result.article_id}
               onClick={() => navigateTo(result)}
               className={`
-                w-full text-left px-3.5 py-2.5 hover:bg-surface-container transition-colors flex items-start gap-3 font-mono
+                w-full text-left px-4 py-2.5 hover:bg-surface-container transition-colors flex items-start gap-3
                 ${index === selectedIndex ? 'bg-surface-container' : ''}
                 ${index > 0 ? 'border-t border-outline-variant' : ''}
               `}
@@ -191,7 +183,7 @@ export function SearchBar({ lang, variant = 'navbar' }: SearchBarProps) {
                   dangerouslySetInnerHTML={{ __html: result.highlight.summary }}
                 />
               </div>
-              <span className="flex-shrink-0 text-[11px] text-primary border border-primary/40 rounded-sm px-1.5 py-px">
+              <span className="flex-shrink-0 font-mono text-[11px] text-primary-text border border-outline-variant px-1.5 py-px">
                 {result.category}
               </span>
             </button>
@@ -200,9 +192,10 @@ export function SearchBar({ lang, variant = 'navbar' }: SearchBarProps) {
       )}
 
       {isOpen && !loading && results.length === 0 && query.trim() && (
-        <div className="absolute top-full mt-1.5 left-0 right-0 bg-surface-container-lowest dark:bg-surface-container border border-outline-variant rounded-md p-6 text-center z-50 font-mono">
+        <div className="absolute top-full mt-1.5 left-0 right-0 bg-surface-container-lowest dark:bg-surface-container border border-outline-variant p-6 text-center z-50">
           <p className="text-sm text-on-surface-variant">
-            {lang === 'es' ? 'sin resultados para' : 'no results for'} <span className="text-on-surface">{query}</span>
+            {lang === 'es' ? 'sin resultados para' : 'no results for'}{' '}
+            <span className="text-on-surface">{query}</span>
           </p>
         </div>
       )}

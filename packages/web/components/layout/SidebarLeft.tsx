@@ -1,10 +1,11 @@
-// Sidebar izquierda — árbol de categorías estilo terminal
+// Sidebar izquierda persistente — Categorías, Aprende por nivel, Comunidad
 'use client';
 
 import Link from 'next/link';
 import type { Category } from '@ai-hub/shared';
 import type { SupportedLang } from '@/lib/i18n';
 import { DIFFICULTY_LABELS_ES, DIFFICULTY_LABELS_EN } from '@/lib/i18n';
+import { CommunityCard } from './CommunityCard';
 
 interface SidebarLeftProps {
   lang: SupportedLang;
@@ -13,17 +14,32 @@ interface SidebarLeftProps {
   currentTutorialDifficulty?: string;
 }
 
-export function SidebarLeft({ lang, categories, currentCategory, currentTutorialDifficulty }: SidebarLeftProps) {
+// Colores de punto para "Aprende por nivel" — coinciden con la escala del brandbook
+const LEVEL_DOT: Record<string, string> = {
+  beginner: '#3f8f2e',
+  intermediate: '#c08a1e',
+  advanced: '#8a5cc0',
+};
+
+export function SidebarLeft({
+  lang,
+  categories,
+  currentCategory,
+  currentTutorialDifficulty,
+}: SidebarLeftProps) {
   const isEs = lang === 'es';
   const difficultyLabels = isEs ? DIFFICULTY_LABELS_ES : DIFFICULTY_LABELS_EN;
 
   return (
-    <aside className="hidden md:flex flex-col w-64 fixed left-0 top-[58px] h-[calc(100vh-58px)] bg-surface border-r border-outline-variant overflow-y-auto z-40 font-mono">
-      <p className="px-3 pt-5 pb-3 text-[11px] font-bold tracking-wide text-on-surface-variant">
-        ~/categorías
+    <aside
+      className="hidden md:flex flex-col w-[248px] flex-shrink-0 sticky top-[58px] self-start max-h-[calc(100vh-58px)] overflow-y-auto border-r border-outline-variant py-6 px-4"
+      aria-label="Navegación principal"
+    >
+      {/* Categorías */}
+      <p className="font-mono text-[10.5px] font-semibold tracking-[0.12em] text-on-surface-variant px-2.5 mb-2.5">
+        {isEs ? 'CATEGORÍAS' : 'CATEGORIES'}
       </p>
-
-      <nav className="flex flex-col gap-px px-2" aria-label="Categorías">
+      <nav className="flex flex-col" aria-label="Categorías">
         {categories.map((category) => {
           const isActive = category.slug === currentCategory;
           return (
@@ -31,35 +47,29 @@ export function SidebarLeft({ lang, categories, currentCategory, currentTutorial
               key={category.slug}
               href={`/${lang}/${category.slug}`}
               className={`
-                flex items-center gap-2 px-2.5 py-1.5 rounded-sm text-[13px] transition-colors
+                group flex items-center gap-2.5 px-2.5 py-2 text-[14px] transition-colors
                 ${
                   isActive
-                    ? 'bg-primary-container text-on-surface font-semibold'
-                    : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
+                    ? 'bg-primary-container text-primary-text font-semibold'
+                    : 'text-on-surface hover:bg-surface-container'
                 }
               `}
               aria-current={isActive ? 'page' : undefined}
             >
-              <span
-                className={`w-3 text-center flex-shrink-0 ${isActive ? 'text-primary' : 'text-on-surface-variant/60'}`}
-                aria-hidden="true"
-              >
-                {isActive ? '▸' : '·'}
-              </span>
-              <span className="lowercase">{category.slug}</span>
-              <span className="ml-auto text-[12px] text-on-surface-variant/60">
-                [{category.article_count}]
+              <span className="flex-1 truncate">{category.name}</span>
+              <span className="font-mono text-[11.5px] opacity-70 flex-shrink-0">
+                {category.article_count > 0 ? category.article_count : '—'}
               </span>
             </Link>
           );
         })}
       </nav>
 
-      {/* Sección Tutoriales */}
-      <div className="mt-3 pt-3 border-t border-outline-variant mx-2">
-        <p className="px-2.5 pb-1.5 text-[11px] font-bold tracking-wide text-on-surface-variant">
-          ~/{isEs ? 'tutoriales' : 'tutorials'}
-        </p>
+      {/* Aprende por nivel */}
+      <p className="font-mono text-[10.5px] font-semibold tracking-[0.12em] text-on-surface-variant px-2.5 mt-6 mb-2.5">
+        {isEs ? 'APRENDE POR NIVEL' : 'LEARN BY LEVEL'}
+      </p>
+      <nav className="flex flex-col" aria-label={isEs ? 'Aprende por nivel' : 'Learn by level'}>
         {(['beginner', 'intermediate', 'advanced'] as const).map((d) => {
           const isActive = currentTutorialDifficulty === d;
           return (
@@ -67,47 +77,27 @@ export function SidebarLeft({ lang, categories, currentCategory, currentTutorial
               key={d}
               href={`/${lang}/tutoriales?difficulty=${d}`}
               className={`
-                flex items-center gap-2 px-2.5 py-1.5 rounded-sm text-[12px] transition-colors
-                ${
-                  isActive
-                    ? 'bg-primary-container text-on-surface font-semibold'
-                    : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
-                }
+                flex items-center gap-2.5 px-2.5 py-2 text-[14px] transition-colors
+                ${isActive
+                  ? 'bg-primary-container text-primary-text font-semibold'
+                  : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'}
               `}
               aria-current={isActive ? 'page' : undefined}
             >
-              <span aria-hidden="true" className={`w-3 text-center flex-shrink-0 ${isActive ? 'text-primary' : 'text-on-surface-variant/60'}`}>
-                {isActive ? '▸' : '·'}
-              </span>
+              <span
+                className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                style={{ background: LEVEL_DOT[d] }}
+                aria-hidden="true"
+              />
               <span>{difficultyLabels[d]}</span>
             </Link>
           );
         })}
-      </div>
+      </nav>
 
-      {/* Comunidad */}
-      <div className="mt-auto px-2 pt-3 pb-5 border-t border-outline-variant">
-        <p className="px-2.5 pb-1.5 text-[11px] text-on-surface-variant/60 lowercase">
-          // {isEs ? 'comunidad' : 'community'}
-        </p>
-        <a
-          href="https://discord.gg/xEEzEmaDf"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 px-2.5 py-1.5 rounded-sm text-[13px] text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors"
-        >
-          <span aria-hidden="true">›</span>
-          <span>discord</span>
-        </a>
-        <a
-          href="https://oryslabs.com/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 px-2.5 py-1.5 rounded-sm text-[13px] text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors"
-        >
-          <span aria-hidden="true">›</span>
-          <span>oryslabs</span>
-        </a>
+      {/* Comunidad — empujada al fondo */}
+      <div className="mt-auto pt-6">
+        <CommunityCard lang={lang} />
       </div>
     </aside>
   );

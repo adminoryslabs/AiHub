@@ -1,4 +1,4 @@
-// Selector de idioma ES/EN — estilo terminal `[es]` / `en`
+// Selector de idioma ES/EN — mono inline, sin corchetes
 'use client';
 
 import Link from 'next/link';
@@ -14,8 +14,6 @@ interface LanguageSwitcherProps {
 export function LanguageSwitcher({ currentLang, currentPath, alternateUrl }: LanguageSwitcherProps) {
   const otherLang: SupportedLang = currentLang === 'es' ? 'en' : 'es';
 
-  // Usar la URL del idioma alternativo que viene de la API si está disponible.
-  // Fallback: reemplazar solo el segmento de idioma (sirve para home y categorías).
   let otherPath: string;
   if (alternateUrl) {
     otherPath = alternateUrl;
@@ -26,14 +24,15 @@ export function LanguageSwitcher({ currentLang, currentPath, alternateUrl }: Lan
   }
 
   return (
-    <div className="flex items-center gap-2 font-mono text-[12.5px]">
-      <span className="text-primary font-bold">[{currentLang}]</span>
+    <div className="flex items-center gap-1.5 font-mono text-[12px] font-medium select-none">
+      <span className="text-primary-text">{currentLang.toUpperCase()}</span>
+      <span className="text-outline-variant" aria-hidden="true">/</span>
       <Link
         href={currentLang === otherLang ? '#' : otherPath}
         className="text-on-surface-variant hover:text-on-surface transition-colors"
         aria-current={currentLang === otherLang ? 'true' : undefined}
       >
-        {otherLang}
+        {otherLang.toUpperCase()}
       </Link>
     </div>
   );

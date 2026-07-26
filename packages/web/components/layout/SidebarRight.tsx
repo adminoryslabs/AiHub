@@ -1,21 +1,15 @@
-// Sidebar derecha: TOC + recursos (solo en páginas de artículo) — estilo terminal
+// Sidebar derecha — TOC del artículo
 'use client';
 
 import { useEffect, useState } from 'react';
 import type { TocItem } from '@/lib/markdown';
 import type { Resource } from '@ai-hub/shared';
+import { Icon } from '../ui/Icon';
 
 interface SidebarRightProps {
   toc: TocItem[];
   resources: Resource[];
   lang: 'es' | 'en';
-}
-
-// Prefijo markdown según el nivel del encabezado
-function tocPrefix(level: number): string {
-  if (level <= 2) return '#';
-  if (level === 3) return '##';
-  return '###';
 }
 
 export function SidebarRight({ toc, resources, lang }: SidebarRightProps) {
@@ -48,30 +42,35 @@ export function SidebarRight({ toc, resources, lang }: SidebarRightProps) {
   }, [toc]);
 
   return (
-    <aside className="hidden xl:flex flex-col w-80 fixed right-0 top-[58px] h-[calc(100vh-58px)] overflow-y-auto z-40 p-6 gap-8 font-mono">
+    <aside
+      className="hidden xl:flex flex-col w-[186px] flex-shrink-0 sticky top-[78px] self-start max-h-[calc(100vh-78px)] overflow-y-auto py-10"
+      aria-label={lang === 'es' ? 'Tabla de contenidos y recursos' : 'Table of contents and resources'}
+    >
       {/* Tabla de contenidos */}
       {tocItems.length > 0 && (
         <div>
-          <p className="text-[11px] font-bold tracking-wide text-on-surface-variant mb-3">
-            // {lang === 'es' ? 'en este artículo' : 'in this article'}
+          <p className="font-mono text-[11px] font-medium tracking-[0.1em] text-on-surface-variant mb-3.5">
+            {lang === 'es' ? 'EN ESTA PÁGINA' : 'ON THIS PAGE'}
           </p>
-          <nav className="flex flex-col gap-2">
+          <nav
+            className="flex flex-col gap-2.5 border-l border-outline-variant pl-3.5"
+            aria-label={lang === 'es' ? 'Tabla de contenidos' : 'Table of contents'}
+          >
             {tocItems.map((item) => (
               <a
                 key={item.id}
                 href={`#${item.id}`}
                 className={`
-                  block text-[13px] py-0.5 transition-colors
-                  ${item.level > 2 ? 'pl-3.5' : ''}
+                  block text-[13.5px] leading-tight transition-colors
+                  ${item.level > 2 ? 'pl-3' : ''}
                   ${
                     activeId === item.id
-                      ? 'text-primary font-semibold'
+                      ? 'text-primary-text font-semibold'
                       : 'text-on-surface-variant hover:text-on-surface'
                   }
                 `}
               >
-                <span className="text-primary/70 mr-1">{tocPrefix(item.level)}</span>
-                <span className="lowercase">{item.text}</span>
+                {item.text}
               </a>
             ))}
           </nav>
@@ -80,24 +79,25 @@ export function SidebarRight({ toc, resources, lang }: SidebarRightProps) {
 
       {/* Recursos externos */}
       {resources.length > 0 && (
-        <div>
-          <p className="text-[11px] font-bold tracking-wide text-on-surface-variant mb-3">
-            // {lang === 'es' ? 'recursos' : 'resources'}
+        <div className="mt-8">
+          <p className="font-mono text-[11px] font-medium tracking-[0.1em] text-on-surface-variant mb-3.5">
+            {lang === 'es' ? 'RECURSOS' : 'RESOURCES'}
           </p>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2.5">
             {resources.map((resource) => (
               <a
                 key={resource.id}
                 href={resource.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block p-3 border border-outline-variant rounded-sm hover:bg-surface-container transition-colors"
+                className="block p-3 border border-outline-variant hover:bg-surface-container transition-colors"
               >
-                <p className="text-[12.5px] font-semibold text-on-surface">
-                  ↗ {resource.title}
+                <p className="text-[12.5px] font-semibold text-on-surface leading-snug flex items-center gap-1.5">
+                  <Icon name="arrow_outward" className="text-[14px] flex-shrink-0" />
+                  <span>{resource.title}</span>
                 </p>
                 {resource.description && (
-                  <p className="text-[11px] text-on-surface-variant mt-1 font-body">
+                  <p className="text-[11.5px] text-on-surface-variant mt-1.5 font-body leading-snug">
                     {resource.description}
                   </p>
                 )}

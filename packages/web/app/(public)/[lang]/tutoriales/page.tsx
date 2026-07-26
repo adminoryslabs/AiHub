@@ -1,11 +1,11 @@
-// Página de listado de tutoriales — estilo terminal
+// Página de listado de tutoriales — filas con badges de dificultad y tiempo
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Navbar } from '@/components/layout/Navbar';
 import { SidebarLeft } from '@/components/layout/SidebarLeft';
 import { Footer } from '@/components/layout/Footer';
-import { Badge } from '@/components/ui/Badge';
+import { Icon } from '@/components/ui/Icon';
 import { getCategories, getTutorials, ApiClientError } from '@/lib/api-client';
 import { isValidLang, type SupportedLang, DIFFICULTY_LABELS_ES, DIFFICULTY_LABELS_EN } from '@/lib/i18n';
 
@@ -69,104 +69,133 @@ export default async function TutorialsListPage({ params, searchParams }: PagePr
   return (
     <>
       <Navbar lang={validLang} currentPath={`/${lang}/tutoriales`} />
-      <SidebarLeft
-        lang={validLang}
-        categories={categories}
-        currentTutorialDifficulty={difficulty}
-      />
 
-      <main className="pt-24 pb-16 md:pl-72 px-6 min-h-screen">
-        <div className="max-w-4xl mx-auto font-mono">
-          {/* Breadcrumb */}
-          <nav className="text-[13px] text-on-surface-variant mb-7" aria-label="Breadcrumb">
-            <span className="text-primary">~</span>/{' '}
-            <Link href={`/${lang}`} className="hover:text-primary transition-colors">
-              {isEs ? 'inicio' : 'home'}
-            </Link>{' '}/{' '}
-            <span className="text-on-surface lowercase">
-              {isEs ? 'tutoriales' : 'tutorials'}
-            </span>
-          </nav>
+      <div className="mx-auto max-w-[1220px] flex items-start">
+        <SidebarLeft
+          lang={validLang}
+          categories={categories}
+          currentTutorialDifficulty={difficulty}
+        />
 
-          {/* Cabecera */}
-          <div className="flex items-baseline gap-3 mb-2">
-            <span className="text-primary text-[13px]">[dir]</span>
-            <h1 className="font-mono font-bold text-[34px] tracking-tight text-on-surface lowercase">
-              {isEs ? 'tutoriales' : 'tutorials'}
-            </h1>
-            <span className="text-[13px] text-on-surface-variant">
-              {tutorials.pagination.total} {isEs ? 'tutoriales' : 'tutorials'}
-            </span>
-          </div>
-
-          <p className="font-body text-sm text-on-surface-variant max-w-2xl mb-6">
-            {isEs
-              ? 'Guías prácticas paso a paso con un resultado específico y verificable.'
-              : 'Step-by-step practical guides with a specific, verifiable outcome.'}
-          </p>
-
-          {/* Filtro por dificultad */}
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-[13px] text-on-surface-variant">filter:</span>
-            <Link
-              href={`/${lang}/tutoriales`}
-              className={`text-[13px] px-2 py-0.5 rounded-sm transition-colors ${
-                !difficulty ? 'bg-primary-container text-on-surface font-semibold' : 'text-on-surface-variant hover:text-primary'
-              }`}
+        <main className="flex-1 min-w-0 px-6 sm:px-11 pb-16">
+          <div className="max-w-[760px] mx-auto">
+            {/* Breadcrumb */}
+            <nav
+              className="font-mono text-[12px] text-on-surface-variant pt-7"
+              aria-label="Breadcrumb"
             >
-              {isEs ? 'todos' : 'all'}
-            </Link>
-            {(['beginner', 'intermediate', 'advanced'] as const).map((d) => (
               <Link
-                key={d}
-                href={`/${lang}/tutoriales?difficulty=${d}`}
-                className={`text-[13px] px-2 py-0.5 rounded-sm transition-colors ${
-                  difficulty === d ? 'bg-primary-container text-on-surface font-semibold' : 'text-on-surface-variant hover:text-primary'
+                href={`/${lang}`}
+                className="text-on-surface-variant hover:text-on-surface transition-colors"
+              >
+                {isEs ? 'Inicio' : 'Home'}
+              </Link>
+              <span className="mx-2 text-outline-variant">/</span>
+              <span className="text-on-surface">
+                {isEs ? 'Tutoriales' : 'Tutorials'}
+              </span>
+            </nav>
+
+            <header className="pt-5 pb-6 border-b border-outline">
+              <div className="flex items-baseline gap-3.5 mb-3.5">
+                <h1 className="font-headline font-semibold text-[40px] sm:text-[48px] leading-[1] tracking-[-0.03em] text-on-surface">
+                  {isEs ? 'Tutoriales' : 'Tutorials'}
+                </h1>
+                <span className="font-mono text-[13px] text-on-surface-variant">
+                  {tutorials.pagination.total}{' '}
+                  {isEs
+                    ? tutorials.pagination.total === 1
+                      ? 'tutorial'
+                      : 'tutoriales'
+                    : 'tutorials'}
+                </span>
+              </div>
+              <p className="font-body text-[18px] leading-[1.5] text-on-surface-variant max-w-[54ch]">
+                {isEs
+                  ? 'Guías prácticas paso a paso con un resultado específico y verificable.'
+                  : 'Step-by-step practical guides with a specific, verifiable outcome.'}
+              </p>
+            </header>
+
+            {/* Filtro por dificultad */}
+            <div className="flex flex-wrap items-center gap-2 mt-6 mb-2">
+              <Link
+                href={`/${lang}/tutoriales`}
+                className={`font-mono text-[12px] font-medium px-2.5 py-1 transition-colors ${
+                  !difficulty
+                    ? 'bg-primary-container text-primary-text'
+                    : 'text-on-surface-variant hover:bg-surface-container'
                 }`}
               >
-                {difficultyLabels[d]}
+                {isEs ? 'Todos' : 'All'}
               </Link>
-            ))}
-          </div>
-
-          {/* Lista de tutoriales */}
-          {tutorials.data.length > 0 ? (
-            <div className="border border-outline-variant bg-surface-container-lowest dark:bg-surface-container rounded-md overflow-hidden">
-              {tutorials.data.map((tutorial) => (
+              {(['beginner', 'intermediate', 'advanced'] as const).map((d) => (
                 <Link
-                  key={tutorial.id}
-                  href={`/${lang}/tutoriales/${tutorial.localized_slug}`}
-                  className="group block px-4 py-4 border-b border-outline-variant last:border-b-0 hover:bg-surface-container transition-colors"
+                  key={d}
+                  href={`/${lang}/tutoriales?difficulty=${d}`}
+                  className={`font-mono text-[12px] font-medium px-2.5 py-1 transition-colors ${
+                    difficulty === d
+                      ? 'bg-primary-container text-primary-text'
+                      : 'text-on-surface-variant hover:bg-surface-container'
+                  }`}
                 >
-                  <div className="flex items-center gap-2.5 mb-2">
-                    <span className="text-primary">›</span>
-                    <Badge variant="primary">tutorial</Badge>
-                    <Badge variant="outline">
-                      {difficultyLabels[tutorial.difficulty] || tutorial.difficulty}
-                    </Badge>
-                    <Badge variant="outline">~{tutorial.estimated_time}</Badge>
-                    <span className="ml-auto text-[12px] text-on-surface-variant">
-                      updated {tutorial.last_edited_at?.slice(0, 7) ?? '—'}
-                    </span>
-                  </div>
-                  <h2 className="font-mono font-bold text-[18px] text-on-surface group-hover:text-primary transition-colors pl-5">
-                    {tutorial.title}
-                  </h2>
-                  <p className="font-body text-[13.5px] leading-relaxed text-on-surface-variant mt-1.5 pl-5">
-                    {tutorial.summary}
-                  </p>
+                  {difficultyLabels[d]}
                 </Link>
               ))}
             </div>
-          ) : (
-            <div className="border border-outline-variant bg-surface-container-lowest dark:bg-surface-container rounded-md p-10 text-center">
-              <p className="font-mono text-sm text-on-surface-variant">
-                {isEs ? 'sin tutoriales para este filtro' : 'no tutorials for this filter'}
-              </p>
-            </div>
-          )}
-        </div>
-      </main>
+
+            {/* Lista de tutoriales */}
+            {tutorials.data.length > 0 ? (
+              <div className="flex flex-col">
+                {tutorials.data.map((tutorial, index) => (
+                  <Link
+                    key={tutorial.id}
+                    href={`/${lang}/tutoriales/${tutorial.localized_slug}`}
+                    className="group grid grid-cols-[48px_minmax(0,1fr)_auto] gap-5 sm:gap-6 items-center py-6 border-b border-outline-variant hover:bg-surface-container transition-colors -mx-3 px-3"
+                  >
+                    <span className="font-mono text-[14px] font-medium text-primary-text">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <span className="font-mono text-[10.5px] font-medium tracking-[0.06em] bg-primary text-on-primary px-2 py-0.5">
+                          Tutorial
+                        </span>
+                        <span className="font-mono text-[10.5px] font-medium tracking-[0.06em] border border-outline-variant text-on-surface-variant px-2 py-0.5">
+                          {difficultyLabels[tutorial.difficulty] || tutorial.difficulty}
+                        </span>
+                        {tutorial.estimated_time && (
+                          <span className="font-mono text-[10.5px] font-medium tracking-[0.06em] border border-outline-variant text-on-surface-variant px-2 py-0.5">
+                            ~{tutorial.estimated_time}
+                          </span>
+                        )}
+                      </div>
+                      <h2 className="font-headline font-semibold text-[20px] sm:text-[22px] leading-[1.15] tracking-[-0.02em] text-on-surface mb-1.5">
+                        {tutorial.title}
+                      </h2>
+                      <p className="font-body text-[14px] leading-[1.5] text-on-surface-variant max-w-[62ch] line-clamp-2">
+                        {tutorial.summary}
+                      </p>
+                    </div>
+                    <Icon
+                      name="arrow_forward"
+                      className="text-[22px] text-on-surface-variant group-hover:text-primary-text transition-colors"
+                    />
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="py-16 text-center">
+                <p className="font-body text-[15px] text-on-surface-variant">
+                  {isEs
+                    ? 'Sin tutoriales para este filtro.'
+                    : 'No tutorials for this filter.'}
+                </p>
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
 
       <Footer />
     </>

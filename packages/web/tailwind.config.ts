@@ -17,6 +17,7 @@ const config: Config = {
         'primary-container': 'rgb(var(--color-primary-container) / <alpha-value>)',
         'primary-fixed-dim': 'rgb(var(--color-primary-fixed-dim) / <alpha-value>)',
         'on-primary': 'rgb(var(--color-on-primary) / <alpha-value>)',
+        'primary-text': 'rgb(var(--color-primary-text) / <alpha-value>)',
         surface: 'rgb(var(--color-surface) / <alpha-value>)',
         'surface-container': 'rgb(var(--color-surface-container) / <alpha-value>)',
         'surface-container-low': 'rgb(var(--color-surface-container-low) / <alpha-value>)',
@@ -33,20 +34,20 @@ const config: Config = {
         'inverse-surface': '#0c0e1f',
         'inverse-primary': '#a3e635',
       },
-      // Bordes afilados — Terminal Orys (2–4px). `full` se deja en el default
+      // Bordes afilados — UI "Minimal" (0–3px). `full` se deja en el default
       // de Tailwind para no romper elementos circulares (spinners de carga).
       borderRadius: {
         DEFAULT: '2px',
         sm: '2px',
         md: '3px',
         lg: '3px',
-        xl: '4px',
-        '2xl': '4px',
-        '3xl': '4px',
+        xl: '3px',
+        '2xl': '3px',
+        '3xl': '3px',
       },
-      // Fuentes tipográficas — mono-first: titulares y UI en JetBrains Mono
+      // Fuentes tipográficas — Space Grotesk para titulares, Inter para cuerpo, JetBrains Mono para micro-etiquetas
       fontFamily: {
-        headline: ['JetBrains Mono', 'monospace'],
+        headline: ['Space Grotesk', 'sans-serif'],
         body: ['Inter', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
         label: ['Inter', 'sans-serif'],
