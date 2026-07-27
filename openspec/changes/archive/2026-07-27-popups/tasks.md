@@ -33,14 +33,15 @@ Chain strategy: pending
 
 ## Phase 4: Verificación manual contra el spec
 
-- [ ] 4.1 **Modal a11y**: `pnpm --filter web dev` → abrir el popup → verificar focus trap (Tab/Shift+Tab quedan dentro), Esc cierra, click en scrim cierra, scroll del body bloqueado, foco vuelve al elemento anterior al cerrar, `prefers-reduced-motion` no anima.
-- [ ] 4.2 **PopupHost**: dismissar el popup por las 5 vías (X, scrim, Esc, CTA Discord, "Quizás más tarde") → en cada caso verificar `localStorage.getItem('aihub:popup:community-2026-06:dismissed')` retorna un string (timestamp). Recargar la página → popup NO aparece. Navegar a otra página pública → popup NO re-aparece (clave persiste).
-- [ ] 4.3 **Admin aislado**: visitar `/admin` → popup NO aparece. Visitar `/admin/*` → tampoco.
-- [ ] 4.4 **Light/dark**: togglear tema → popup se ve correcto en ambos (chartreuse, texto tinta, borde, scrim blur).
-- [ ] 4.5 **SSR**: `View source` en una página pública → no hay markup del popup antes de hidratar.
+- [x] 4.1 **Modal a11y**: `pnpm --filter web dev` → abrir el popup → verificar focus trap (Tab/Shift+Tab quedan dentro), Esc cierra, click en scrim cierra, scroll del body bloqueado, foco vuelve al elemento anterior al cerrar, `prefers-reduced-motion` no anima. *(Validado en producción por el user.)*
+- [x] 4.2 **PopupHost**: dismissar el popup por las 5 vías (X, scrim, Esc, CTA Discord, "Quizás más tarde") → en cada caso verificar `localStorage.getItem('aihub:popup:community-2026-06:dismissed')` retorna un string (timestamp). Recargar la página → popup NO aparece. Navegar a otra página pública → popup NO re-aparece (clave persiste). *(Validado en producción por el user.)*
+- [x] 4.3 **Admin aislado**: visitar `/admin` → popup NO aparece. Visitar `/admin/*` → tampoco. *(Validado en producción por el user.)*
+- [x] 4.4 **Light/dark**: togglear tema → popup se ve correcto en ambos (chartreuse, texto tinta, borde, scrim blur). *(Validado en producción por el user.)*
+- [x] 4.5 **SSR**: `View source` en una página pública → no hay markup del popup antes de hidratar. *(Validado en producción por el user.)*
+- [x] 4.6 **CTA new tab**: click en "Entrar al Discord" → abre nueva pestaña con discord.gg/xEEzEmaDf, popup se cierra, foco vuelve al elemento anterior. *(Validado en producción por el user.)*
 
 ## Phase 5: Archive
 
-- [ ] 5.1 Mover `openspec/changes/popups/specs/popups/spec.md` → `openspec/specs/popups/spec.md`.
-- [ ] 5.2 Crear entrada en `openspec/changes/archive/2026-07-26-popups/` con `proposal.md`, `design.md`, `tasks.md` (copias).
-- [ ] 5.3 Borrer (o vaciar) el directorio `openspec/changes/popups/` (queda solo el archive).
+- [x] 5.1 Mover `openspec/changes/popups/specs/popups/spec.md` → `openspec/specs/popups/spec.md`.
+- [x] 5.2 Crear entrada en `openspec/changes/archive/2026-07-27-popups/` con `proposal.md`, `design.md`, `tasks.md`, `specs/popups/spec.md`.
+- [x] 5.3 Borrar (o vaciar) el directorio `openspec/changes/popups/` (queda solo el archive).
