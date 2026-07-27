@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  .ms { font-family: 'Material Symbols Outlined'; font-weight: normal; font-style: normal; line-height: 1; display: inline-block; white-space: nowrap; -webkit-font-smoothing: antialiased; }
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-thumb { background: rgba(130,130,130,.34); border-radius: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  a { color: inherit; }
+</style>
+</helmet>
+
+<div style="height:100vh;display:flex;flex-direction:column;font-family:'Inter',sans-serif;background:#0a0c18;overflow:hidden;">
+
+  <!-- ===== ANDAMIAJE (no es parte del diseño) ===== -->
+  <div style="flex-shrink:0;display:flex;align-items:center;gap:14px;height:52px;padding:0 18px;background:#0d0f1e;border-bottom:1px solid #20244a;color:#c6cbe8;font-size:13px;">
+    <span style="font-weight:700;color:#eef1ff;letter-spacing:-0.01em;white-space:nowrap;">AI&nbsp;Hub <span style="color:#6b7099;font-weight:500;">/ minimal</span></span>
+    <div style="display:flex;gap:3px;padding:3px;background:#171a34;border-radius:9px;margin-left:8px;">
+      <button onClick="{{ goHome }}" style="{{ sHome }}">Portada</button>
+      <button onClick="{{ goCat }}" style="{{ sCat }}">Categoría</button>
+      <button onClick="{{ goArt }}" style="{{ sArt }}">Artículo</button>
+    </div>
+    <button onClick="{{ openPopup }}" style="height:32px;padding:0 13px;border-radius:8px;border:1px solid #2a2f57;background:#171a34;color:#c6cbe8;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;margin-left:auto;">Ver popup</button>
+    <button onClick="{{ toggleDark }}" style="display:flex;align-items:center;gap:7px;height:32px;padding:0 13px;border-radius:8px;border:1px solid #2a2f57;background:#171a34;color:#c6cbe8;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;">
+      <span class="ms" style="font-size:16px;">{{ darkIcon }}</span>{{ darkLabel }}
+    </button>
+  </div>
+
+  <!-- ===== VIEWPORT ===== -->
+  <div style="flex:1;overflow-y:auto;overflow-x:hidden;position:relative;{{ themeVars }};background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;">
+
+    <!-- ===== POPUP DE BIENVENIDA: COMUNIDAD ===== -->
+    <sc-if value="{{ showPopup }}" hint-placeholder-val="{{ true }}">
+    <div style="position:fixed;inset:52px 0 0 0;z-index:60;display:flex;align-items:center;justify-content:center;padding:24px;background:{{ scrimBg }};backdrop-filter:blur(3px);">
+      <div style="position:relative;width:100%;max-width:432px;background:var(--bg);border:1px solid var(--ink);box-shadow:0 24px 60px rgba(0,0,0,.28);">
+        <button onClick="{{ closePopup }}" aria-label="Cerrar" style="position:absolute;top:12px;right:12px;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;">
+          <span class="ms" style="font-size:18px;">close</span>
+        </button>
+        <!-- franja superior de acento -->
+        <div style="height:6px;background:var(--accent);"></div>
+        <div style="padding:34px 32px 30px;">
+          <p style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.14em;color:var(--accent-ink);margin:0 0 16px;">NOVEDAD · COMUNIDAD</p>
+          <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:30px;line-height:1.08;letter-spacing:-0.03em;color:var(--ink);margin:0 0 12px;">Únete a la comunidad</h2>
+          <p style="font-size:15.5px;line-height:1.55;color:var(--muted);margin:0 0 24px;">Resuelve dudas, comparte lo que aprendes y entérate primero de las nuevas guías. Cientos de personas explorando la IA generativa, sin humo.</p>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <a href="#" onClick="{{ closePopup }}" style="display:flex;align-items:center;justify-content:center;gap:9px;height:48px;background:var(--accent);color:var(--on-accent);text-decoration:none;font-weight:600;font-size:15px;">
+              <span class="ms" style="font-size:20px;">forum</span>Entrar al Discord
+            </a>
+            <button onClick="{{ closePopup }}" style="height:42px;background:transparent;border:1px solid var(--line);color:var(--muted);cursor:pointer;font-family:inherit;font-size:13.5px;font-weight:500;">Quizás más tarde</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+    <div>
+      <!-- NAV -->
+      <header style="position:sticky;top:0;z-index:30;background:var(--bg-a);border-bottom:1px solid var(--line);backdrop-filter:blur(10px);">
+        <div style="max-width:1220px;margin:0 auto;display:flex;align-items:center;gap:22px;padding:16px 30px;">
+          <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+            <span style="width:11px;height:11px;background:var(--accent);flex-shrink:0;"></span>
+            <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;letter-spacing:-0.02em;color:var(--ink);white-space:nowrap;">AI Hub</span>
+          </div>
+          <label style="flex:1;max-width:420px;margin-left:auto;display:flex;align-items:center;gap:9px;height:38px;padding:0 14px;background:var(--surface);border:1px solid var(--line);cursor:text;">
+            <span class="ms" style="font-size:18px;color:var(--muted);">search</span>
+            <span style="font-size:13.5px;color:var(--muted);">Buscar conceptos, herramientas…</span>
+          </label>
+          <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
+            <div style="display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;"><span style="color:var(--accent-ink);">ES</span><span style="color:var(--muted);">EN</span></div>
+            <span style="width:1px;height:20px;background:var(--line);"></span>
+            <button onClick="{{ toggleDark }}" aria-label="Cambiar tema" style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;">
+              <span class="ms" style="font-size:19px;">{{ darkIcon }}</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- SHELL: sidebar + contenido -->
+      <div style="max-width:1220px;margin:0 auto;display:grid;grid-template-columns:248px minmax(0,1fr);align-items:start;">
+
+        <!-- ===== BARRA LATERAL ===== -->
+        <aside style="position:sticky;top:71px;height:calc(100vh - 123px);overflow-y:auto;border-right:1px solid var(--line);padding:26px 18px;display:flex;flex-direction:column;">
+          <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:0.12em;color:var(--muted);margin:0 0 10px;padding:0 10px;">CATEGORÍAS</p>
+          <nav style="display:flex;flex-direction:column;gap:1px;">
+            <sc-for list="{{ cats }}" as="c" hint-placeholder-count="5">
+              <a href="#" onClick="{{ goCat }}" style="{{ c.navStyle }}">
+                <span style="font-size:14px;font-weight:500;">{{ c.name }}</span>
+                <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11.5px;opacity:.75;">{{ c.countLabel }}</span>
+              </a>
+            </sc-for>
+          </nav>
+
+          <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:0.12em;color:var(--muted);margin:24px 0 10px;padding:0 10px;">APRENDE POR NIVEL</p>
+          <nav style="display:flex;flex-direction:column;gap:1px;">
+            <sc-for list="{{ levels }}" as="l" hint-placeholder-count="3">
+              <a href="#" style="display:flex;align-items:center;gap:10px;padding:8px 10px;text-decoration:none;color:var(--muted);">
+                <span style="width:7px;height:7px;border-radius:50%;background:{{ l.color }};flex-shrink:0;"></span>
+                <span style="font-size:14px;font-weight:500;">{{ l.name }}</span>
+              </a>
+            </sc-for>
+          </nav>
+
+          <!-- COMUNIDAD (más prominente) -->
+          <div style="margin-top:auto;padding-top:24px;">
+            <div style="border:1px solid var(--line);background:var(--surface);padding:16px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                <span style="width:7px;height:7px;background:var(--accent);flex-shrink:0;"></span>
+                <p style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;letter-spacing:-0.01em;color:var(--ink);margin:0;">Comunidad</p>
+              </div>
+              <p style="font-size:12.5px;line-height:1.45;color:var(--muted);margin:0 0 13px;">Aprende y comparte con otros que están explorando la IA.</p>
+              <a href="#" style="display:flex;align-items:center;gap:10px;padding:9px 11px;background:var(--bg);border:1px solid var(--line);text-decoration:none;margin-bottom:7px;">
+                <span class="ms" style="font-size:18px;color:var(--accent-ink);">forum</span>
+                <span style="font-size:13px;font-weight:600;color:var(--ink);">Discord</span>
+                <span class="ms" style="font-size:16px;color:var(--muted);margin-left:auto;">arrow_outward</span>
+              </a>
+              <a href="#" style="display:flex;align-items:center;gap:10px;padding:9px 11px;background:var(--bg);border:1px solid var(--line);text-decoration:none;">
+                <span class="ms" style="font-size:18px;color:var(--accent-ink);">hub</span>
+                <span style="font-size:13px;font-weight:600;color:var(--ink);">OrysLabs</span>
+                <span class="ms" style="font-size:16px;color:var(--muted);margin-left:auto;">arrow_outward</span>
+              </a>
+            </div>
+          </div>
+        </aside>
+
+        <!-- ===== CONTENIDO ===== -->
+        <main style="min-width:0;padding:0 44px 64px;">
+
+          <!-- ---------- PORTADA ---------- -->
+          <sc-if value="{{ rHome }}" hint-placeholder-val="{{ true }}">
+          <div>
+            <section style="padding:56px 0 46px;">
+              <p style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.12em;color:var(--accent-ink);margin:0 0 24px;">CONCEPTOS · PATRONES · HERRAMIENTAS</p>
+              <h1 style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:56px;line-height:1.04;letter-spacing:-0.03em;color:var(--ink);margin:0 0 22px;max-width:15ch;">Entiende la IA generativa, sin ruido.</h1>
+              <p style="font-size:18px;line-height:1.6;color:var(--muted);max-width:52ch;margin:0 0 30px;">Guías claras y curadas — de los fundamentos a los agentes. Pensadas para leer y entender, estés empezando o construyendo.</p>
+              <label style="display:flex;align-items:center;gap:13px;height:54px;max-width:520px;padding:0 20px;background:var(--surface);border:1px solid var(--ink);cursor:text;">
+                <span class="ms" style="font-size:22px;color:var(--ink);">search</span>
+                <span style="font-size:15.5px;color:var(--muted);">Busca un concepto, p. ej. “¿qué es un LLM?”</span>
+              </label>
+            </section>
+
+            <section style="border-top:1px solid var(--line);padding:32px 0 48px;">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:24px;">
+                <h2 style="font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:600;letter-spacing:0.1em;color:var(--muted);margin:0;">EMPIEZA POR AQUÍ</h2>
+                <a href="#" style="font-size:14px;font-weight:500;color:var(--accent-ink);text-decoration:none;">Ver todos</a>
+              </div>
+              <div style="display:flex;flex-direction:column;">
+                <sc-for list="{{ featured }}" as="f" hint-placeholder-count="3">
+                  <a href="#" onClick="{{ goArt }}" style="display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:22px;align-items:center;padding:22px 0;border-bottom:1px solid var(--line);text-decoration:none;" style-hover="background:var(--surface)">
+                    <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:500;color:var(--accent-ink);">{{ f.n }}</span>
+                    <div style="min-width:0;">
+                      <div style="display:flex;align-items:center;gap:10px;margin-bottom:7px;">
+                        <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:500;letter-spacing:0.09em;color:var(--muted);">{{ f.catUpper }}</span>
+                        <span style="font-size:12px;color:var(--muted);">· {{ f.read }}</span>
+                      </div>
+                      <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:23px;line-height:1.15;letter-spacing:-0.02em;margin:0 0 6px;color:var(--ink);">{{ f.title }}</h3>
+                      <p style="font-size:14px;line-height:1.5;color:var(--muted);margin:0;max-width:60ch;">{{ f.summary }}</p>
+                    </div>
+                    <span class="ms" style="font-size:22px;color:var(--muted);">arrow_forward</span>
+                  </a>
+                </sc-for>
+              </div>
+            </section>
+
+            <section style="border-top:1px solid var(--line);padding:32px 0 0;">
+              <h2 style="font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:600;letter-spacing:0.1em;color:var(--muted);margin:0 0 22px;">EXPLORA POR TEMA</h2>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);">
+                <sc-for list="{{ cats }}" as="c" hint-placeholder-count="5">
+                  <a href="#" onClick="{{ goCat }}" style="display:flex;flex-direction:column;padding:22px;background:var(--bg);text-decoration:none;min-height:128px;" style-hover="background:var(--surface)">
+                    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:auto;">
+                      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;color:var(--accent-ink);">{{ c.num }}</span>
+                      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);">{{ c.countText }}</span>
+                    </div>
+                    <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:19px;letter-spacing:-0.02em;margin:18px 0 5px;color:var(--ink);">{{ c.name }}</h3>
+                    <p style="font-size:13px;line-height:1.45;color:var(--muted);margin:0;">{{ c.desc }}</p>
+                  </a>
+                </sc-for>
+              </div>
+            </section>
+          </div>
+          </sc-if>
+
+          <!-- ---------- CATEGORÍA ---------- -->
+          <sc-if value="{{ rCat }}" hint-placeholder-val="{{ true }}">
+          <div style="max-width:760px;">
+            <p style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);padding:30px 0 0;margin:0;letter-spacing:0.04em;"><a href="#" onClick="{{ goHome }}" style="color:var(--muted);text-decoration:none;">Inicio</a> / <span style="color:var(--ink);">Agentes</span></p>
+            <section style="padding:22px 0 26px;border-bottom:1px solid var(--ink);">
+              <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:14px;">
+                <h1 style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:48px;line-height:1;letter-spacing:-0.03em;color:var(--ink);margin:0;">Agentes</h1>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);">3 artículos</span>
+              </div>
+              <p style="font-size:18px;line-height:1.5;color:var(--muted);max-width:54ch;margin:0;">Sistemas que razonan, usan herramientas y actúan con autonomía para resolver tareas.</p>
+            </section>
+            <sc-for list="{{ agentArticles }}" as="a" hint-placeholder-count="3">
+              <a href="#" onClick="{{ goArt }}" style="display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:22px;align-items:center;padding:24px 0;border-bottom:1px solid var(--line);text-decoration:none;" style-hover="background:var(--surface)">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:500;color:var(--accent-ink);">{{ a.n }}</span>
+                <div style="min-width:0;">
+                  <div style="display:flex;align-items:center;gap:10px;margin-bottom:7px;">
+                    <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:500;letter-spacing:0.09em;color:var(--muted);">{{ a.typeUpper }} · {{ a.read }}</span>
+                    <sc-if value="{{ a.featured }}" hint-placeholder-val="{{ true }}"><span style="font-size:11px;font-weight:600;color:var(--accent-ink);background:var(--accent-soft);padding:2px 8px;">Destacado</span></sc-if>
+                  </div>
+                  <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:22px;line-height:1.15;letter-spacing:-0.02em;margin:0 0 6px;color:var(--ink);">{{ a.title }}</h2>
+                  <p style="font-size:14px;line-height:1.5;color:var(--muted);margin:0;max-width:62ch;">{{ a.summary }}</p>
+                </div>
+                <span class="ms" style="font-size:22px;color:var(--muted);">arrow_forward</span>
+              </a>
+            </sc-for>
+          </div>
+          </sc-if>
+
+          <!-- ---------- ARTÍCULO ---------- -->
+          <sc-if value="{{ rArt }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 186px;gap:44px;align-items:start;">
+            <article style="min-width:0;padding-top:40px;">
+              <p style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);margin:0 0 22px;letter-spacing:0.04em;"><a href="#" onClick="{{ goHome }}" style="color:var(--muted);text-decoration:none;">Inicio</a> / <a href="#" onClick="{{ goCat }}" style="color:var(--muted);text-decoration:none;">Fundamentos</a> / <span style="color:var(--ink);">¿Qué es un LLM?</span></p>
+              <p style="font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:500;letter-spacing:0.1em;color:var(--accent-ink);margin:0 0 16px;">CONCEPTO · FUNDAMENTOS</p>
+              <h1 style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:48px;line-height:1.03;letter-spacing:-0.03em;margin:0 0 20px;color:var(--ink);">¿Qué es un LLM?</h1>
+              <p style="font-size:19px;line-height:1.55;color:var(--muted);margin:0 0 22px;max-width:56ch;">Un modelo de lenguaje entrenado con enormes cantidades de texto para predecir y generar lenguaje con coherencia. El motor detrás de ChatGPT, Claude y Gemini.</p>
+              <p style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:0 0 34px;letter-spacing:0.03em;">6 min de lectura · actualizado jun 2026</p>
+
+              <div style="font-size:17.5px;line-height:1.78;color:var(--ink);">
+                <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:27px;letter-spacing:-0.02em;margin:36px 0 14px;color:var(--ink);">Cómo aprende un modelo</h2>
+                <p style="margin:0 0 20px;">Un modelo aprende observando patrones estadísticos en miles de millones de fragmentos de texto. Durante el entrenamiento ajusta sus parámetros para predecir la siguiente palabra dado un contexto. Repetido a escala masiva, este objetivo simple produce capacidades sorprendentes.</p>
+                <blockquote style="margin:28px 0;padding:2px 0 2px 22px;border-left:3px solid var(--accent);font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:22px;line-height:1.35;letter-spacing:-0.01em;color:var(--ink);">Un LLM no “sabe” cosas: predice qué texto es más probable a continuación.</blockquote>
+                <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:27px;letter-spacing:-0.02em;margin:36px 0 14px;color:var(--ink);">Cuándo usarlo (y cuándo no)</h2>
+                <p style="margin:0 0 20px;">Los LLMs brillan en tareas de lenguaje abiertas: resumir, traducir, redactar y razonar sobre texto. No son bases de datos: pueden inventar hechos. Para datos precisos, combínalos con recuperación (RAG) o herramientas externas.</p>
+              </div>
+
+              <a href="#" onClick="{{ goArt }}" style="display:flex;align-items:center;justify-content:space-between;margin-top:40px;padding:22px 24px;border:1px solid var(--ink);text-decoration:none;" style-hover="background:var(--surface)">
+                <div><p style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:0.08em;color:var(--accent-ink);margin:0 0 5px;">SIGUIENTE</p><p style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:20px;letter-spacing:-0.02em;color:var(--ink);margin:0;">Tokens y embeddings</p></div>
+                <span class="ms" style="font-size:26px;color:var(--ink);">arrow_forward</span>
+              </a>
+            </article>
+            <aside style="position:sticky;top:95px;padding-top:40px;">
+              <p style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:0.1em;color:var(--muted);margin:0 0 14px;">EN ESTA PÁGINA</p>
+              <nav style="display:flex;flex-direction:column;gap:11px;border-left:1px solid var(--line);padding-left:15px;">
+                <a href="#" style="font-size:14px;color:var(--accent-ink);font-weight:600;text-decoration:none;">Cómo aprende un modelo</a>
+                <a href="#" style="font-size:14px;color:var(--muted);text-decoration:none;">Cuándo usarlo</a>
+              </nav>
+            </aside>
+          </div>
+          </sc-if>
+        </main>
+      </div>
+
+      <!-- FOOTER -->
+      <footer style="border-top:1px solid var(--line);">
+        <div style="max-width:1220px;margin:0 auto;padding:26px 30px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+          <span style="font-size:13px;color:var(--muted);">© 2026 AI Hub — conocimiento práctico sobre IA generativa</span>
+          <div style="display:flex;gap:20px;"><a href="#" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);text-decoration:none;">Temas</a><a href="#" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);text-decoration:none;">Admin</a></div>
+        </div>
+      </footer>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;home&quot;,&quot;category&quot;,&quot;article&quot;],&quot;default&quot;:&quot;home&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;dark&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  state = { screen: 'home', dark: false, showPopup: true };
+
+  themes() {
+    return {
+      light: { bg:'#f6f7f3', 'bg-a':'#f6f7f3ee', surface:'#eef0e6', ink:'#12141f', muted:'#5a6150', line:'#dcded1', accent:'#a3e635', 'accent-ink':'#4d7c0f', 'accent-soft':'#e6f3c9', 'on-accent':'#12141f' },
+      dark:  { bg:'#0c0e1f', 'bg-a':'#0c0e1fee', surface:'#14173a', ink:'#eaf5e4', muted:'#9aa48f', line:'#242a52', accent:'#a3e635', 'accent-ink':'#a3e635', 'accent-soft':'#1f2a12', 'on-accent':'#0c0e1f' },
+    };
+  }
+  themeVars() {
+    const t = this.themes()[this.state.dark ? 'dark' : 'light'];
+    return Object.keys(t).map((k) => `--${k}:${t[k]}`).join(';');
+  }
+
+  renderVals() {
+    const { screen, dark } = this.state;
+    const seg = (on) => `padding:6px 12px;border-radius:6px;border:none;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;white-space:nowrap;background:${on?'#2a2f57':'transparent'};color:${on?'#eef1ff':'#8388b5'};`;
+
+    const cats = [
+      { name:'Fundamentos', count:3, desc:'Las bases: cómo funcionan los modelos y por qué.' },
+      { name:'Agentes', count:3, desc:'Sistemas que razonan, usan herramientas y actúan.' },
+      { name:'Prompting', count:0, desc:'Cómo comunicarte con los modelos con efectividad.' },
+      { name:'Patrones', count:0, desc:'Arquitecturas que se repiten en sistemas de IA.' },
+      { name:'Herramientas', count:1, desc:'El stack práctico: frameworks, SDKs y plataformas.' },
+    ].map((c, i) => {
+      const active = screen === 'category' && c.name === 'Agentes';
+      return {
+        ...c,
+        num: String(i + 1).padStart(2, '0'),
+        countLabel: c.count > 0 ? String(c.count) : '—',
+        countText: c.count > 0 ? `${c.count} ${c.count === 1 ? 'artículo' : 'artículos'}` : 'Próximamente',
+        navStyle: `display:flex;align-items:center;gap:10px;padding:8px 10px;text-decoration:none;${active ? 'background:var(--accent-soft);color:var(--accent-ink);font-weight:600;' : 'color:var(--ink);'}`,
+      };
+    });
+
+    const levels = [
+      { name:'Principiante', color:'#3f8f2e' },
+      { name:'Intermedio', color:'#c08a1e' },
+      { name:'Avanzado', color:'#8a5cc0' },
+    ];
+
+    const featured = [
+      { n:'01', title:'Skills en agentes de IA', cat:'Agentes', read:'5 min', summary:'Capacidades modulares que un agente usa para actuar en el mundo externo.' },
+      { n:'02', title:'¿Qué es el Model Context Protocol?', cat:'Agentes', read:'8 min', summary:'El estándar abierto que conecta modelos con herramientas y datos externos.' },
+      { n:'03', title:'¿Qué es un LLM?', cat:'Fundamentos', read:'6 min', summary:'El motor detrás de ChatGPT, Claude y Gemini: cómo aprende a generar lenguaje.' },
+    ].map((f) => ({ ...f, catUpper: f.cat.toUpperCase() }));
+
+    const agentArticles = [
+      { n:'01', type:'Concepto', title:'Skills en agentes de IA', read:'5 min', featured:true, summary:'Capacidades modulares que un agente ejecuta para interactuar con el mundo: leer archivos, llamar APIs, ejecutar código.' },
+      { n:'02', type:'Concepto', title:'¿Qué es el Model Context Protocol?', read:'8 min', featured:false, summary:'Un estándar abierto que conecta modelos de IA con herramientas y fuentes de datos mediante un protocolo universal.' },
+      { n:'03', type:'Concepto', title:'Bucle de razonamiento y acción (ReAct)', read:'6 min', featured:false, summary:'Cómo un agente alterna entre pensar y ejecutar herramientas, paso a paso, hasta resolver una tarea.' },
+    ].map((a) => ({ ...a, typeUpper: a.type.toUpperCase() }));
+
+    return {
+      goHome: () => this.setState({ screen:'home' }),
+      goCat: () => this.setState({ screen:'category' }),
+      goArt: () => this.setState({ screen:'article' }),
+      toggleDark: () => this.setState((s) => ({ dark: !s.dark })),
+      openPopup: () => this.setState({ showPopup: true }),
+      closePopup: () => this.setState({ showPopup: false }),
+      showPopup: this.state.showPopup,
+      scrimBg: dark ? 'rgba(4,5,12,.66)' : 'rgba(18,20,31,.32)',
+      sHome: seg(screen==='home'), sCat: seg(screen==='category'), sArt: seg(screen==='article'),
+      darkIcon: dark ? 'light_mode' : 'dark_mode',
+      darkLabel: dark ? 'Claro' : 'Oscuro',
+
+      themeVars: this.themeVars(),
+      rHome: screen==='home', rCat: screen==='category', rArt: screen==='article',
+      cats, levels, featured, agentArticles,
+    };
+  }
+}
+</script>
+</body>
+</html>
