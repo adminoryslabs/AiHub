@@ -3,6 +3,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { getPool } from '../../services/db';
 import { requireAnyPermission } from '../../middleware/auth';
+import { aggregateHourly, aggregateDaily, aggregateCurrentHour } from '../../services/aggregation';
 
 const router = Router();
 
@@ -152,6 +153,28 @@ router.put('/config', async (req: Request, res: Response, next: NextFunction) =>
     res.json({
       data: {
         retention_days: parsed.data.retention_days,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/v1/analytics/admin/aggregate
+// On-demand aggregation: re-runs the previous-hour rollup, the previous-day
+// rollup, AND aggregates the current (partial) hour so the dashboard shows
+// real-time data without waiting for the cron at :05.
+router.post('/aggregate', async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const start = Date.now();
+    await aggregateHourly();
+    await aggregateDaily();
+    await aggregateCurrentHour();
+    res.json({
+      data: {
+        status: 'ok',
+        duration_ms: Date.now() - start,
+        timestamp: new Date().toISOString(),
       },
     });
   } catch (err) {
