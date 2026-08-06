@@ -1,6 +1,6 @@
 // Unit tests for analytics event Zod schemas
 import { describe, it, expect } from 'vitest';
-import { AnalyticsEventSchema, AnalyticsEventType, DeviceType, LangSchema } from '@ai-hub/shared';
+import { AnalyticsEventSchema, AnalyticsEventType, DeviceType, LangSchema } from '../../src/types/analytics';
 
 describe('AnalyticsEventSchema', () => {
   it('validates a complete valid page_view event', () => {
