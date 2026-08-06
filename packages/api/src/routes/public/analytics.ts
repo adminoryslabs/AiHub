@@ -1,6 +1,6 @@
 // Endpoint público: colección de eventos de analytics
 import { Router, Request, Response, NextFunction } from 'express';
-import { AnalyticsEventSchema } from '@ai-hub/shared';
+import { AnalyticsEventSchema } from '../../types/analytics';
 import { getPool } from '../../services/db';
 import { hashIp, IpHashRequest } from '../../middleware/ip-hash';
 import { rateLimit } from '../../middleware/rate-limit';
