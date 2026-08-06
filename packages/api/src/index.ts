@@ -25,6 +25,7 @@ import adminArticlesRouter from './routes/admin/articles';
 import resourcesRouter from './routes/admin/resources';
 import imagesRouter from './routes/admin/images';
 import accessRouter from './routes/admin/access';
+import analyticsAdminRouter from './routes/admin/analytics';
 
 // Configuración del logger
 const logger = pino({
@@ -80,6 +81,7 @@ export function createApp() {
   app.use('/api/v1/admin/resources', authenticateUser, resourcesRouter);
   app.use('/api/v1/admin/images', authenticateUser, imagesRouter);
   app.use('/api/v1/admin/access', authenticateUser, accessRouter);
+  app.use('/api/v1/analytics/admin', authenticateUser, analyticsAdminRouter);
 
   // Handler de errores (debe ser el último middleware)
   app.use(errorHandler);
