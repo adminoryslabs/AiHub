@@ -13,14 +13,14 @@ export const AnalyticsEventType = z.enum([
 // Device type enum
 export const DeviceType = z.enum(['mobile', 'desktop', 'tablet']);
 
-// Language enum
-export const Lang = z.enum(['es', 'en']);
+// Language enum (renamed from Lang to avoid collision with article.ts type Lang)
+export const LangSchema = z.enum(['es', 'en']);
 
 // Analytics event payload schema (validated at ingest)
 export const AnalyticsEventSchema = z.object({
   event_type: AnalyticsEventType,
   slug: z.string().max(200).nullable(),
-  lang: Lang,
+  lang: LangSchema,
   referrer: z.string().max(500).nullable(),
   device_type: DeviceType,
   query: z.string().max(500).optional(),
