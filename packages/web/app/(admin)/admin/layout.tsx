@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { href: '/admin/articles', label: 'Artículos', icon: 'article' },
   { href: '/admin/resources', label: 'Recursos', icon: 'link' },
   { href: '/admin/images', label: 'Imágenes', icon: 'image' },
+  { href: '/admin/analytics', label: 'Analytics', icon: 'bar_chart' },
   { href: '/admin/access', label: 'Accesos', icon: 'admin_panel_settings', permission: 'access.manage' },
 ];
 
