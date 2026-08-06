@@ -8,6 +8,7 @@ import pinoHttp from 'pino-http';
 import { errorHandler } from './middleware/error-handler';
 import { authenticateUser } from './middleware/auth';
 import { setupMeilisearchIndex } from './services/meilisearch';
+import { startAggregationCron } from './services/aggregation';
 
 // Rutas públicas
 import healthRouter from './routes/public/health';
@@ -105,6 +106,9 @@ if (process.env.NODE_ENV !== 'test') {
       // No es fatal — la API funciona sin búsqueda
       logger.warn({ err }, 'No se pudo configurar Meilisearch (la búsqueda no funcionará)');
     }
+
+    // Iniciar cron de agregación de analytics
+    startAggregationCron();
   });
 }
 
