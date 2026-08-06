@@ -27,6 +27,56 @@ export async function aggregateHourly(): Promise<void> {
   `);
 }
 
+/**
+ * Aggregates the CURRENT (partial) hour into hourly rollups and refreshes
+ * today's daily rollup. Called on demand from the admin dashboard so the
+ * user can see real-time data without waiting for the cron at :05.
+ * The cron still runs aggregateHourly() for the previous completed hour
+ * and aggregateDaily() for the previous day — this function is additive
+ * and uses ON CONFLICT to avoid double-counting when the cron later
+ * re-aggregates the same hour.
+ */
+export async function aggregateCurrentHour(): Promise<void> {
+  const pool = getPool();
+
+  // 1. Insert/update the current hour in hourly rollups
+  await pool.query(`
+    INSERT INTO analytics_rollups_hourly (hour, event_type, slug, lang, referrer_domain, device_type, count)
+    SELECT
+      date_trunc('hour', created_at) AS hour,
+      event_type,
+      COALESCE(slug, '') AS slug,
+      lang,
+      COALESCE(referrer_domain, '') AS referrer_domain,
+      device_type,
+      COUNT(*)::int AS count
+    FROM analytics_events
+    WHERE created_at >= date_trunc('hour', NOW())
+    GROUP BY hour, event_type, slug, lang, referrer_domain, device_type
+    ON CONFLICT (hour, event_type, slug, lang, referrer_domain, device_type)
+    DO UPDATE SET count = EXCLUDED.count
+  `);
+
+  // 2. Refresh today's daily rollup so the dashboard's total_views
+  //    and daily_trend include the current partial hour.
+  await pool.query(`
+    INSERT INTO analytics_rollups_daily (day, event_type, slug, lang, referrer_domain, device_type, count)
+    SELECT
+      date_trunc('day', hour) AS day,
+      event_type,
+      slug,
+      lang,
+      referrer_domain,
+      device_type,
+      SUM(count)::int AS count
+    FROM analytics_rollups_hourly
+    WHERE hour >= date_trunc('day', NOW())
+    GROUP BY day, event_type, slug, lang, referrer_domain, device_type
+    ON CONFLICT (day, event_type, slug, lang, referrer_domain, device_type)
+    DO UPDATE SET count = EXCLUDED.count
+  `);
+}
+
 export async function aggregateDaily(): Promise<void> {
   const pool = getPool();
 

@@ -307,3 +307,12 @@ export async function updateAnalyticsConfig(retention_days: number) {
     body: JSON.stringify({ retention_days }),
   });
 }
+
+// On-demand aggregation: triggers hourly + daily + current-hour rollup so the
+// dashboard shows real-time data without waiting for the cron at :05.
+export async function triggerAnalyticsAggregation() {
+  return adminFetch<{ data: { status: string; duration_ms: number; timestamp: string } }>(
+    '/api/v1/analytics/admin/aggregate',
+    { method: 'POST' }
+  );
+}

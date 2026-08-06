@@ -6,6 +6,7 @@ import {
   fetchAnalyticsSummary,
   fetchAnalyticsConfig,
   updateAnalyticsConfig,
+  triggerAnalyticsAggregation,
 } from '@/lib/admin-api-client';
 import { Icon } from '@/components/ui/Icon';
 
@@ -26,6 +27,8 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [aggregating, setAggregating] = useState(false);
+  const [aggregateMsg, setAggregateMsg] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -60,6 +63,20 @@ export default function AnalyticsPage() {
       setError((err as Error).message);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleAggregate() {
+    setAggregating(true);
+    setAggregateMsg(null);
+    try {
+      const res = await triggerAnalyticsAggregation();
+      setAggregateMsg(`Actualizado en ${res.data.duration_ms} ms`);
+      await loadData();
+    } catch (err) {
+      setAggregateMsg(`Error: ${(err as Error).message}`);
+    } finally {
+      setAggregating(false);
     }
   }
 
@@ -224,6 +241,27 @@ export default function AnalyticsPage() {
           >
             {saving ? 'Guardando...' : 'Guardar'}
           </button>
+        </div>
+      </div>
+
+      {/* On-demand aggregation — refreshes rollups without waiting for the cron at :05 */}
+      <div className="bg-white border border-gray-200 rounded-lg p-4">
+        <h2 className="text-lg font-semibold text-gray-900 mb-2">Agregación manual</h2>
+        <p className="text-sm text-gray-500 mb-3">
+          El rollup automático corre cada hora a los :05. Si querés ver datos
+          en tiempo real (incluyendo la hora actual), apretá el botón.
+        </p>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={handleAggregate}
+            disabled={aggregating}
+            className="bg-emerald-600 text-white px-4 py-2 rounded-md text-sm hover:bg-emerald-700 disabled:opacity-50"
+          >
+            {aggregating ? 'Agregando...' : 'Actualizar ahora'}
+          </button>
+          {aggregateMsg && (
+            <span className="text-sm text-gray-600">{aggregateMsg}</span>
+          )}
         </div>
       </div>
     </div>
