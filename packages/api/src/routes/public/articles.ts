@@ -113,7 +113,7 @@ router.get('/:slug', async (req: Request, res: Response, next: NextFunction) => 
     }
 
     const { lang } = parsed.data;
-    const { slug } = req.params;
+    const { slug } = req.params as { slug: string };
     const pool = getPool();
 
     // Buscar artículo por slug localizado
