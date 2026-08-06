@@ -3,6 +3,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { searchArticles } from '../../services/meilisearch';
 import { ValidationError } from '../../middleware/error-handler';
+import { emitAnalyticsEvent } from '../../services/analytics-emitter';
 
 const router = Router();
 
@@ -53,6 +54,18 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         processing_time_ms: searchResult.processingTimeMs,
       },
     });
+
+    // Fire-and-forget analytics event
+    const eventType = searchResult.estimatedTotalHits > 0 ? 'search' : 'search_zero';
+    emitAnalyticsEvent({
+      event_type: eventType,
+      slug: null,
+      lang: lang || 'es',
+      referrer: (req.headers.referer as string) || null,
+      device_type: 'desktop',
+      query: q,
+      results_count: searchResult.estimatedTotalHits,
+    }).catch(() => {});
   } catch (err) {
     next(err);
   }

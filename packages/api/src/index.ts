@@ -9,6 +9,7 @@ import { errorHandler } from './middleware/error-handler';
 import { authenticateUser } from './middleware/auth';
 import { setupMeilisearchIndex } from './services/meilisearch';
 import { startAggregationCron } from './services/aggregation';
+import { notFoundTracker } from './middleware/not-found-tracker';
 
 // Rutas públicas
 import healthRouter from './routes/public/health';
@@ -83,6 +84,9 @@ export function createApp() {
   app.use('/api/v1/admin/images', authenticateUser, imagesRouter);
   app.use('/api/v1/admin/access', authenticateUser, accessRouter);
   app.use('/api/v1/analytics/admin', authenticateUser, analyticsAdminRouter);
+
+  // 404 tracker — emit analytics event for unmatched routes
+  app.use(notFoundTracker);
 
   // Handler de errores (debe ser el último middleware)
   app.use(errorHandler);
