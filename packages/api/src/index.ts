@@ -17,6 +17,7 @@ import categoriesRouter from './routes/public/categories';
 import featuredRouter from './routes/public/featured';
 import searchRouter from './routes/public/search';
 import sitemapRouter from './routes/public/sitemap';
+import analyticsRouter from './routes/public/analytics';
 
 // Rutas admin
 import authRouter from './routes/admin/auth';
@@ -69,6 +70,7 @@ export function createApp() {
   app.use('/api/v1/featured', featuredRouter);
   app.use('/api/v1/search', searchRouter);
   app.use('/api/v1/sitemap', sitemapRouter);
+  app.use('/api/v1/analytics/events', analyticsRouter);
 
   // Login admin (sin autenticación previa)
   app.use('/api/v1/admin/auth', authRouter);
