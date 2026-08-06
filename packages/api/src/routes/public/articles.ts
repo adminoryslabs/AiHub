@@ -3,6 +3,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { getPool } from '../../services/db';
 import { ValidationError, NotFoundError } from '../../middleware/error-handler';
+import { emitAnalyticsEvent } from '../../services/analytics-emitter';
 
 const router = Router();
 
@@ -112,7 +113,7 @@ router.get('/:slug', async (req: Request, res: Response, next: NextFunction) => 
     }
 
     const { lang } = parsed.data;
-    const { slug } = req.params;
+    const { slug } = req.params as { slug: string };
     const pool = getPool();
 
     // Buscar artículo por slug localizado
@@ -242,6 +243,15 @@ router.get('/:slug', async (req: Request, res: Response, next: NextFunction) => 
         alternate_lang,
       },
     });
+
+    // Fire-and-forget analytics event
+    emitAnalyticsEvent({
+      event_type: 'article_api',
+      slug,
+      lang,
+      referrer: (req.headers.referer as string) || null,
+      device_type: 'desktop',
+    }).catch(() => {});
   } catch (err) {
     next(err);
   }

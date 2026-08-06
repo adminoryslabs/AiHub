@@ -8,6 +8,8 @@ import pinoHttp from 'pino-http';
 import { errorHandler } from './middleware/error-handler';
 import { authenticateUser } from './middleware/auth';
 import { setupMeilisearchIndex } from './services/meilisearch';
+import { startAggregationCron } from './services/aggregation';
+import { notFoundTracker } from './middleware/not-found-tracker';
 
 // Rutas públicas
 import healthRouter from './routes/public/health';
@@ -17,6 +19,7 @@ import categoriesRouter from './routes/public/categories';
 import featuredRouter from './routes/public/featured';
 import searchRouter from './routes/public/search';
 import sitemapRouter from './routes/public/sitemap';
+import analyticsRouter from './routes/public/analytics';
 
 // Rutas admin
 import authRouter from './routes/admin/auth';
@@ -24,6 +27,7 @@ import adminArticlesRouter from './routes/admin/articles';
 import resourcesRouter from './routes/admin/resources';
 import imagesRouter from './routes/admin/images';
 import accessRouter from './routes/admin/access';
+import analyticsAdminRouter from './routes/admin/analytics';
 
 // Configuración del logger
 const logger = pino({
@@ -69,6 +73,7 @@ export function createApp() {
   app.use('/api/v1/featured', featuredRouter);
   app.use('/api/v1/search', searchRouter);
   app.use('/api/v1/sitemap', sitemapRouter);
+  app.use('/api/v1/analytics/events', analyticsRouter);
 
   // Login admin (sin autenticación previa)
   app.use('/api/v1/admin/auth', authRouter);
@@ -78,6 +83,10 @@ export function createApp() {
   app.use('/api/v1/admin/resources', authenticateUser, resourcesRouter);
   app.use('/api/v1/admin/images', authenticateUser, imagesRouter);
   app.use('/api/v1/admin/access', authenticateUser, accessRouter);
+  app.use('/api/v1/analytics/admin', authenticateUser, analyticsAdminRouter);
+
+  // 404 tracker — emit analytics event for unmatched routes
+  app.use(notFoundTracker);
 
   // Handler de errores (debe ser el último middleware)
   app.use(errorHandler);
@@ -101,6 +110,9 @@ if (process.env.NODE_ENV !== 'test') {
       // No es fatal — la API funciona sin búsqueda
       logger.warn({ err }, 'No se pudo configurar Meilisearch (la búsqueda no funcionará)');
     }
+
+    // Iniciar cron de agregación de analytics
+    startAggregationCron();
   });
 }
 

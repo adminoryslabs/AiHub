@@ -271,3 +271,39 @@ export async function updateAccessRolePermissions(id: string, permissions: strin
     body: JSON.stringify({ permissions }),
   });
 }
+
+// --- Analytics ---
+
+export async function fetchAnalyticsSummary(params: {
+  days?: number;
+  lang?: string;
+  device_type?: string;
+  referrer_domain?: string;
+} = {}) {
+  const query = new URLSearchParams();
+  if (params.days) query.set('days', String(params.days));
+  if (params.lang) query.set('lang', params.lang);
+  if (params.device_type) query.set('device_type', params.device_type);
+  if (params.referrer_domain) query.set('referrer_domain', params.referrer_domain);
+
+  return adminFetch<{
+    data: {
+      total_views: number;
+      unique_visitors: number;
+      top_articles: Array<{ slug: string; views: number }>;
+      daily_trend: Array<{ day: string; views: number }>;
+      by_lang: { es: number; en: number };
+    };
+  }>(`/api/v1/analytics/admin/summary?${query}`);
+}
+
+export async function fetchAnalyticsConfig() {
+  return adminFetch<{ data: { retention_days: number } }>('/api/v1/analytics/admin/config');
+}
+
+export async function updateAnalyticsConfig(retention_days: number) {
+  return adminFetch<{ data: { retention_days: number } }>('/api/v1/analytics/admin/config', {
+    method: 'PUT',
+    body: JSON.stringify({ retention_days }),
+  });
+}
