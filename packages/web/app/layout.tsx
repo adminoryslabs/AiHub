@@ -48,6 +48,8 @@ export default function RootLayout({
                 document.documentElement.dataset.lang = lang;
                 document.documentElement.dataset.route = path;
                 if (slug) document.documentElement.dataset.slug = slug;
+                // Analytics beacon endpoint — must be set before the snippet (lazyOnload) reads it
+                window.__AIHUB_API_URL__ = ${JSON.stringify(process.env.NEXT_PUBLIC_API_URL || '')};
               } catch(e) {}
             `,
           }}
