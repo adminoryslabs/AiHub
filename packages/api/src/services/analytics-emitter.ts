@@ -1,6 +1,10 @@
 // Shared analytics event emitter — used by middleware hooks to emit events directly
 import { getPool } from '../services/db';
 
+// ip_hash sintético para eventos originados en el servidor (SSR, no una persona).
+// Las métricas de visitantes únicos deben excluirlo explícitamente.
+export const SERVER_SIDE_IP_HASH = 'server-side';
+
 export async function emitAnalyticsEvent(params: {
   event_type: string;
   slug?: string | null;
@@ -24,7 +28,7 @@ export async function emitAnalyticsEvent(params: {
         params.lang,
         params.referrer || null,
         params.device_type || 'desktop',
-        params.ip_hash || 'server-side',
+        params.ip_hash || SERVER_SIDE_IP_HASH,
         params.query || null,
         params.results_count ?? null,
         params.extra ? JSON.stringify(params.extra) : null,

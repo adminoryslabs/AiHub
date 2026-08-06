@@ -129,6 +129,47 @@ describe('Admin Analytics API', () => {
       expect(res.body.data.daily_trend).toBeInstanceOf(Array);
     });
 
+    // Los eventos emitidos desde el servidor (article_api, not_found en SSR) se
+    // guardan con el ip_hash sintético 'server-side'. No son personas: si se
+    // cuentan, unique_visitors arranca en 1 aunque no haya tráfico real.
+    it('excluye el ip_hash sintético server-side de unique_visitors', async () => {
+      const pool = getPool();
+
+      for (let i = 0; i < 12; i++) {
+        await pool.query(
+          `INSERT INTO analytics_events (event_type, slug, lang, referrer_domain, device_type, ip_hash)
+           VALUES ('article_api', 'article-1', 'es', '', 'desktop', 'server-side')`
+        );
+      }
+      await pool.query(
+        `INSERT INTO analytics_events (event_type, slug, lang, referrer_domain, device_type, ip_hash)
+         VALUES ('page_view', 'article-1', 'es', '', 'desktop', $1)`,
+        ['real-visitor-hash']
+      );
+
+      const res = await request(app)
+        .get('/api/v1/analytics/admin/summary')
+        .set('Authorization', `Bearer ${generateAdminToken()}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.unique_visitors).toBe(1);
+    });
+
+    it('reporta 0 visitantes únicos cuando solo hubo tráfico server-side', async () => {
+      const pool = getPool();
+      await pool.query(
+        `INSERT INTO analytics_events (event_type, slug, lang, referrer_domain, device_type, ip_hash)
+         VALUES ('article_api', 'article-1', 'es', '', 'desktop', 'server-side')`
+      );
+
+      const res = await request(app)
+        .get('/api/v1/analytics/admin/summary')
+        .set('Authorization', `Bearer ${generateAdminToken()}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.unique_visitors).toBe(0);
+    });
+
     it('filters by lang', async () => {
       const pool = getPool();
       const today = new Date();

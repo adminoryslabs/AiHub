@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { getPool } from '../../services/db';
 import { requireAnyPermission } from '../../middleware/auth';
 import { aggregateHourly, aggregateDaily, aggregateCurrentHour } from '../../services/aggregation';
+import { SERVER_SIDE_IP_HASH } from '../../services/analytics-emitter';
 
 const router = Router();
 
@@ -52,15 +53,18 @@ router.get('/summary', async (req: Request, res: Response, next: NextFunction) =
       params
     );
 
-    // Unique visitors (from raw events)
+    // Unique visitors (from raw events).
+    // Excluye el centinela 'server-side': esos eventos los emite la propia API
+    // durante el SSR, no son personas, y si se cuentan el total nunca baja de 1.
     const uniqueResult = await pool.query(
       `SELECT COUNT(DISTINCT ip_hash)::int as unique_visitors
        FROM analytics_events
        WHERE created_at >= NOW() - INTERVAL '${days} days'
+         AND ip_hash <> $4
          AND ($1::text IS NULL OR lang = $1)
          AND ($2::text IS NULL OR device_type = $2)
          AND ($3::text IS NULL OR referrer_domain = $3)`,
-      [lang || null, deviceType || null, referrerDomain || null]
+      [lang || null, deviceType || null, referrerDomain || null, SERVER_SIDE_IP_HASH]
     );
 
     // Top articles
