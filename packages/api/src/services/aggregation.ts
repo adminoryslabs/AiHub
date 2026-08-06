@@ -1,8 +1,8 @@
 // Analytics aggregation service: hourly/daily rollups + retention purge
-import cron from 'node-cron';
+import cron, { ScheduledTask } from 'node-cron';
 import { getPool } from './db';
 
-let cronJob: cron.ScheduledTask | null = null;
+let cronJob: ScheduledTask | null = null;
 
 export async function aggregateHourly(): Promise<void> {
   const pool = getPool();
@@ -81,7 +81,6 @@ export function startAggregationCron(): void {
 
   // Run every hour at minute 5
   cronJob = cron.schedule('5 * * * *', runAggregation, {
-    scheduled: true,
     timezone: 'UTC',
   });
 
