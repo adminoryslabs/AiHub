@@ -1,5 +1,6 @@
 // Layout raíz de la aplicación Next.js
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -46,6 +47,7 @@ export default function RootLayout({
       </head>
       <body className="bg-surface text-on-surface antialiased">
         {children}
+        <Script src="/js/analytics.js" strategy="lazyOnload" />
       </body>
     </html>
   );
