@@ -129,6 +129,42 @@ describe('Admin Analytics API', () => {
       expect(res.body.data.daily_trend).toBeInstanceOf(Array);
     });
 
+    // "Vista" en el panel significa entrada a un artículo. Las vistas de home y
+    // listados se siguen registrando en crudo (son tráfico real y sirven), pero
+    // no entran en las métricas, que antes se contradecían: total_views las
+    // sumaba y top_articles no.
+    it('cuenta solo vistas de artículo, excluyendo home y listados', async () => {
+      const pool = getPool();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Home: slug vacío tras el COALESCE de la agregación.
+      await pool.query(
+        `INSERT INTO analytics_rollups_daily (day, event_type, slug, lang, referrer_domain, device_type, count)
+         VALUES ($1, 'page_view', '', 'es', '', 'desktop', 40)`,
+        [today]
+      );
+      await pool.query(
+        `INSERT INTO analytics_rollups_daily (day, event_type, slug, lang, referrer_domain, device_type, count)
+         VALUES ($1, 'page_view', 'article-1', 'es', '', 'desktop', 7)`,
+        [today]
+      );
+
+      const res = await request(app)
+        .get('/api/v1/analytics/admin/summary')
+        .set('Authorization', `Bearer ${generateAdminToken()}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.total_views).toBe(7);
+      // La coherencia es el punto: el total debe cuadrar con el ranking.
+      expect(res.body.data.by_lang.es).toBe(7);
+      const trendTotal = res.body.data.daily_trend.reduce(
+        (acc: number, row: { views: number }) => acc + row.views,
+        0
+      );
+      expect(trendTotal).toBe(7);
+    });
+
     // Los eventos emitidos desde el servidor (article_api, not_found en SSR) se
     // guardan con el ip_hash sintético 'server-side'. No son personas: si se
     // cuentan, unique_visitors arranca en 1 aunque no haya tráfico real.

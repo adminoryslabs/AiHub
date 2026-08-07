@@ -25,8 +25,13 @@ router.get('/summary', async (req: Request, res: Response, next: NextFunction) =
     const deviceType = req.query.device_type as string | undefined;
     const referrerDomain = req.query.referrer_domain as string | undefined;
 
-    // Build filter conditions
-    const conditions: string[] = [`day >= NOW() - INTERVAL '${days} days'`];
+    // Build filter conditions.
+    // Una "vista" es la entrada a un artículo: la home y los listados quedan
+    // fuera de todas las métricas. Se siguen registrando en crudo en
+    // analytics_events (son tráfico real), pero no se cuentan acá. Antes esto
+    // era inconsistente: total_views los sumaba y top_articles no, así que el
+    // número grande nunca cuadraba con el ranking de abajo.
+    const conditions: string[] = [`day >= NOW() - INTERVAL '${days} days'`, `slug <> ''`];
     const params: unknown[] = [];
     let paramIdx = 1;
 

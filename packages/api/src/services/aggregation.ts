@@ -7,7 +7,13 @@ let cronJob: ScheduledTask | null = null;
 export async function aggregateHourly(): Promise<void> {
   const pool = getPool();
 
-  // Aggregate raw events into hourly rollups
+  // Aggregate raw events into hourly rollups.
+  // La ventana mira 26 horas atrás, no solo la hora anterior: el cron corre a
+  // los :05 y si el contenedor está caído en ese momento (deploy, reinicio) esa
+  // hora no se agregaba nunca y el hueco quedaba permanente, porque
+  // purgeOldEvents termina borrando los eventos crudos. Recalcular una ventana
+  // amplia es seguro: el ON CONFLICT reescribe el count con el valor recontado
+  // desde los eventos crudos, así que correrlo N veces da siempre lo mismo.
   await pool.query(`
     INSERT INTO analytics_rollups_hourly (hour, event_type, slug, lang, referrer_domain, device_type, count)
     SELECT
@@ -19,7 +25,7 @@ export async function aggregateHourly(): Promise<void> {
       device_type,
       COUNT(*)::int AS count
     FROM analytics_events
-    WHERE created_at >= date_trunc('hour', NOW()) - INTERVAL '1 hour'
+    WHERE created_at >= date_trunc('hour', NOW()) - INTERVAL '26 hours'
       AND created_at < date_trunc('hour', NOW())
     GROUP BY hour, event_type, slug, lang, referrer_domain, device_type
     ON CONFLICT (hour, event_type, slug, lang, referrer_domain, device_type)
@@ -80,7 +86,10 @@ export async function aggregateCurrentHour(): Promise<void> {
 export async function aggregateDaily(): Promise<void> {
   const pool = getPool();
 
-  // Aggregate hourly rollups into daily rollups
+  // Aggregate hourly rollups into daily rollups.
+  // Igual que en aggregateHourly, la ventana cubre varios días en vez de solo
+  // ayer para que un día que el cron se perdió se recupere en la corrida
+  // siguiente. Hoy queda excluido a propósito: lo refresca aggregateCurrentHour.
   await pool.query(`
     INSERT INTO analytics_rollups_daily (day, event_type, slug, lang, referrer_domain, device_type, count)
     SELECT
@@ -92,7 +101,7 @@ export async function aggregateDaily(): Promise<void> {
       device_type,
       SUM(count)::int AS count
     FROM analytics_rollups_hourly
-    WHERE hour >= date_trunc('day', NOW()) - INTERVAL '1 day'
+    WHERE hour >= date_trunc('day', NOW()) - INTERVAL '3 days'
       AND hour < date_trunc('day', NOW())
     GROUP BY day, event_type, slug, lang, referrer_domain, device_type
     ON CONFLICT (day, event_type, slug, lang, referrer_domain, device_type)

@@ -92,6 +92,59 @@ describe('aggregation service', () => {
       expect(result.rows[0].count).toBe(5);
     });
 
+    // El cron corre a los :05 de cada hora. Si el contenedor está caído en ese
+    // momento (deploy, reinicio, caída), esa hora no se agregaba nunca: la
+    // ventana cubría exactamente la hora anterior y no había recuperación.
+    // Como purgeOldEvents borra los eventos crudos a los 90 días, el hueco
+    // terminaba siendo permanente.
+    it('recupera horas anteriores que el cron se perdió', async () => {
+      const pool = getPool();
+      const now = new Date();
+
+      // Eventos de hace 5 horas: con la ventana vieja quedaban fuera.
+      const cincoHorasAtras = new Date(now.getTime() - 5 * 3600_000);
+      cincoHorasAtras.setMinutes(20, 0, 0);
+      for (let i = 0; i < 4; i++) {
+        await pool.query(
+          `INSERT INTO analytics_events (event_type, slug, lang, referrer_domain, device_type, ip_hash, created_at)
+           VALUES ('page_view', 'hora-perdida', 'es', '', 'desktop', $1, $2)`,
+          [`hash-perdida-${i}`, cincoHorasAtras]
+        );
+      }
+
+      await aggregateHourly();
+
+      const result = await pool.query(
+        'SELECT SUM(count)::int AS total FROM analytics_rollups_hourly WHERE slug = $1',
+        ['hora-perdida']
+      );
+      expect(result.rows[0].total).toBe(4);
+    });
+
+    it('no cuenta dos veces al recuperar una hora ya agregada', async () => {
+      const pool = getPool();
+      const tresHorasAtras = new Date(Date.now() - 3 * 3600_000);
+      tresHorasAtras.setMinutes(40, 0, 0);
+
+      for (let i = 0; i < 6; i++) {
+        await pool.query(
+          `INSERT INTO analytics_events (event_type, slug, lang, referrer_domain, device_type, ip_hash, created_at)
+           VALUES ('page_view', 'sin-doble-conteo', 'es', '', 'desktop', $1, $2)`,
+          [`hash-doble-${i}`, tresHorasAtras]
+        );
+      }
+
+      await aggregateHourly();
+      await aggregateHourly();
+      await aggregateHourly();
+
+      const result = await pool.query(
+        'SELECT SUM(count)::int AS total FROM analytics_rollups_hourly WHERE slug = $1',
+        ['sin-doble-conteo']
+      );
+      expect(result.rows[0].total).toBe(6);
+    });
+
     it('is idempotent — running twice produces the same count', async () => {
       const pool = getPool();
       const prevHour = new Date();
@@ -164,10 +217,14 @@ describe('aggregation service', () => {
   describe('aggregateDaily', () => {
     it('creates daily rollup from hourly rollups', async () => {
       const pool = getPool();
-      // Insert hourly rollups from YESTERDAY
+      // La ventana de aggregateDaily se calcula con date_trunc('day', NOW())
+      // en la base, que trabaja en UTC. Construir "ayer" en hora local hacía
+      // que el test fallara según la hora del día: con TZ=-05, después de las
+      // 19:00 local ya es el día siguiente en UTC y la fila caía fuera de la
+      // ventana. Se construye en UTC para que coincida con la consulta real.
       const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      yesterday.setHours(10, 0, 0, 0);
+      yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+      yesterday.setUTCHours(10, 0, 0, 0);
 
       await pool.query(
         `INSERT INTO analytics_rollups_hourly (hour, event_type, slug, lang, referrer_domain, device_type, count)
@@ -193,9 +250,10 @@ describe('aggregation service', () => {
 
     it('is idempotent', async () => {
       const pool = getPool();
+      // Mismo motivo que arriba: la ventana es UTC, la fecha se construye en UTC.
       const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      yesterday.setHours(14, 0, 0, 0);
+      yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+      yesterday.setUTCHours(14, 0, 0, 0);
 
       await pool.query(
         `INSERT INTO analytics_rollups_hourly (hour, event_type, slug, lang, referrer_domain, device_type, count)
