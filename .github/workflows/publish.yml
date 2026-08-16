@@ -1,0 +1,107 @@
+# Build y deploy de aihub-api a la VPS compartida de OrysLabs.
+#
+# Las imágenes se construyen acá, nunca en la VPS: 2 vCPU y puede estar
+# sirviendo tráfico en vivo. El servidor no guarda credenciales del
+# registry — el paso de deploy hace login con el GITHUB_TOKEN de este job
+# y hace logout al terminar.
+name: Build and deploy
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "packages/api/**"
+      - "packages/shared/**"
+      - "package.json"
+      - "package-lock.json"
+      - "turbo.json"
+      - "deploy/**"
+      - ".github/workflows/publish.yml"
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/adminoryslabs/aihub
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push app
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: packages/api/Dockerfile
+          target: runtime
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-app:${{ github.sha }}
+            ${{ env.IMAGE_PREFIX }}-app:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    permissions:
+      contents: read
+      packages: read
+    concurrency:
+      group: deploy-aihub-production
+      cancel-in-progress: false
+
+    env:
+      # Un pull puede tardar minutos sin salida. Sin keepalives algo entre
+      # el runner y la VPS corta la conexión a mitad del deploy.
+      SSH_OPTS: >-
+        -o ServerAliveInterval=15
+        -o ServerAliveCountMax=20
+        -o TCPKeepAlive=yes
+        -o ConnectTimeout=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authorise the runner against the VPS
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Ship the compose file and the deploy script
+        run: |
+          scp $SSH_OPTS -i ~/.ssh/deploy_key deploy/docker-compose.yml deploy/deploy.sh \
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/apps/aihub/"
+
+      - name: Deploy
+        run: |
+          printf '%s' "${{ secrets.GITHUB_TOKEN }}" | ssh $SSH_OPTS -i ~/.ssh/deploy_key \
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
+            "IMAGE_TAG='${{ github.sha }}' ACTOR='${{ github.actor }}' bash /opt/apps/aihub/deploy.sh"
+
+      - name: Verify the API answers over TLS
+        run: |
+          for i in $(seq 1 20); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
+              https://api-aihub.oryslabs.com/api/v1/health || echo 000)
+            echo "attempt $i -> $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 10
+          done
+          echo "the api never returned 200 over TLS"
+          exit 1
