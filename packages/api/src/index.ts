@@ -28,6 +28,7 @@ import resourcesRouter from './routes/admin/resources';
 import imagesRouter from './routes/admin/images';
 import accessRouter from './routes/admin/access';
 import analyticsAdminRouter from './routes/admin/analytics';
+import searchAdminRouter from './routes/admin/search';
 
 // Configuración del logger
 const logger = pino({
@@ -84,6 +85,7 @@ export function createApp() {
   app.use('/api/v1/admin/images', authenticateUser, imagesRouter);
   app.use('/api/v1/admin/access', authenticateUser, accessRouter);
   app.use('/api/v1/analytics/admin', authenticateUser, analyticsAdminRouter);
+  app.use('/api/v1/admin/search', authenticateUser, searchAdminRouter);
 
   // 404 tracker — emit analytics event for unmatched routes
   app.use(notFoundTracker);
