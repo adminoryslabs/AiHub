@@ -69,7 +69,80 @@ NeonDB y Vercel continúan en sus planes o se migran según volumen.
 
 ---
 
-## Revisión 2026-05-04 — Opción provisional: despliegue híbrido en NAS
+## Revisión 2026-08-16 — Migración: NAS → VPS compartida OrysLabs
+
+> **Esta sección reemplaza a "Revisión 2026-05-04" como estado actual del despliegue.**
+> Esa sección se conserva más abajo solo como historial de la decisión original; el backend, PostgreSQL y Meilisearch **ya no viven en el NAS**.
+
+### Motivo del cambio
+
+OrysLabs pasó a operar una VPS compartida (Hostinger, `187.127.51.101`) para todas sus aplicaciones, con Traefik como único punto de entrada y un motor PostgreSQL compartido (una base y un rol por aplicación). AI Hub se movió a esa VPS para dejar de depender del NAS doméstico y de su Cloudflare Tunnel — mismo espíritu de costo ~$0/mes, pero sobre infraestructura pensada para alojar múltiples proyectos de forma aislada.
+
+### Stack actual
+
+| Capa | Actual (VPS) | Destino objetivo (cloud, sin cambios) |
+|------|--------------|--------------------------|
+| Frontend | **Vercel** (sin cambio) | Vercel |
+| Backend Express | **VPS compartida** (Docker Compose, detrás de Traefik) | Fly.io |
+| PostgreSQL | **VPS compartida** (motor Postgres compartido, base `aihub` propia) | Neon |
+| Meilisearch | **VPS compartida** (sidecar privado, solo alcanzable desde el backend) | Meilisearch Cloud |
+| Storage de imágenes | **Cloudflare R2** (sin cambio, aún no configurado en producción) | Cloudflare R2 |
+
+### Arquitectura actual
+
+```
+                  Internet
+                     │
+                     ▼
+     ┌───────────────────────────────┐
+     │     aihub.oryslabs.com        │ ← DNS Cloudflare → Vercel
+     └───────────────────────────────┘
+                     │
+                     ▼
+              [ Vercel: Next.js ]
+              SSG / ISR / SSR
+                     │
+                     │ fetch HTTPS
+                     ▼
+     ┌───────────────────────────────┐
+     │  api-aihub.oryslabs.com       │ ← DNS Cloudflare (proxied) → VPS
+     └───────────────────────────────┘
+                     │
+                     ▼
+       ┌─────────────────────────────────────┐
+       │   VPS compartida OrysLabs (Hostinger)│
+       │   Traefik (único :443, ACME)         │
+       │  ┌─────────────────────────────────┐ │
+       │  │ /opt/apps/aihub/                │ │
+       │  │  Express API  ── red `edge`     │ │
+       │  │  Meilisearch  ── red privada     │ │
+       │  │              (solo desde API)    │ │
+       │  └─────────────────────────────────┘ │
+       │  ┌─────────────────────────────────┐ │
+       │  │ PostgreSQL compartido            │ │
+       │  │  (red `data`, un rol/base        │ │
+       │  │   por aplicación de la VPS)       │ │
+       │  └─────────────────────────────────┘ │
+       └─────────────────────────────────────┘
+```
+
+CI/CD: `.github/workflows/publish.yml` construye la imagen (`ghcr.io/adminoryslabs/aihub-app`), la publica en GHCR y despliega por SSH ejecutando `deploy/deploy.sh` en la VPS — build y deploy nunca ocurren a mano ni sobre la VPS misma.
+
+### Limitaciones aceptadas
+
+- La VPS es compartida con otras aplicaciones de OrysLabs (2 vCPU / 7.8GB RAM totales) — AI Hub declara límites de recursos por contenedor para no acaparar el host.
+- Backups de Postgres: responsabilidad del operador de la VPS compartida, no hay automatización propia todavía documentada acá.
+- Igual que en la opción NAS, el frontend en Vercel con ISR sigue sirviendo páginas pre-renderizadas durante caídas del backend — SEO no se ve afectado por caídas cortas.
+
+### Impacto en el diseño
+
+Sin cambios respecto a la sección anterior: el diseño de aplicación no depende de dónde corre el backend. Postgres y Meilisearch le hablan al backend por red de contenedor tanto en NAS como en la VPS — solo cambian las variables de entorno y el mecanismo de despliegue.
+
+---
+
+## Revisión 2026-05-04 — Opción provisional: despliegue híbrido en NAS (histórico, superado)
+
+> **Superada por la migración a la VPS compartida documentada arriba.** Se conserva como registro de la decisión original; el backend ya no corre en el NAS.
 
 > **Esta sección no reemplaza al stack definido arriba — lo complementa.**
 > El stack arriba (Vercel + Fly.io + Neon + Meilisearch Cloud + R2) sigue siendo el destino objetivo cuando el proyecto justifique los costos cloud.
