@@ -86,26 +86,26 @@ export default async function CategoryPage({ params }: PageProps) {
           <div className="max-w-[760px] mx-auto">
             {/* Breadcrumb */}
             <nav
-              className="font-mono text-[12px] text-on-surface-variant pt-7"
+              className="font-orys-mono text-[12px] text-orys-fg-dim pt-7"
               aria-label="Breadcrumb"
             >
               <Link
                 href={`/${lang}`}
-                className="text-on-surface-variant hover:text-on-surface transition-colors"
+                className="text-orys-fg-dim hover:text-orys-fg transition-colors"
               >
                 {isEs ? 'Inicio' : 'Home'}
               </Link>
-              <span className="mx-2 text-outline-variant">/</span>
-              <span className="text-on-surface">{currentCategory?.name ?? category}</span>
+              <span className="mx-2 text-orys-fg-mute">/</span>
+              <span className="text-orys-fg">{currentCategory?.name ?? category}</span>
             </nav>
 
             {/* Cabecera de categoría */}
-            <header className="pt-5 pb-6 border-b border-outline">
+            <header className="pt-5 pb-6 border-b border-orys-line-strong">
               <div className="flex items-baseline gap-3.5 mb-3.5">
-                <h1 className="font-headline font-semibold text-[40px] sm:text-[48px] leading-[1] tracking-[-0.03em] text-on-surface">
+                <h1 className="font-orys-sans font-semibold text-[40px] sm:text-[48px] leading-[1] tracking-[-0.03em] text-orys-fg">
                   {currentCategory?.name ?? category}
                 </h1>
-                <span className="font-mono text-[13px] text-on-surface-variant">
+                <span className="font-orys-mono text-[13px] text-orys-fg-dim">
                   {articles.pagination.total}{' '}
                   {isEs
                     ? articles.pagination.total === 1
@@ -117,7 +117,7 @@ export default async function CategoryPage({ params }: PageProps) {
                 </span>
               </div>
               {description && (
-                <p className="font-body text-[18px] leading-[1.5] text-on-surface-variant max-w-[54ch]">
+                <p className="font-orys-sans text-[18px] leading-[1.5] text-orys-fg-dim max-w-[54ch]">
                   {description}
                 </p>
               )}
@@ -134,32 +134,32 @@ export default async function CategoryPage({ params }: PageProps) {
                     <Link
                       key={article.id}
                       href={`/${lang}/${category}/${article.localized_slug}`}
-                      className="group grid grid-cols-[48px_minmax(0,1fr)_auto] gap-5 sm:gap-6 items-center py-6 border-b border-outline-variant hover:bg-surface-container transition-colors -mx-3 px-3"
+                      className="group grid grid-cols-[48px_minmax(0,1fr)_auto] gap-5 sm:gap-6 items-center py-6 border-b border-orys-line hover:bg-orys-bg-raised transition-colors -mx-3 px-3"
                     >
-                      <span className="font-mono text-[14px] font-medium text-primary-text">
+                      <span className="font-orys-mono text-[14px] font-medium text-orys-accent">
                         {String(index + 1).padStart(2, '0')}
                       </span>
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2.5 mb-2">
-                          <span className="font-mono text-[10.5px] font-medium tracking-[0.09em] text-on-surface-variant">
+                          <span className="font-orys-mono text-[10.5px] font-medium tracking-[0.09em] text-orys-fg-dim">
                             {typeLabel.toUpperCase()}
                           </span>
                           {article.featured && (
-                            <span className="font-mono text-[10.5px] font-semibold text-primary-text bg-primary-container px-2 py-0.5">
+                            <span className="font-orys-mono text-[10.5px] font-semibold text-orys-accent bg-orys-accent-soft px-2 py-0.5">
                               {isEs ? 'Destacado' : 'Featured'}
                             </span>
                           )}
                         </div>
-                        <h2 className="font-headline font-semibold text-[20px] sm:text-[22px] leading-[1.15] tracking-[-0.02em] text-on-surface mb-1.5">
+                        <h2 className="font-orys-sans font-semibold text-[20px] sm:text-[22px] leading-[1.15] tracking-[-0.02em] text-orys-fg mb-1.5">
                           {article.title}
                         </h2>
-                        <p className="font-body text-[14px] leading-[1.5] text-on-surface-variant max-w-[62ch] line-clamp-2">
+                        <p className="font-orys-sans text-[14px] leading-[1.5] text-orys-fg-dim max-w-[62ch] line-clamp-2">
                           {article.summary}
                         </p>
                       </div>
                       <Icon
                         name="arrow_forward"
-                        className="text-[22px] text-on-surface-variant group-hover:text-primary-text transition-colors"
+                        className="text-[22px] text-orys-fg-dim group-hover:text-orys-accent transition-colors"
                       />
                     </Link>
                   );
@@ -167,7 +167,7 @@ export default async function CategoryPage({ params }: PageProps) {
               </div>
             ) : (
               <div className="py-16 text-center">
-                <p className="font-body text-[15px] text-on-surface-variant">
+                <p className="font-orys-sans text-[15px] text-orys-fg-dim">
                   {isEs
                     ? 'Sin artículos en esta categoría aún.'
                     : 'No articles in this category yet.'}

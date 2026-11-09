@@ -101,44 +101,44 @@ export default async function TutorialPage({ params }: PageProps) {
             <article className="flex-1 min-w-0 max-w-[760px]">
               {/* Breadcrumb */}
               <nav
-                className="font-mono text-[12px] text-on-surface-variant pt-10 mb-5"
+                className="font-orys-mono text-[12px] text-orys-fg-dim pt-10 mb-5"
                 aria-label="Breadcrumb"
               >
                 <Link
                   href={`/${lang}`}
-                  className="text-on-surface-variant hover:text-on-surface transition-colors"
+                  className="text-orys-fg-dim hover:text-orys-fg transition-colors"
                 >
                   {isEs ? 'Inicio' : 'Home'}
                 </Link>
-                <span className="mx-2 text-outline-variant">/</span>
+                <span className="mx-2 text-orys-fg-mute">/</span>
                 <Link
                   href={`/${lang}/tutoriales`}
-                  className="text-on-surface-variant hover:text-on-surface transition-colors"
+                  className="text-orys-fg-dim hover:text-orys-fg transition-colors"
                 >
                   {isEs ? 'Tutoriales' : 'Tutorials'}
                 </Link>
-                <span className="mx-2 text-outline-variant">/</span>
-                <span className="text-on-surface">{article.title}</span>
+                <span className="mx-2 text-orys-fg-mute">/</span>
+                <span className="text-orys-fg">{article.title}</span>
               </nav>
 
               <header className="mb-7">
-                <p className="font-mono text-[11.5px] font-medium tracking-[0.1em] text-primary-text mb-4">
+                <p className="font-orys-mono text-[11.5px] font-medium tracking-[0.1em] text-orys-accent mb-4">
                   TUTORIAL
                 </p>
 
-                <h1 className="font-headline font-semibold text-[36px] sm:text-[48px] leading-[1.03] tracking-[-0.03em] text-on-surface mb-5">
+                <h1 className="font-orys-sans font-semibold text-[36px] sm:text-[48px] leading-[1.03] tracking-[-0.03em] text-orys-fg mb-5">
                   {article.title}
                 </h1>
 
-                <p className="font-body text-[19px] sm:text-[20px] leading-[1.55] text-on-surface-variant max-w-[56ch] mb-5">
+                <p className="font-orys-sans text-[19px] sm:text-[20px] leading-[1.55] text-orys-fg-dim max-w-[56ch] mb-5">
                   {article.summary}
                 </p>
               </header>
 
               {/* Prerrequisitos */}
               {article.relations.prerequisite && article.relations.prerequisite.length > 0 && (
-                <div className="mb-8 p-4 border border-outline-variant bg-surface-container">
-                  <p className="font-mono text-[10.5px] font-semibold tracking-[0.1em] text-on-surface-variant mb-2.5">
+                <div className="mb-8 p-4 border border-orys-line bg-orys-bg-raised">
+                  <p className="font-orys-mono text-[10.5px] font-semibold tracking-[0.1em] text-orys-fg-dim mb-2.5">
                     {isEs ? 'PRERREQUISITOS' : 'PREREQUISITES'}
                   </p>
                   <div className="flex flex-wrap gap-x-5 gap-y-1.5">
@@ -146,7 +146,7 @@ export default async function TutorialPage({ params }: PageProps) {
                       <Link
                         key={rel.id}
                         href={`/${lang}/${rel.category}/${rel.localized_slug}`}
-                        className="text-[14px] text-primary-text hover:underline font-medium"
+                        className="text-[14px] text-orys-accent hover:underline font-medium"
                       >
                         {rel.title}
                       </Link>
@@ -171,8 +171,8 @@ export default async function TutorialPage({ params }: PageProps) {
 
               {/* Artículos relacionados */}
               {article.relations.related && article.relations.related.length > 0 && (
-                <section className="mt-14 pt-6 border-t border-outline-variant">
-                  <h2 className="font-mono text-[12.5px] font-semibold tracking-[0.1em] text-on-surface-variant mb-4">
+                <section className="mt-14 pt-6 border-t border-orys-line">
+                  <h2 className="font-orys-mono text-[12.5px] font-semibold tracking-[0.1em] text-orys-fg-dim mb-4">
                     {isEs ? 'RELACIONADOS' : 'RELATED'}
                   </h2>
                   <div className="flex flex-col">
@@ -180,17 +180,17 @@ export default async function TutorialPage({ params }: PageProps) {
                       <Link
                         key={rel.id}
                         href={`/${lang}/${rel.category}/${rel.localized_slug}`}
-                        className="group flex items-center gap-3 py-3 border-b border-outline-variant hover:bg-surface-container transition-colors -mx-3 px-3"
+                        className="group flex items-center gap-3 py-3 border-b border-orys-line hover:bg-orys-bg-raised transition-colors -mx-3 px-3"
                       >
-                        <span className="font-headline font-semibold text-[16px] text-on-surface group-hover:text-primary-text transition-colors flex-1 min-w-0 truncate">
+                        <span className="font-orys-sans font-semibold text-[16px] text-orys-fg group-hover:text-orys-accent transition-colors flex-1 min-w-0 truncate">
                           {rel.title}
                         </span>
-                        <span className="font-mono text-[11px] text-on-surface-variant flex-shrink-0">
+                        <span className="font-orys-mono text-[11px] text-orys-fg-dim flex-shrink-0">
                           {rel.category}
                         </span>
                         <Icon
                           name="arrow_forward"
-                          className="text-[18px] text-on-surface-variant group-hover:text-primary-text transition-colors"
+                          className="text-[18px] text-orys-fg-dim group-hover:text-orys-accent transition-colors"
                         />
                       </Link>
                     ))}
@@ -205,19 +205,19 @@ export default async function TutorialPage({ params }: PageProps) {
                     <Link
                       key={rel.id}
                       href={`/${lang}/${rel.category}/${rel.localized_slug}`}
-                      className="group flex items-center justify-between gap-4 px-5 sm:px-6 py-5 border border-outline hover:bg-surface-container transition-colors"
+                      className="group flex items-center justify-between gap-4 px-5 sm:px-6 py-5 border border-orys-line-strong hover:bg-orys-bg-raised transition-colors"
                     >
                       <div className="min-w-0">
-                        <p className="font-mono text-[11px] font-semibold tracking-[0.1em] text-primary-text mb-1.5">
+                        <p className="font-orys-mono text-[11px] font-semibold tracking-[0.1em] text-orys-accent mb-1.5">
                           {isEs ? 'SIGUIENTE' : 'NEXT'}
                         </p>
-                        <p className="font-headline font-semibold text-[19px] sm:text-[20px] tracking-[-0.02em] text-on-surface truncate">
+                        <p className="font-orys-sans font-semibold text-[19px] sm:text-[20px] tracking-[-0.02em] text-orys-fg truncate">
                           {rel.title}
                         </p>
                       </div>
                       <Icon
                         name="arrow_forward"
-                        className="text-[24px] sm:text-[26px] text-on-surface flex-shrink-0 group-hover:text-primary-text transition-colors"
+                        className="text-[24px] sm:text-[26px] text-orys-fg flex-shrink-0 group-hover:text-orys-accent transition-colors"
                       />
                     </Link>
                   ))}

@@ -81,27 +81,27 @@ export default async function TutorialsListPage({ params, searchParams }: PagePr
           <div className="max-w-[760px] mx-auto">
             {/* Breadcrumb */}
             <nav
-              className="font-mono text-[12px] text-on-surface-variant pt-7"
+              className="font-orys-mono text-[12px] text-orys-fg-dim pt-7"
               aria-label="Breadcrumb"
             >
               <Link
                 href={`/${lang}`}
-                className="text-on-surface-variant hover:text-on-surface transition-colors"
+                className="text-orys-fg-dim hover:text-orys-fg transition-colors"
               >
                 {isEs ? 'Inicio' : 'Home'}
               </Link>
-              <span className="mx-2 text-outline-variant">/</span>
-              <span className="text-on-surface">
+              <span className="mx-2 text-orys-fg-mute">/</span>
+              <span className="text-orys-fg">
                 {isEs ? 'Tutoriales' : 'Tutorials'}
               </span>
             </nav>
 
-            <header className="pt-5 pb-6 border-b border-outline">
+            <header className="pt-5 pb-6 border-b border-orys-line-strong">
               <div className="flex items-baseline gap-3.5 mb-3.5">
-                <h1 className="font-headline font-semibold text-[40px] sm:text-[48px] leading-[1] tracking-[-0.03em] text-on-surface">
+                <h1 className="font-orys-sans font-semibold text-[40px] sm:text-[48px] leading-[1] tracking-[-0.03em] text-orys-fg">
                   {isEs ? 'Tutoriales' : 'Tutorials'}
                 </h1>
-                <span className="font-mono text-[13px] text-on-surface-variant">
+                <span className="font-orys-mono text-[13px] text-orys-fg-dim">
                   {tutorials.pagination.total}{' '}
                   {isEs
                     ? tutorials.pagination.total === 1
@@ -110,7 +110,7 @@ export default async function TutorialsListPage({ params, searchParams }: PagePr
                     : 'tutorials'}
                 </span>
               </div>
-              <p className="font-body text-[18px] leading-[1.5] text-on-surface-variant max-w-[54ch]">
+              <p className="font-orys-sans text-[18px] leading-[1.5] text-orys-fg-dim max-w-[54ch]">
                 {isEs
                   ? 'Guías prácticas paso a paso con un resultado específico y verificable.'
                   : 'Step-by-step practical guides with a specific, verifiable outcome.'}
@@ -121,10 +121,10 @@ export default async function TutorialsListPage({ params, searchParams }: PagePr
             <div className="flex flex-wrap items-center gap-2 mt-6 mb-2">
               <Link
                 href={`/${lang}/tutoriales`}
-                className={`font-mono text-[12px] font-medium px-2.5 py-1 transition-colors ${
+                className={`font-orys-mono text-[12px] font-medium px-2.5 py-1 transition-colors ${
                   !difficulty
-                    ? 'bg-primary-container text-primary-text'
-                    : 'text-on-surface-variant hover:bg-surface-container'
+                    ? 'bg-orys-accent-soft text-orys-accent'
+                    : 'text-orys-fg-dim hover:bg-orys-bg-raised'
                 }`}
               >
                 {isEs ? 'Todos' : 'All'}
@@ -133,10 +133,10 @@ export default async function TutorialsListPage({ params, searchParams }: PagePr
                 <Link
                   key={d}
                   href={`/${lang}/tutoriales?difficulty=${d}`}
-                  className={`font-mono text-[12px] font-medium px-2.5 py-1 transition-colors ${
+                  className={`font-orys-mono text-[12px] font-medium px-2.5 py-1 transition-colors ${
                     difficulty === d
-                      ? 'bg-primary-container text-primary-text'
-                      : 'text-on-surface-variant hover:bg-surface-container'
+                      ? 'bg-orys-accent-soft text-orys-accent'
+                      : 'text-orys-fg-dim hover:bg-orys-bg-raised'
                   }`}
                 >
                   {difficultyLabels[d]}
@@ -151,42 +151,42 @@ export default async function TutorialsListPage({ params, searchParams }: PagePr
                   <Link
                     key={tutorial.id}
                     href={`/${lang}/tutoriales/${tutorial.localized_slug}`}
-                    className="group grid grid-cols-[48px_minmax(0,1fr)_auto] gap-5 sm:gap-6 items-center py-6 border-b border-outline-variant hover:bg-surface-container transition-colors -mx-3 px-3"
+                    className="group grid grid-cols-[48px_minmax(0,1fr)_auto] gap-5 sm:gap-6 items-center py-6 border-b border-orys-line hover:bg-orys-bg-raised transition-colors -mx-3 px-3"
                   >
-                    <span className="font-mono text-[14px] font-medium text-primary-text">
+                    <span className="font-orys-mono text-[14px] font-medium text-orys-accent">
                       {String(index + 1).padStart(2, '0')}
                     </span>
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <span className="font-mono text-[10.5px] font-medium tracking-[0.06em] bg-primary text-on-primary px-2 py-0.5">
+                        <span className="font-orys-mono text-[10.5px] font-medium tracking-[0.06em] bg-orys-accent text-orys-fg-on-accent px-2 py-0.5">
                           Tutorial
                         </span>
-                        <span className="font-mono text-[10.5px] font-medium tracking-[0.06em] border border-outline-variant text-on-surface-variant px-2 py-0.5">
+                        <span className="font-orys-mono text-[10.5px] font-medium tracking-[0.06em] border border-orys-line text-orys-fg-dim px-2 py-0.5">
                           {difficultyLabels[tutorial.difficulty] || tutorial.difficulty}
                         </span>
                         {tutorial.estimated_time && (
-                          <span className="font-mono text-[10.5px] font-medium tracking-[0.06em] border border-outline-variant text-on-surface-variant px-2 py-0.5">
+                          <span className="font-orys-mono text-[10.5px] font-medium tracking-[0.06em] border border-orys-line text-orys-fg-dim px-2 py-0.5">
                             ~{tutorial.estimated_time}
                           </span>
                         )}
                       </div>
-                      <h2 className="font-headline font-semibold text-[20px] sm:text-[22px] leading-[1.15] tracking-[-0.02em] text-on-surface mb-1.5">
+                      <h2 className="font-orys-sans font-semibold text-[20px] sm:text-[22px] leading-[1.15] tracking-[-0.02em] text-orys-fg mb-1.5">
                         {tutorial.title}
                       </h2>
-                      <p className="font-body text-[14px] leading-[1.5] text-on-surface-variant max-w-[62ch] line-clamp-2">
+                      <p className="font-orys-sans text-[14px] leading-[1.5] text-orys-fg-dim max-w-[62ch] line-clamp-2">
                         {tutorial.summary}
                       </p>
                     </div>
                     <Icon
                       name="arrow_forward"
-                      className="text-[22px] text-on-surface-variant group-hover:text-primary-text transition-colors"
+                      className="text-[22px] text-orys-fg-dim group-hover:text-orys-accent transition-colors"
                     />
                   </Link>
                 ))}
               </div>
             ) : (
               <div className="py-16 text-center">
-                <p className="font-body text-[15px] text-on-surface-variant">
+                <p className="font-orys-sans text-[15px] text-orys-fg-dim">
                   {isEs
                     ? 'Sin tutoriales para este filtro.'
                     : 'No tutorials for this filter.'}
