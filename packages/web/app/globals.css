@@ -27,22 +27,28 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--orys-font-sans);
 }
 
-/* Controles de formulario con tokens (los defaults del plugin de forms son blancos) */
-input:not([type='checkbox']):not([type='radio']):not([type='file']),
-select,
-textarea {
-  background-color: var(--orys-bg-input);
-  color: var(--orys-fg);
-}
+/* Controles de formulario con tokens (los defaults del plugin de forms son blancos).
+   Van en la capa base para que las utilidades (p. ej. bg-transparent en campos
+   compuestos con ícono) puedan sobrescribirlas. */
+@layer base {
+  /* Especificidad baja a propósito: las utilidades bg-* (p. ej. bg-transparent
+     en campos compuestos con ícono) deben poder sobrescribir este default. */
+  input:where(:not([type='checkbox']):not([type='radio']):not([type='file'])),
+  select,
+  textarea {
+    background-color: var(--orys-bg-input);
+    color: var(--orys-fg);
+  }
 
-input::placeholder,
-textarea::placeholder {
-  color: var(--orys-fg-mute);
-}
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--orys-fg-mute);
+  }
 
-select option {
-  background-color: var(--orys-bg-panel);
-  color: var(--orys-fg);
+  select option {
+    background-color: var(--orys-bg-panel);
+    color: var(--orys-fg);
+  }
 }
 
 /* Selección y foco con el acento de la línea */
