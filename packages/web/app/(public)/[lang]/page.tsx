@@ -134,7 +134,7 @@ export default async function HomePage({ params }: PageProps) {
             <h2 className="font-orys-mono text-[12.5px] font-semibold tracking-[0.1em] text-orys-fg-dim mb-5">
               {isEs ? 'EXPLORA POR TEMA' : 'BROWSE BY TOPIC'}
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-outline-variant border border-orys-line">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-orys-line border border-orys-line">
               {categories.map((category, index) => {
                 const description =
                   getCategoryDescription(category.slug, validLang) || category.name;
