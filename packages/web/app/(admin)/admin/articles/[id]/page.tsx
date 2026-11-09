@@ -211,9 +211,9 @@ export default function ArticleEditorPage() {
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-t-orys-md border-b-2 transition-colors whitespace-nowrap ${
               tab === t.id
-                ? 'border-primary text-orys-accent'
+                ? 'border-orys-accent text-orys-accent'
                 : 'border-transparent text-orys-fg-dim hover:text-orys-fg'
             }`}
           >
@@ -508,7 +508,7 @@ function ContentTab({
           type="file"
           accept=".md"
           onChange={handleFileImport}
-          className="block text-sm text-orys-fg-dim file:mr-3 file:py-2 file:px-4 file:rounded-orys-xl file:border-0 file:text-sm file:font-medium file:bg-orys-accent-soft file:text-orys-accent hover:file:bg-orys-accent/20"
+          className="block text-sm text-orys-fg-dim file:mr-3 file:py-2 file:px-4 file:rounded-orys-xl file:border-0 file:text-sm file:font-medium file:bg-orys-accent-soft file:text-orys-accent hover:file:bg-orys-accent-soft"
         />
       </div>
 

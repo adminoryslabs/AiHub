@@ -137,13 +137,13 @@ export default function AccessPage() {
       <div className="flex gap-2 border-b border-orys-line">
         <button
           onClick={() => setTab('users')}
-          className={`px-4 py-3 text-sm font-medium border-b-2 ${tab === 'users' ? 'border-orys-accent text-orys-accent' : 'border-transparent text-orys-fg-dim'}`}
+          className={`px-4 py-3 text-sm font-medium rounded-t-orys-md border-b-2 ${tab === 'users' ? 'border-orys-accent text-orys-accent' : 'border-transparent text-orys-fg-dim'}`}
         >
           Usuarios
         </button>
         <button
           onClick={() => setTab('roles')}
-          className={`px-4 py-3 text-sm font-medium border-b-2 ${tab === 'roles' ? 'border-orys-accent text-orys-accent' : 'border-transparent text-orys-fg-dim'}`}
+          className={`px-4 py-3 text-sm font-medium rounded-t-orys-md border-b-2 ${tab === 'roles' ? 'border-orys-accent text-orys-accent' : 'border-transparent text-orys-fg-dim'}`}
         >
           Roles
         </button>
