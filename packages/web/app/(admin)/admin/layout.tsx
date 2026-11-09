@@ -67,18 +67,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (pathname === '/admin/login') return <>{children}</>;
 
   return (
-    <div className="min-h-screen bg-surface flex">
+    <div className="min-h-screen bg-orys-bg flex">
       {/* Sidebar de admin */}
-      <aside className="w-60 bg-surface-container-low border-r border-outline-variant/15 flex flex-col flex-shrink-0">
+      <aside className="w-60 bg-orys-bg-raised border-r border-orys-line flex flex-col flex-shrink-0">
         {/* Logo */}
-        <div className="p-4 border-b border-outline-variant/15">
+        <div className="p-4 border-b border-orys-line">
           <Link href="/admin" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center">
-              <Icon name="hub" className="text-on-primary text-sm" />
+            <div className="w-8 h-8 bg-orys-accent rounded-orys-xl flex items-center justify-center">
+              <Icon name="hub" className="text-orys-fg-on-accent text-sm" />
             </div>
             <div>
-              <span className="font-headline font-bold text-on-surface text-sm">AI Hub</span>
-              <p className="text-xs text-on-surface-variant">Admin</p>
+              <span className="font-orys-sans font-bold text-orys-fg text-sm">AI Hub</span>
+              <p className="text-xs text-orys-fg-dim">Admin</p>
             </div>
           </Link>
         </div>
@@ -96,11 +96,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 key={item.href}
                 href={item.href}
                 className={`
-                  flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all
+                  flex items-center gap-3 px-3 py-2.5 rounded-orys-xl text-sm transition-all
                   ${
                     isActive
-                      ? 'bg-primary/10 text-primary font-semibold'
-                      : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
+                      ? 'bg-orys-accent-soft text-orys-accent font-semibold'
+                      : 'text-orys-fg-dim hover:bg-orys-bg-raised hover:text-orys-fg'
                   }
                 `}
               >
@@ -112,18 +112,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         {/* Footer del sidebar */}
-        <div className="p-3 border-t border-outline-variant/15 space-y-1">
+        <div className="p-3 border-t border-orys-line space-y-1">
           <Link
             href="/es"
             target="_blank"
-            className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container transition-colors"
+            className="flex items-center gap-3 px-3 py-2 rounded-orys-xl text-sm text-orys-fg-dim hover:bg-orys-bg-raised transition-colors"
           >
             <Icon name="open_in_new" size="sm" />
             Ver sitio
           </Link>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-error hover:bg-error/5 transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-orys-xl text-sm text-orys-fail hover:bg-orys-fail-soft transition-colors"
           >
             <Icon name="logout" size="sm" />
             Cerrar sesión

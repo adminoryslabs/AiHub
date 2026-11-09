@@ -112,10 +112,10 @@ export default function ArticlesListPage() {
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="font-headline text-2xl font-bold text-on-surface">Artículos</h1>
+        <h1 className="font-orys-sans text-2xl font-bold text-orys-fg">Artículos</h1>
         <Link
           href="/admin/articles/new"
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-xl text-sm font-semibold hover:bg-primary-dim transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-orys-accent text-orys-fg-on-accent rounded-orys-xl text-sm font-semibold hover:bg-orys-accent-bright transition-colors"
         >
           <Icon name="add" size="sm" />
           Nuevo artículo
@@ -123,18 +123,18 @@ export default function ArticlesListPage() {
       </div>
 
       {/* Filtros */}
-      <div className="flex flex-wrap gap-3 mb-6 p-4 bg-surface-container-low rounded-2xl">
+      <div className="flex flex-wrap gap-3 mb-6 p-4 bg-orys-bg-raised rounded-orys-2xl">
         <input
           type="text"
           placeholder="Buscar por título o slug..."
           value={filters.search}
           onChange={(e) => { setFilters({ ...filters, search: e.target.value }); setPage(1); }}
-          className="flex-1 min-w-[200px] px-3 py-2 bg-white border border-outline-variant/30 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          className="flex-1 min-w-[200px] px-3 py-2 bg-orys-bg-input border border-orys-line rounded-orys-xl text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-orys-line-brand"
         />
         <select
           value={filters.status}
           onChange={(e) => { setFilters({ ...filters, status: e.target.value }); setPage(1); }}
-          className="px-3 py-2 bg-white border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+          className="px-3 py-2 bg-orys-bg-input border border-orys-line rounded-orys-xl text-sm focus:outline-none"
         >
           <option value="">Todos los estados</option>
           <option value="draft">Borrador</option>
@@ -145,7 +145,7 @@ export default function ArticlesListPage() {
         <select
           value={filters.type}
           onChange={(e) => { setFilters({ ...filters, type: e.target.value }); setPage(1); }}
-          className="px-3 py-2 bg-white border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+          className="px-3 py-2 bg-orys-bg-input border border-orys-line rounded-orys-xl text-sm focus:outline-none"
         >
           <option value="">Todos los tipos</option>
           <option value="concept">Concepto</option>
@@ -154,32 +154,32 @@ export default function ArticlesListPage() {
       </div>
 
       {/* Tabla */}
-      <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-2xl overflow-hidden">
+      <div className="bg-orys-bg-panel border border-orys-line rounded-orys-2xl overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-on-surface-variant">Cargando...</div>
+          <div className="p-12 text-center text-orys-fg-dim">Cargando...</div>
         ) : articles.length === 0 ? (
-          <div className="p-12 text-center text-on-surface-variant">No hay artículos.</div>
+          <div className="p-12 text-center text-orys-fg-dim">No hay artículos.</div>
         ) : (
           <table className="w-full text-sm">
-            <thead className="bg-surface-container border-b border-outline-variant/10">
+            <thead className="bg-orys-bg-raised border-b border-orys-line">
               <tr>
-                <th className="text-left p-4 font-semibold text-on-surface-variant">Título</th>
-                <th className="text-left p-4 font-semibold text-on-surface-variant hidden lg:table-cell">Categoría</th>
-                <th className="text-left p-4 font-semibold text-on-surface-variant hidden md:table-cell">Estado</th>
-                <th className="text-left p-4 font-semibold text-on-surface-variant hidden lg:table-cell">Dificultad</th>
-                <th className="text-center p-4 font-semibold text-on-surface-variant">ES</th>
-                <th className="text-center p-4 font-semibold text-on-surface-variant">EN</th>
-                <th className="text-right p-4 font-semibold text-on-surface-variant">Acciones</th>
+                <th className="text-left p-4 font-semibold text-orys-fg-dim">Título</th>
+                <th className="text-left p-4 font-semibold text-orys-fg-dim hidden lg:table-cell">Categoría</th>
+                <th className="text-left p-4 font-semibold text-orys-fg-dim hidden md:table-cell">Estado</th>
+                <th className="text-left p-4 font-semibold text-orys-fg-dim hidden lg:table-cell">Dificultad</th>
+                <th className="text-center p-4 font-semibold text-orys-fg-dim">ES</th>
+                <th className="text-center p-4 font-semibold text-orys-fg-dim">EN</th>
+                <th className="text-right p-4 font-semibold text-orys-fg-dim">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-outline-variant/10">
+            <tbody className="divide-y divide-orys-line">
               {articles.map((article) => (
-                <tr key={article.id} className="hover:bg-surface-container/50 transition-colors">
+                <tr key={article.id} className="hover:bg-orys-bg-raised transition-colors">
                   <td className="p-4">
                     <div>
                       <Link
                         href={`/admin/articles/${article.id}`}
-                        className="font-medium text-on-surface hover:text-primary transition-colors"
+                        className="font-medium text-orys-fg hover:text-orys-accent transition-colors"
                       >
                         {getTitle(article)}
                       </Link>
@@ -191,13 +191,13 @@ export default function ArticlesListPage() {
                       </div>
                     </div>
                   </td>
-                  <td className="p-4 text-on-surface-variant hidden lg:table-cell">
+                  <td className="p-4 text-orys-fg-dim hidden lg:table-cell">
                     {article.category}
                   </td>
                   <td className="p-4 hidden md:table-cell">
                     <StatusBadge status={article.status} />
                   </td>
-                  <td className="p-4 text-on-surface-variant hidden lg:table-cell">
+                  <td className="p-4 text-orys-fg-dim hidden lg:table-cell">
                     {article.difficulty || '—'}
                   </td>
                   <td className="p-4 text-center">{getContentIndicator(article.content_status?.es)}</td>
@@ -206,7 +206,7 @@ export default function ArticlesListPage() {
                     <div className="flex items-center justify-end gap-2">
                       <Link
                         href={`/admin/articles/${article.id}`}
-                        className="p-2 rounded-lg hover:bg-surface-container text-on-surface-variant hover:text-primary transition-colors"
+                        className="p-2 rounded-orys-lg hover:bg-orys-bg-raised text-orys-fg-dim hover:text-orys-accent transition-colors"
                         title="Editar"
                       >
                         <Icon name="edit" size="sm" />
@@ -215,7 +215,7 @@ export default function ArticlesListPage() {
                          <button
                            key={`${article.id}-${nextStatus}`}
                            onClick={() => handleStatusChange(article.id, article.status, nextStatus)}
-                           className="p-2 rounded-lg hover:bg-surface-container text-on-surface-variant transition-colors text-xs"
+                           className="p-2 rounded-orys-lg hover:bg-orys-bg-raised text-orys-fg-dim transition-colors text-xs"
                            title={STATUS_ACTION_LABELS[nextStatus] || `Cambiar a ${nextStatus}`}
                          >
                            <Icon name="sync" size="sm" />
@@ -231,8 +231,8 @@ export default function ArticlesListPage() {
 
         {/* Paginación */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between p-4 border-t border-outline-variant/10">
-            <p className="text-sm text-on-surface-variant">
+          <div className="flex items-center justify-between p-4 border-t border-orys-line">
+            <p className="text-sm text-orys-fg-dim">
               {total} artículos — Página {page} de {totalPages}
             </p>
             <div className="flex gap-2">

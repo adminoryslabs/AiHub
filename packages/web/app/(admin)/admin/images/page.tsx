@@ -75,8 +75,8 @@ export default function ImagesPage() {
   return (
     <div className="p-8 max-w-4xl">
       <div className="mb-8">
-        <h1 className="font-headline text-xl font-bold text-on-surface">Imágenes</h1>
-        <p className="text-sm text-on-surface-variant mt-1">
+        <h1 className="font-orys-sans text-xl font-bold text-orys-fg">Imágenes</h1>
+        <p className="text-sm text-orys-fg-dim mt-1">
           Sube imágenes a Cloudflare R2 y copia la URL para usarla en artículos.
         </p>
       </div>
@@ -85,14 +85,14 @@ export default function ImagesPage() {
       <div
         onDrop={handleDrop}
         onDragOver={handleDragOver}
-        className="border-2 border-dashed border-outline-variant/40 rounded-2xl p-12 text-center hover:border-primary/40 hover:bg-primary/5 transition-colors cursor-pointer"
+        className="border-2 border-dashed border-orys-line rounded-orys-2xl p-12 text-center hover:border-orys-line-brand hover:bg-orys-accent-soft transition-colors cursor-pointer"
         onClick={() => inputRef.current?.click()}
       >
-        <Icon name="cloud_upload" className="text-on-surface-variant mb-4 !text-4xl" />
-        <p className="text-on-surface font-medium mb-1">
+        <Icon name="cloud_upload" className="text-orys-fg-dim mb-4 !text-4xl" />
+        <p className="text-orys-fg font-medium mb-1">
           {uploading ? 'Subiendo...' : 'Arrastra imágenes aquí o haz clic para seleccionar'}
         </p>
-        <p className="text-sm text-on-surface-variant">PNG, JPG, WebP o SVG. Máximo 5 MB por imagen.</p>
+        <p className="text-sm text-orys-fg-dim">PNG, JPG, WebP o SVG. Máximo 5 MB por imagen.</p>
         <input
           ref={inputRef}
           type="file"
@@ -105,12 +105,12 @@ export default function ImagesPage() {
 
       {/* Mensajes de estado */}
       {message && (
-        <div className="mt-4 px-4 py-3 bg-green-50 text-green-700 rounded-xl text-sm">
+        <div className="mt-4 px-4 py-3 bg-orys-ok-soft text-orys-ok rounded-orys-xl text-sm">
           {message}
         </div>
       )}
       {error && (
-        <div className="mt-4 px-4 py-3 bg-red-50 text-red-700 rounded-xl text-sm">
+        <div className="mt-4 px-4 py-3 bg-orys-fail-soft text-orys-fail rounded-orys-xl text-sm">
           {error}
         </div>
       )}
@@ -118,15 +118,15 @@ export default function ImagesPage() {
       {/* Lista de imágenes subidas en esta sesión */}
       {recent.length > 0 && (
         <div className="mt-8">
-          <h2 className="font-medium text-on-surface mb-4">Subidas en esta sesión</h2>
+          <h2 className="font-medium text-orys-fg mb-4">Subidas en esta sesión</h2>
           <div className="space-y-3">
             {recent.map((img) => (
               <div
                 key={img.key}
-                className="flex items-center gap-4 p-4 bg-surface-container-low rounded-xl"
+                className="flex items-center gap-4 p-4 bg-orys-bg-raised rounded-orys-xl"
               >
                 {/* Miniatura */}
-                <div className="w-16 h-16 flex-shrink-0 bg-surface-container rounded-lg overflow-hidden">
+                <div className="w-16 h-16 flex-shrink-0 bg-orys-bg-raised rounded-orys-lg overflow-hidden">
                   {img.mime_type !== 'image/svg+xml' ? (
                     <img
                       src={img.url}
@@ -135,18 +135,18 @@ export default function ImagesPage() {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Icon name="image" className="text-on-surface-variant" />
+                      <Icon name="image" className="text-orys-fg-dim" />
                     </div>
                   )}
                 </div>
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-on-surface truncate">{img.key.split('/').pop()}</p>
-                  <p className="text-xs text-on-surface-variant">
+                  <p className="text-sm font-medium text-orys-fg truncate">{img.key.split('/').pop()}</p>
+                  <p className="text-xs text-orys-fg-dim">
                     {img.mime_type} · {formatSize(img.size)}
                   </p>
-                  <p className="text-xs text-on-surface-variant truncate mt-0.5">{img.url}</p>
+                  <p className="text-xs text-orys-fg-dim truncate mt-0.5">{img.url}</p>
                 </div>
 
                 {/* Copiar URL */}

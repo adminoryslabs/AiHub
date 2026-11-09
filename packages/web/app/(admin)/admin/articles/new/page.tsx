@@ -61,11 +61,11 @@ export default function NewArticlePage() {
 
   return (
     <div className="p-8 max-w-2xl">
-      <h1 className="font-headline text-2xl font-bold text-on-surface mb-8">Nuevo artículo</h1>
+      <h1 className="font-orys-sans text-2xl font-bold text-orys-fg mb-8">Nuevo artículo</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <div className="p-3 bg-error/10 border border-error/20 rounded-xl text-sm text-error">
+          <div className="p-3 bg-orys-fail-soft border border-orys-fail rounded-orys-xl text-sm text-orys-fail">
             {error}
           </div>
         )}
@@ -73,9 +73,9 @@ export default function NewArticlePage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Slug canónico */}
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-on-surface mb-1.5">
+            <label className="block text-sm font-medium text-orys-fg mb-1.5">
               Slug canónico (en inglés)
-              <span className="text-error ml-1">*</span>
+              <span className="text-orys-fail ml-1">*</span>
             </label>
             <input
               type="text"
@@ -83,20 +83,20 @@ export default function NewArticlePage() {
               onChange={(e) => setForm({ ...form, slug_uk: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })}
               required
               placeholder="what-is-an-agent"
-              className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+              className="w-full px-4 py-2.5 bg-orys-bg-raised border border-orys-line rounded-orys-xl text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-orys-line-brand"
             />
-            <p className="text-xs text-on-surface-variant mt-1">Solo letras minúsculas, números y guiones</p>
+            <p className="text-xs text-orys-fg-dim mt-1">Solo letras minúsculas, números y guiones</p>
           </div>
 
           {/* Tipo */}
           <div>
-            <label className="block text-sm font-medium text-on-surface mb-1.5">
-              Tipo <span className="text-error ml-1">*</span>
+            <label className="block text-sm font-medium text-orys-fg mb-1.5">
+              Tipo <span className="text-orys-fail ml-1">*</span>
             </label>
             <select
               value={form.type}
               onChange={(e) => setForm({ ...form, type: e.target.value as 'concept' | 'tutorial' })}
-              className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+              className="w-full px-4 py-2.5 bg-orys-bg-raised border border-orys-line rounded-orys-xl text-sm focus:outline-none"
             >
               <option value="concept">Concepto</option>
               <option value="tutorial">Tutorial</option>
@@ -105,14 +105,14 @@ export default function NewArticlePage() {
 
           {/* Categoría */}
           <div>
-            <label className="block text-sm font-medium text-on-surface mb-1.5">
-              Categoría <span className="text-error ml-1">*</span>
+            <label className="block text-sm font-medium text-orys-fg mb-1.5">
+              Categoría <span className="text-orys-fail ml-1">*</span>
             </label>
             <select
               value={form.category}
               onChange={(e) => setForm({ ...form, category: e.target.value })}
               required
-              className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+              className="w-full px-4 py-2.5 bg-orys-bg-raised border border-orys-line rounded-orys-xl text-sm focus:outline-none"
             >
               <option value="">Seleccionar categoría</option>
               {categories.map((cat) => (
@@ -125,14 +125,14 @@ export default function NewArticlePage() {
           {form.type === 'tutorial' && (
             <>
               <div>
-                <label className="block text-sm font-medium text-on-surface mb-1.5">
-                  Dificultad <span className="text-error ml-1">*</span>
+                <label className="block text-sm font-medium text-orys-fg mb-1.5">
+                  Dificultad <span className="text-orys-fail ml-1">*</span>
                 </label>
                 <select
                   value={form.difficulty}
                   onChange={(e) => setForm({ ...form, difficulty: e.target.value as '' | 'beginner' | 'intermediate' | 'advanced' })}
                   required
-                  className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+                  className="w-full px-4 py-2.5 bg-orys-bg-raised border border-orys-line rounded-orys-xl text-sm focus:outline-none"
                 >
                   <option value="">Seleccionar</option>
                   <option value="beginner">Principiante</option>
@@ -142,8 +142,8 @@ export default function NewArticlePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-on-surface mb-1.5">
-                  Tiempo estimado <span className="text-error ml-1">*</span>
+                <label className="block text-sm font-medium text-orys-fg mb-1.5">
+                  Tiempo estimado <span className="text-orys-fail ml-1">*</span>
                 </label>
                 <input
                   type="text"
@@ -151,7 +151,7 @@ export default function NewArticlePage() {
                   onChange={(e) => setForm({ ...form, estimated_time: e.target.value })}
                   required
                   placeholder="30 min"
-                  className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+                  className="w-full px-4 py-2.5 bg-orys-bg-raised border border-orys-line rounded-orys-xl text-sm focus:outline-none"
                 />
               </div>
             </>
@@ -159,11 +159,11 @@ export default function NewArticlePage() {
 
           {/* Volatilidad */}
           <div>
-            <label className="block text-sm font-medium text-on-surface mb-1.5">Volatilidad</label>
+            <label className="block text-sm font-medium text-orys-fg mb-1.5">Volatilidad</label>
             <select
               value={form.volatility}
               onChange={(e) => setForm({ ...form, volatility: e.target.value as 'low' | 'medium' | 'high' })}
-              className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+              className="w-full px-4 py-2.5 bg-orys-bg-raised border border-orys-line rounded-orys-xl text-sm focus:outline-none"
             >
               <option value="low">Baja</option>
               <option value="medium">Media</option>
@@ -178,9 +178,9 @@ export default function NewArticlePage() {
               id="featured"
               checked={form.featured}
               onChange={(e) => setForm({ ...form, featured: e.target.checked })}
-              className="w-4 h-4 accent-primary"
+              className="w-4 h-4 accent-orys-accent"
             />
-            <label htmlFor="featured" className="text-sm font-medium text-on-surface">
+            <label htmlFor="featured" className="text-sm font-medium text-orys-fg">
               Artículo destacado (homepage)
             </label>
           </div>

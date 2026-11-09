@@ -116,8 +116,8 @@ export default function AccessPage() {
   if (!session?.permissions.includes('access.manage')) {
     return (
       <div className="p-8">
-        <h1 className="font-headline text-2xl font-bold text-on-surface mb-2">Accesos</h1>
-        <p className="text-sm text-error">No tienes permisos para acceder a esta sección.</p>
+        <h1 className="font-orys-sans text-2xl font-bold text-orys-fg mb-2">Accesos</h1>
+        <p className="text-sm text-orys-fail">No tienes permisos para acceder a esta sección.</p>
       </div>
     );
   }
@@ -126,53 +126,53 @@ export default function AccessPage() {
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-headline text-2xl font-bold text-on-surface">Accesos</h1>
-          <p className="text-sm text-on-surface-variant mt-1">
+          <h1 className="font-orys-sans text-2xl font-bold text-orys-fg">Accesos</h1>
+          <p className="text-sm text-orys-fg-dim mt-1">
             Administra roles y permisos del panel interno.
           </p>
         </div>
-        {message && <span className="text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full">{message}</span>}
+        {message && <span className="text-sm text-orys-ok bg-orys-ok-soft px-3 py-1 rounded-full">{message}</span>}
       </div>
 
-      <div className="flex gap-2 border-b border-outline-variant/20">
+      <div className="flex gap-2 border-b border-orys-line">
         <button
           onClick={() => setTab('users')}
-          className={`px-4 py-3 text-sm font-medium border-b-2 ${tab === 'users' ? 'border-primary text-primary' : 'border-transparent text-on-surface-variant'}`}
+          className={`px-4 py-3 text-sm font-medium border-b-2 ${tab === 'users' ? 'border-orys-accent text-orys-accent' : 'border-transparent text-orys-fg-dim'}`}
         >
           Usuarios
         </button>
         <button
           onClick={() => setTab('roles')}
-          className={`px-4 py-3 text-sm font-medium border-b-2 ${tab === 'roles' ? 'border-primary text-primary' : 'border-transparent text-on-surface-variant'}`}
+          className={`px-4 py-3 text-sm font-medium border-b-2 ${tab === 'roles' ? 'border-orys-accent text-orys-accent' : 'border-transparent text-orys-fg-dim'}`}
         >
           Roles
         </button>
       </div>
 
-      {error && <div className="p-3 bg-error/10 border border-error/20 rounded-xl text-sm text-error">{error}</div>}
+      {error && <div className="p-3 bg-orys-fail-soft border border-orys-fail rounded-orys-xl text-sm text-orys-fail">{error}</div>}
 
       {loading ? (
-        <div className="p-6 text-sm text-on-surface-variant">Cargando...</div>
+        <div className="p-6 text-sm text-orys-fg-dim">Cargando...</div>
       ) : tab === 'users' ? (
-        <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-2xl overflow-hidden">
+        <div className="bg-orys-bg-panel border border-orys-line rounded-orys-2xl overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-surface-container border-b border-outline-variant/10">
+            <thead className="bg-orys-bg-raised border-b border-orys-line">
               <tr>
-                <th className="text-left p-4 font-semibold text-on-surface-variant">Email</th>
-                <th className="text-left p-4 font-semibold text-on-surface-variant">Rol</th>
-                <th className="text-left p-4 font-semibold text-on-surface-variant hidden lg:table-cell">Creado</th>
+                <th className="text-left p-4 font-semibold text-orys-fg-dim">Email</th>
+                <th className="text-left p-4 font-semibold text-orys-fg-dim">Rol</th>
+                <th className="text-left p-4 font-semibold text-orys-fg-dim hidden lg:table-cell">Creado</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-outline-variant/10">
+            <tbody className="divide-y divide-orys-line">
               {users.map((user) => (
                 <tr key={user.id}>
-                  <td className="p-4 font-medium text-on-surface">{user.email}</td>
+                  <td className="p-4 font-medium text-orys-fg">{user.email}</td>
                   <td className="p-4">
                     <select
                       value={user.role?.id || ''}
                       disabled={saving}
                       onChange={(event) => handleRoleChange(user.id, event.target.value)}
-                      className="px-3 py-2 bg-white border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+                      className="px-3 py-2 bg-orys-bg-input border border-orys-line rounded-orys-xl text-sm focus:outline-none"
                     >
                       {roles.map((role) => (
                         <option key={role.id} value={role.id}>
@@ -181,7 +181,7 @@ export default function AccessPage() {
                       ))}
                     </select>
                   </td>
-                  <td className="p-4 text-on-surface-variant hidden lg:table-cell">
+                  <td className="p-4 text-orys-fg-dim hidden lg:table-cell">
                     {new Date(user.created_at).toLocaleDateString('es-ES')}
                   </td>
                 </tr>
@@ -192,23 +192,23 @@ export default function AccessPage() {
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           {roles.map((role) => (
-            <div key={role.id} className="p-6 bg-surface-container-lowest border border-outline-variant/10 rounded-2xl">
+            <div key={role.id} className="p-6 bg-orys-bg-panel border border-orys-line rounded-orys-2xl">
               <div className="mb-4">
-                <h2 className="font-headline font-bold text-on-surface">{role.name}</h2>
-                <p className="text-xs text-on-surface-variant mt-1">{role.slug}</p>
+                <h2 className="font-orys-sans font-bold text-orys-fg">{role.name}</h2>
+                <p className="text-xs text-orys-fg-dim mt-1">{role.slug}</p>
               </div>
 
               <div className="space-y-3">
                 {AVAILABLE_PERMISSIONS.map((permission) => {
                   const checked = role.permissions.includes(permission);
                   return (
-                    <label key={`${role.id}-${permission}`} className="flex items-center gap-3 text-sm text-on-surface">
+                    <label key={`${role.id}-${permission}`} className="flex items-center gap-3 text-sm text-orys-fg">
                       <input
                         type="checkbox"
                         checked={checked}
                         disabled={saving}
                         onChange={() => handlePermissionToggle(role, permission)}
-                        className="w-4 h-4 accent-primary"
+                        className="w-4 h-4 accent-orys-accent"
                       />
                       <span>{permission}</span>
                     </label>

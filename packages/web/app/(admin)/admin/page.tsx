@@ -60,11 +60,11 @@ export default function AdminDashboard() {
   }, []);
 
   const statCards = [
-    { label: 'Total', value: stats.total, icon: 'article', color: 'text-primary' },
-    { label: 'Publicados', value: stats.published, icon: 'check_circle', color: 'text-green-600' },
-    { label: 'Borradores', value: stats.draft, icon: 'edit', color: 'text-on-surface-variant' },
-    { label: 'En revisión', value: stats.in_review, icon: 'rate_review', color: 'text-yellow-600' },
-    { label: 'Obsoletos', value: stats.deprecated, icon: 'archive', color: 'text-error' },
+    { label: 'Total', value: stats.total, icon: 'article', color: 'text-orys-accent' },
+    { label: 'Publicados', value: stats.published, icon: 'check_circle', color: 'text-orys-ok' },
+    { label: 'Borradores', value: stats.draft, icon: 'edit', color: 'text-orys-fg-dim' },
+    { label: 'En revisión', value: stats.in_review, icon: 'rate_review', color: 'text-orys-warn' },
+    { label: 'Obsoletos', value: stats.deprecated, icon: 'archive', color: 'text-orys-fail' },
   ];
 
   function getTitle(article: ArticleItem) {
@@ -87,10 +87,10 @@ export default function AdminDashboard() {
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="font-headline text-2xl font-bold text-on-surface">Dashboard</h1>
+        <h1 className="font-orys-sans text-2xl font-bold text-orys-fg">Dashboard</h1>
         <Link
           href="/admin/articles/new"
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-xl text-sm font-semibold hover:bg-primary-dim transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-orys-accent text-orys-fg-on-accent rounded-orys-xl text-sm font-semibold hover:bg-orys-accent-bright transition-colors"
         >
           <Icon name="add" size="sm" />
           Nuevo artículo
@@ -102,49 +102,49 @@ export default function AdminDashboard() {
         {statCards.map((card) => (
           <div
             key={card.label}
-            className="p-6 bg-surface-container-lowest border border-outline-variant/10 rounded-2xl"
+            className="p-6 bg-orys-bg-panel border border-orys-line rounded-orys-2xl"
           >
             <Icon name={card.icon} className={`${card.color} mb-2`} size="lg" />
-            <p className="text-3xl font-headline font-bold text-on-surface">{card.value}</p>
-            <p className="text-sm text-on-surface-variant mt-1">{card.label}</p>
+            <p className="text-3xl font-orys-sans font-bold text-orys-fg">{card.value}</p>
+            <p className="text-sm text-orys-fg-dim mt-1">{card.label}</p>
           </div>
         ))}
       </div>
 
       {/* Últimos artículos */}
-      <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-2xl overflow-hidden">
-        <div className="p-6 border-b border-outline-variant/10">
-          <h2 className="font-headline font-bold text-on-surface">Artículos recientes</h2>
+      <div className="bg-orys-bg-panel border border-orys-line rounded-orys-2xl overflow-hidden">
+        <div className="p-6 border-b border-orys-line">
+          <h2 className="font-orys-sans font-bold text-orys-fg">Artículos recientes</h2>
         </div>
 
         {loading ? (
-          <div className="p-6 text-center text-on-surface-variant text-sm">Cargando...</div>
+          <div className="p-6 text-center text-orys-fg-dim text-sm">Cargando...</div>
         ) : articles.length === 0 ? (
-          <div className="p-6 text-center text-on-surface-variant text-sm">
+          <div className="p-6 text-center text-orys-fg-dim text-sm">
             No hay artículos aún.{' '}
-            <Link href="/admin/articles/new" className="text-primary hover:underline">
+            <Link href="/admin/articles/new" className="text-orys-accent hover:underline">
               Crear primero
             </Link>
           </div>
         ) : (
-          <div className="divide-y divide-outline-variant/10">
+          <div className="divide-y divide-orys-line">
             {articles.map((article) => (
               <Link
                 key={article.id}
                 href={`/admin/articles/${article.id}`}
-                className="flex items-center gap-4 p-4 hover:bg-surface-container transition-colors"
+                className="flex items-center gap-4 p-4 hover:bg-orys-bg-raised transition-colors"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="font-medium text-on-surface text-sm truncate">{getTitle(article)}</p>
+                    <p className="font-medium text-orys-fg text-sm truncate">{getTitle(article)}</p>
                     {isOutdated(article) && article.status === 'published' && (
-                      <Icon name="warning" size="sm" className="text-yellow-500 flex-shrink-0" />
+                      <Icon name="warning" size="sm" className="text-orys-warn flex-shrink-0" />
                     )}
                   </div>
-                  <p className="text-xs text-on-surface-variant mt-0.5">{article.category}</p>
+                  <p className="text-xs text-orys-fg-dim mt-0.5">{article.category}</p>
                 </div>
                 <StatusBadge status={article.status} />
-                <p className="text-xs text-on-surface-variant flex-shrink-0">
+                <p className="text-xs text-orys-fg-dim flex-shrink-0">
                   {new Date(article.updated_at).toLocaleDateString('es-ES')}
                 </p>
               </Link>
@@ -152,8 +152,8 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        <div className="p-4 border-t border-outline-variant/10">
-          <Link href="/admin/articles" className="text-sm text-primary hover:underline">
+        <div className="p-4 border-t border-orys-line">
+          <Link href="/admin/articles" className="text-sm text-orys-accent hover:underline">
             Ver todos los artículos →
           </Link>
         </div>

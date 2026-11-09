@@ -149,7 +149,7 @@ export default function ArticleEditorPage() {
   }
 
   if (loading) {
-    return <div className="p-8 text-on-surface-variant">Cargando...</div>;
+    return <div className="p-8 text-orys-fg-dim">Cargando...</div>;
   }
 
   if (!article) return null;
@@ -172,24 +172,24 @@ export default function ArticleEditorPage() {
         <div>
           <button
             onClick={() => router.push('/admin/articles')}
-            className="flex items-center gap-1 text-sm text-on-surface-variant hover:text-primary mb-2"
+            className="flex items-center gap-1 text-sm text-orys-fg-dim hover:text-orys-accent mb-2"
           >
             <Icon name="arrow_back" size="sm" />
             Volver a artículos
           </button>
-          <h1 className="font-headline text-xl font-bold text-on-surface">
+          <h1 className="font-orys-sans text-xl font-bold text-orys-fg">
             {contentEs?.title || contentEn?.title || article.slug_uk}
           </h1>
           <div className="flex items-center gap-3 mt-2">
             <StatusBadge status={article.status} />
-            <span className="text-sm text-on-surface-variant">{article.category}</span>
+            <span className="text-sm text-orys-fg-dim">{article.category}</span>
           </div>
         </div>
 
         {/* Cambiar estado */}
         <div className="flex items-center gap-2">
           {message && (
-            <span className="text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full">{message}</span>
+            <span className="text-sm text-orys-ok bg-orys-ok-soft px-3 py-1 rounded-full">{message}</span>
           )}
           {getAllowedTransitions(article.status).map((nextStatus) => (
             <Button
@@ -206,15 +206,15 @@ export default function ArticleEditorPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-outline-variant/20 mb-6 overflow-x-auto">
+      <div className="flex border-b border-orys-line mb-6 overflow-x-auto">
         {tabs.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
               tab === t.id
-                ? 'border-primary text-primary'
-                : 'border-transparent text-on-surface-variant hover:text-on-surface'
+                ? 'border-primary text-orys-accent'
+                : 'border-transparent text-orys-fg-dim hover:text-orys-fg'
             }`}
           >
             <Icon name={t.icon} size="sm" />
@@ -312,11 +312,11 @@ function MetadataTab({
   return (
     <div className="max-w-lg space-y-4">
       <div>
-        <label className="block text-sm font-medium text-on-surface mb-1.5">Categoría</label>
+        <label className="block text-sm font-medium text-orys-fg mb-1.5">Categoría</label>
         <select
           value={form.category}
           onChange={(e) => setForm({ ...form, category: e.target.value })}
-          className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+          className="w-full px-4 py-2.5 bg-orys-bg-raised border border-orys-line rounded-orys-xl text-sm focus:outline-none"
         >
           {categories.map((cat) => (
             <option key={cat.slug} value={cat.slug}>{cat.name}</option>
@@ -325,11 +325,11 @@ function MetadataTab({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-on-surface mb-1.5">Volatilidad</label>
+        <label className="block text-sm font-medium text-orys-fg mb-1.5">Volatilidad</label>
         <select
           value={form.volatility}
           onChange={(e) => setForm({ ...form, volatility: e.target.value })}
-          className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+          className="w-full px-4 py-2.5 bg-orys-bg-raised border border-orys-line rounded-orys-xl text-sm focus:outline-none"
         >
           <option value="low">Baja</option>
           <option value="medium">Media</option>
@@ -338,22 +338,22 @@ function MetadataTab({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-on-surface mb-1.5">Versión (applicable_as_of)</label>
+        <label className="block text-sm font-medium text-orys-fg mb-1.5">Versión (applicable_as_of)</label>
         <input
           type="text"
           value={form.applicable_as_of}
           onChange={(e) => setForm({ ...form, applicable_as_of: e.target.value })}
           placeholder="v2.1.0"
-          className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+          className="w-full px-4 py-2.5 bg-orys-bg-raised border border-orys-line rounded-orys-xl text-sm focus:outline-none"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-on-surface mb-1.5">Dificultad</label>
+        <label className="block text-sm font-medium text-orys-fg mb-1.5">Dificultad</label>
         <select
           value={form.difficulty}
           onChange={(e) => setForm({ ...form, difficulty: e.target.value })}
-          className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+          className="w-full px-4 py-2.5 bg-orys-bg-raised border border-orys-line rounded-orys-xl text-sm focus:outline-none"
         >
           <option value="">N/A (concepto)</option>
           <option value="beginner">Principiante</option>
@@ -363,13 +363,13 @@ function MetadataTab({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-on-surface mb-1.5">Tiempo estimado</label>
+        <label className="block text-sm font-medium text-orys-fg mb-1.5">Tiempo estimado</label>
         <input
           type="text"
           value={form.estimated_time}
           onChange={(e) => setForm({ ...form, estimated_time: e.target.value })}
           placeholder="30 min"
-          className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+          className="w-full px-4 py-2.5 bg-orys-bg-raised border border-orys-line rounded-orys-xl text-sm focus:outline-none"
         />
       </div>
 
@@ -379,9 +379,9 @@ function MetadataTab({
           id="featured-edit"
           checked={form.featured}
           onChange={(e) => setForm({ ...form, featured: e.target.checked })}
-          className="w-4 h-4 accent-primary"
+          className="w-4 h-4 accent-orys-accent"
         />
-        <label htmlFor="featured-edit" className="text-sm font-medium text-on-surface">
+        <label htmlFor="featured-edit" className="text-sm font-medium text-orys-fg">
           Destacado en homepage
         </label>
       </div>
@@ -481,14 +481,14 @@ function ContentTab({
     <div className="space-y-4 max-w-2xl">
       {/* Info de verificación */}
       {existing && (
-        <div className="flex items-center justify-between p-3 bg-surface-container-low rounded-xl text-sm">
+        <div className="flex items-center justify-between p-3 bg-orys-bg-raised rounded-orys-xl text-sm">
           <div>
-            <span className="text-on-surface-variant">Última edición: </span>
-            <span className="text-on-surface">{new Date(existing.last_edited_at).toLocaleString('es-ES')}</span>
+            <span className="text-orys-fg-dim">Última edición: </span>
+            <span className="text-orys-fg">{new Date(existing.last_edited_at).toLocaleString('es-ES')}</span>
             {existing.last_verified_at && (
               <>
-                <span className="text-on-surface-variant ml-4">Verificado: </span>
-                <span className="text-on-surface">{new Date(existing.last_verified_at).toLocaleString('es-ES')}</span>
+                <span className="text-orys-fg-dim ml-4">Verificado: </span>
+                <span className="text-orys-fg">{new Date(existing.last_verified_at).toLocaleString('es-ES')}</span>
               </>
             )}
           </div>
@@ -501,58 +501,58 @@ function ContentTab({
 
       {/* Importar .md */}
       <div>
-        <label className="block text-sm font-medium text-on-surface mb-1.5">
+        <label className="block text-sm font-medium text-orys-fg mb-1.5">
           Importar archivo .md
         </label>
         <input
           type="file"
           accept=".md"
           onChange={handleFileImport}
-          className="block text-sm text-on-surface-variant file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+          className="block text-sm text-orys-fg-dim file:mr-3 file:py-2 file:px-4 file:rounded-orys-xl file:border-0 file:text-sm file:font-medium file:bg-orys-accent-soft file:text-orys-accent hover:file:bg-orys-accent/20"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-on-surface mb-1.5">Slug</label>
+          <label className="block text-sm font-medium text-orys-fg mb-1.5">Slug</label>
           <input
             type="text"
             value={form.slug}
             onChange={(e) => setForm({ ...form, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })}
             placeholder={lang === 'es' ? 'que-es-un-agente' : 'what-is-an-agent'}
-            className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+            className="w-full px-4 py-2.5 bg-orys-bg-raised border border-orys-line rounded-orys-xl text-sm focus:outline-none"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-on-surface mb-1.5">Título</label>
+          <label className="block text-sm font-medium text-orys-fg mb-1.5">Título</label>
           <input
             type="text"
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
-            className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+            className="w-full px-4 py-2.5 bg-orys-bg-raised border border-orys-line rounded-orys-xl text-sm focus:outline-none"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-on-surface mb-1.5">Resumen</label>
+        <label className="block text-sm font-medium text-orys-fg mb-1.5">Resumen</label>
         <textarea
           value={form.summary}
           onChange={(e) => setForm({ ...form, summary: e.target.value })}
           rows={3}
-          className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-sm focus:outline-none resize-y"
+          className="w-full px-4 py-2.5 bg-orys-bg-raised border border-orys-line rounded-orys-xl text-sm focus:outline-none resize-y"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-on-surface mb-1.5">
+        <label className="block text-sm font-medium text-orys-fg mb-1.5">
           Cuerpo (Markdown)
         </label>
         <textarea
           value={form.body}
           onChange={(e) => setForm({ ...form, body: e.target.value })}
           rows={20}
-          className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-xl text-sm font-mono focus:outline-none resize-y"
+          className="w-full px-4 py-2.5 bg-orys-bg-raised border border-orys-line rounded-orys-xl text-sm font-orys-mono focus:outline-none resize-y"
           placeholder="## Qué es\n\nContenido en markdown..."
         />
       </div>
@@ -649,9 +649,9 @@ function RelationsTab({
   return (
     <div className="max-w-2xl space-y-6">
       {/* Agregar relación */}
-      <div className="p-4 bg-surface-container-low rounded-xl space-y-3">
-        <h3 className="font-medium text-on-surface">Agregar relación</h3>
-        <p className="text-sm text-on-surface-variant">
+      <div className="p-4 bg-orys-bg-raised rounded-orys-xl space-y-3">
+        <h3 className="font-medium text-orys-fg">Agregar relación</h3>
+        <p className="text-sm text-orys-fg-dim">
           Busca por título o slug. El sistema guarda internamente el UUID del artículo destino.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-[1fr_180px] gap-3">
@@ -660,12 +660,12 @@ function RelationsTab({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por título o slug"
-            className="px-3 py-2 bg-white border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+            className="px-3 py-2 bg-orys-bg-input border border-orys-line rounded-orys-xl text-sm focus:outline-none"
           />
           <select
             value={relType}
             onChange={(e) => setRelType(e.target.value)}
-            className="px-3 py-2 bg-white border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+            className="px-3 py-2 bg-orys-bg-input border border-orys-line rounded-orys-xl text-sm focus:outline-none"
           >
             <option value="related">Relacionado</option>
             <option value="prerequisite">Prerrequisito</option>
@@ -677,7 +677,7 @@ function RelationsTab({
             value={toId}
             onChange={(e) => setToId(e.target.value)}
             disabled={loadingArticles}
-            className="flex-1 px-3 py-2 bg-white border border-outline-variant/30 rounded-xl text-sm focus:outline-none disabled:opacity-60"
+            className="flex-1 px-3 py-2 bg-orys-bg-input border border-orys-line rounded-orys-xl text-sm focus:outline-none disabled:opacity-60"
           >
             <option value="">
               {loadingArticles ? 'Cargando artículos...' : 'Selecciona un artículo'}
@@ -697,25 +697,25 @@ function RelationsTab({
       {/* Lista de relaciones */}
       {relEntries.map(([type, ids]) => (
         <div key={type}>
-          <h3 className="font-medium text-on-surface mb-2">
+          <h3 className="font-medium text-orys-fg mb-2">
             {RELATION_LABELS[type] || type}
           </h3>
           {ids.length === 0 ? (
-            <p className="text-sm text-on-surface-variant">Sin relaciones</p>
+            <p className="text-sm text-orys-fg-dim">Sin relaciones</p>
           ) : (
             <div className="space-y-2">
               {ids.map((relId) => (
                 <div
                   key={relId}
-                  className="flex items-center justify-between p-3 bg-surface-container-low rounded-xl"
+                  className="flex items-center justify-between p-3 bg-orys-bg-raised rounded-orys-xl"
                 >
                   <div className="min-w-0">
-                    <p className="text-sm text-on-surface truncate">{getArticleTitle(relId)}</p>
-                    <p className="text-xs font-mono text-on-surface-variant truncate">{relId}</p>
+                    <p className="text-sm text-orys-fg truncate">{getArticleTitle(relId)}</p>
+                    <p className="text-xs font-orys-mono text-orys-fg-dim truncate">{relId}</p>
                   </div>
                   <button
                     onClick={() => handleRemove(relId, type)}
-                    className="ml-2 p-1 rounded-lg hover:bg-error/10 text-error transition-colors"
+                    className="ml-2 p-1 rounded-orys-lg hover:bg-orys-fail-soft text-orys-fail transition-colors"
                   >
                     <Icon name="close" size="sm" />
                   </button>
@@ -783,18 +783,18 @@ function ResourcesTab({
     <div className="max-w-lg space-y-4">
       <div className="flex items-center justify-between">
         <div className="space-y-2">
-          <h3 className="font-medium text-on-surface">
+          <h3 className="font-medium text-orys-fg">
             Recursos vinculados en {activeLang.toUpperCase()} ({currentResources.length})
           </h3>
-          <div className="inline-flex rounded-xl bg-surface-container-low p-1">
+          <div className="inline-flex rounded-orys-xl bg-orys-bg-raised p-1">
             {(['es', 'en'] as const).map((lang) => (
               <button
                 key={lang}
                 onClick={() => setActiveLang(lang)}
-                className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                className={`px-3 py-1.5 text-sm rounded-orys-lg transition-colors ${
                   activeLang === lang
-                    ? 'bg-white text-primary shadow-sm'
-                    : 'text-on-surface-variant hover:text-on-surface'
+                    ? 'bg-orys-bg-panel text-orys-accent shadow-sm'
+                    : 'text-orys-fg-dim hover:text-orys-fg'
                 }`}
               >
                 {lang.toUpperCase()}
@@ -809,19 +809,19 @@ function ResourcesTab({
       </div>
 
       {showForm && (
-        <div className="p-4 bg-surface-container-low rounded-xl space-y-3">
+        <div className="p-4 bg-orys-bg-raised rounded-orys-xl space-y-3">
           <input
             type="text"
             value={newResource.title}
             onChange={(e) => setNewResource({ ...newResource, title: e.target.value })}
             placeholder="Título del recurso"
-            className="w-full px-3 py-2 bg-white border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+            className="w-full px-3 py-2 bg-orys-bg-input border border-orys-line rounded-orys-xl text-sm focus:outline-none"
           />
           <div className="flex gap-3">
             <select
               value={newResource.type}
               onChange={(e) => setNewResource({ ...newResource, type: e.target.value })}
-              className="px-3 py-2 bg-white border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+              className="px-3 py-2 bg-orys-bg-input border border-orys-line rounded-orys-xl text-sm focus:outline-none"
             >
               <option value="doc">Documentación</option>
               <option value="video">Video</option>
@@ -833,7 +833,7 @@ function ResourcesTab({
               value={newResource.url}
               onChange={(e) => setNewResource({ ...newResource, url: e.target.value })}
               placeholder="https://..."
-              className="flex-1 px-3 py-2 bg-white border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+              className="flex-1 px-3 py-2 bg-orys-bg-input border border-orys-line rounded-orys-xl text-sm focus:outline-none"
             />
           </div>
           <input
@@ -841,7 +841,7 @@ function ResourcesTab({
             value={newResource.description}
             onChange={(e) => setNewResource({ ...newResource, description: e.target.value })}
             placeholder="Descripción (opcional)"
-            className="w-full px-3 py-2 bg-white border border-outline-variant/30 rounded-xl text-sm focus:outline-none"
+            className="w-full px-3 py-2 bg-orys-bg-input border border-orys-line rounded-orys-xl text-sm focus:outline-none"
           />
           <div className="flex gap-2">
             <Button size="sm" onClick={handleCreate} loading={saving}>Crear y vincular</Button>
@@ -851,7 +851,7 @@ function ResourcesTab({
       )}
 
       {currentResources.length === 0 ? (
-        <p className="text-sm text-on-surface-variant">
+        <p className="text-sm text-orys-fg-dim">
           Sin recursos vinculados en {activeLang.toUpperCase()}.
         </p>
       ) : (
@@ -859,15 +859,15 @@ function ResourcesTab({
           {currentResources.map((resource) => (
             <div
               key={resource.id}
-              className="flex items-center justify-between p-3 bg-surface-container-low rounded-xl"
+              className="flex items-center justify-between p-3 bg-orys-bg-raised rounded-orys-xl"
             >
               <div>
-                <p className="text-sm font-medium text-on-surface">{resource.title}</p>
-                <p className="text-xs text-on-surface-variant truncate">{resource.url}</p>
+                <p className="text-sm font-medium text-orys-fg">{resource.title}</p>
+                <p className="text-xs text-orys-fg-dim truncate">{resource.url}</p>
               </div>
               <button
                 onClick={() => handleUnlink(resource.id)}
-                className="ml-2 p-1 rounded-lg hover:bg-error/10 text-error transition-colors flex-shrink-0"
+                className="ml-2 p-1 rounded-orys-lg hover:bg-orys-fail-soft text-orys-fail transition-colors flex-shrink-0"
               >
                 <Icon name="link_off" size="sm" />
               </button>
