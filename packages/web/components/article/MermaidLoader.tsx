@@ -15,7 +15,7 @@ export function MermaidLoader() {
         const mermaidDivs = Array.from(document.querySelectorAll<HTMLElement>('.mermaid'));
         if (mermaidDivs.length === 0) return;
 
-        const isDark = document.documentElement.classList.contains('dark');
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         const { default: mermaid } = await import('mermaid');
 
         // Guardar texto original la primera vez
@@ -43,11 +43,11 @@ export function MermaidLoader() {
 
     init();
 
-    // Re-renderizar al cambiar el tema (clase 'dark' en <html>)
+    // Re-renderizar al cambiar el tema (data-theme en <html>)
     const observer = new MutationObserver(init);
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['class'],
+      attributeFilter: ['data-theme'],
     });
 
     return () => {

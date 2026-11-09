@@ -1,8 +1,9 @@
-// Navbar — sticky, fondo surface translúcido + backdrop-blur, borde inferior outline-variant
+// Navbar — sticky, fondo translúcido + backdrop-blur, borde inferior sutil
 'use client';
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { Menu, Search, X } from 'lucide-react';
 import { SearchBar } from '../search/SearchBar';
 import { ThemeToggle } from './ThemeToggle';
 import { LanguageSwitcher } from './LanguageSwitcher';
@@ -22,16 +23,16 @@ export function Navbar({ lang, currentPath = '', alternateUrl }: NavbarProps) {
   }, [currentPath]);
 
   return (
-    <header className="sticky top-0 z-50 h-[58px] bg-surface/85 border-b border-outline-variant backdrop-blur-md">
+    <header className="sticky top-0 z-50 h-[58px] bg-orys-bg-blur border-b border-orys-line backdrop-blur-md">
       <div className="mx-auto max-w-[1220px] h-full flex items-center gap-5 px-6 sm:px-8">
-        {/* Logo — cuadrito chartreuse + AI Hub en Space Grotesk */}
+        {/* Logo — nodo de acento + AI Hub en la tipografía de la marca */}
         <Link
           href={`/${lang}`}
           className="flex items-center gap-2.5 flex-shrink-0"
           aria-label="AI Hub"
         >
-          <span className="block w-[11px] h-[11px] bg-primary flex-shrink-0" aria-hidden="true" />
-          <span className="font-headline font-bold text-[17px] tracking-tight text-on-surface leading-none">
+          <span className="block w-[11px] h-[11px] bg-orys-accent flex-shrink-0" aria-hidden="true" />
+          <span className="font-orys-sans font-bold text-[17px] tracking-tight text-orys-fg leading-none">
             AI Hub
           </span>
         </Link>
@@ -46,10 +47,10 @@ export function Navbar({ lang, currentPath = '', alternateUrl }: NavbarProps) {
           {/* Búsqueda mobile */}
           <Link
             href={`/${lang}#search`}
-            className="md:hidden p-1.5 text-on-surface-variant hover:text-on-surface transition-colors"
+            className="md:hidden p-1.5 text-orys-fg-dim hover:text-orys-fg transition-colors"
             aria-label="Buscar"
           >
-            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">search</span>
+            <Search size={20} strokeWidth={1.75} aria-hidden="true" />
           </Link>
 
           <LanguageSwitcher currentLang={lang} currentPath={currentPath} alternateUrl={alternateUrl} />
@@ -57,14 +58,16 @@ export function Navbar({ lang, currentPath = '', alternateUrl }: NavbarProps) {
 
           {/* Botón menú hamburger mobile */}
           <button
-            className="md:hidden p-1.5 text-on-surface-variant hover:text-on-surface transition-colors"
+            className="md:hidden p-1.5 text-orys-fg-dim hover:text-orys-fg transition-colors"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Menú"
             aria-expanded={mobileMenuOpen}
           >
-            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
-              {mobileMenuOpen ? 'close' : 'menu'}
-            </span>
+            {mobileMenuOpen ? (
+              <X size={20} strokeWidth={1.75} aria-hidden="true" />
+            ) : (
+              <Menu size={20} strokeWidth={1.75} aria-hidden="true" />
+            )}
           </button>
         </div>
       </div>

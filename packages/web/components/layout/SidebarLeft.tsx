@@ -14,11 +14,11 @@ interface SidebarLeftProps {
   currentTutorialDifficulty?: string;
 }
 
-// Colores de punto para "Aprende por nivel" — coinciden con la escala del brandbook
-const LEVEL_DOT: Record<string, string> = {
-  beginner: '#3f8f2e',
-  intermediate: '#c08a1e',
-  advanced: '#8a5cc0',
+// Punto de color por nivel — tokens de estado y acento del design system
+const LEVEL_DOT_CLASS: Record<string, string> = {
+  beginner: 'bg-orys-ok',
+  intermediate: 'bg-orys-warn',
+  advanced: 'bg-orys-accent',
 };
 
 export function SidebarLeft({
@@ -32,11 +32,11 @@ export function SidebarLeft({
 
   return (
     <aside
-      className="hidden md:flex flex-col w-[248px] flex-shrink-0 sticky top-[58px] self-start max-h-[calc(100vh-58px)] overflow-y-auto border-r border-outline-variant py-6 px-4"
+      className="hidden md:flex flex-col w-[248px] flex-shrink-0 sticky top-[58px] self-start max-h-[calc(100vh-58px)] overflow-y-auto border-r border-orys-line py-6 px-4"
       aria-label="Navegación principal"
     >
       {/* Categorías */}
-      <p className="font-mono text-[10.5px] font-semibold tracking-[0.12em] text-on-surface-variant px-2.5 mb-2.5">
+      <p className="font-orys-mono text-[10.5px] font-semibold tracking-[0.12em] text-orys-fg-dim px-2.5 mb-2.5">
         {isEs ? 'CATEGORÍAS' : 'CATEGORIES'}
       </p>
       <nav className="flex flex-col" aria-label="Categorías">
@@ -50,14 +50,14 @@ export function SidebarLeft({
                 group flex items-center gap-2.5 px-2.5 py-2 text-[14px] transition-colors
                 ${
                   isActive
-                    ? 'bg-primary-container text-primary-text font-semibold'
-                    : 'text-on-surface hover:bg-surface-container'
+                    ? 'bg-orys-accent-soft text-orys-accent font-semibold'
+                    : 'text-orys-fg hover:bg-orys-bg-raised'
                 }
               `}
               aria-current={isActive ? 'page' : undefined}
             >
               <span className="flex-1 truncate">{category.name}</span>
-              <span className="font-mono text-[11.5px] opacity-70 flex-shrink-0">
+              <span className="font-orys-mono text-[11.5px] opacity-70 flex-shrink-0">
                 {category.article_count > 0 ? category.article_count : '—'}
               </span>
             </Link>
@@ -66,7 +66,7 @@ export function SidebarLeft({
       </nav>
 
       {/* Aprende por nivel */}
-      <p className="font-mono text-[10.5px] font-semibold tracking-[0.12em] text-on-surface-variant px-2.5 mt-6 mb-2.5">
+      <p className="font-orys-mono text-[10.5px] font-semibold tracking-[0.12em] text-orys-fg-dim px-2.5 mt-6 mb-2.5">
         {isEs ? 'APRENDE POR NIVEL' : 'LEARN BY LEVEL'}
       </p>
       <nav className="flex flex-col" aria-label={isEs ? 'Aprende por nivel' : 'Learn by level'}>
@@ -79,14 +79,13 @@ export function SidebarLeft({
               className={`
                 flex items-center gap-2.5 px-2.5 py-2 text-[14px] transition-colors
                 ${isActive
-                  ? 'bg-primary-container text-primary-text font-semibold'
-                  : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'}
+                  ? 'bg-orys-accent-soft text-orys-accent font-semibold'
+                  : 'text-orys-fg-dim hover:bg-orys-bg-raised hover:text-orys-fg'}
               `}
               aria-current={isActive ? 'page' : undefined}
             >
               <span
-                className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                style={{ background: LEVEL_DOT[d] }}
+                className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${LEVEL_DOT_CLASS[d]}`}
                 aria-hidden="true"
               />
               <span>{difficultyLabels[d]}</span>

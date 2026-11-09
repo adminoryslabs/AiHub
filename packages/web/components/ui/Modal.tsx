@@ -74,7 +74,7 @@ export function Modal({ open, onClose, labelledBy, children }: ModalProps) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-[rgba(18,20,31,0.32)] dark:bg-[rgba(4,5,12,0.66)] backdrop-blur-[3px]"
+      className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-orys-scrim backdrop-blur-[3px]"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -85,14 +85,14 @@ export function Modal({ open, onClose, labelledBy, children }: ModalProps) {
         aria-modal="true"
         aria-labelledby={labelledBy}
         tabIndex={-1}
-        className="relative w-full max-w-[432px] bg-surface border border-outline shadow-[0_24px_60px_rgba(0,0,0,0.28)]"
+        className="relative w-full max-w-[432px] rounded-orys-lg bg-orys-bg-higher border border-orys-line-strong shadow-orys-panel"
       >
-        <div className="h-[6px] bg-primary" aria-hidden="true" />
+        <div className="h-[6px] bg-orys-accent" aria-hidden="true" />
         <button
           type="button"
           onClick={onClose}
           aria-label="Cerrar"
-          className="absolute top-3 right-3 flex items-center justify-center w-8 h-8 border border-outline-variant bg-surface text-on-surface hover:bg-surface-container"
+          className="absolute top-3 right-3 flex items-center justify-center w-8 h-8 rounded-orys-sm border border-orys-line bg-orys-bg-higher text-orys-fg hover:bg-orys-bg-raised"
         >
           <Icon name="close" className="text-[18px]" />
         </button>

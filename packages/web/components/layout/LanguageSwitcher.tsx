@@ -24,12 +24,12 @@ export function LanguageSwitcher({ currentLang, currentPath, alternateUrl }: Lan
   }
 
   return (
-    <div className="flex items-center gap-1.5 font-mono text-[12px] font-medium select-none">
-      <span className="text-primary-text">{currentLang.toUpperCase()}</span>
-      <span className="text-outline-variant" aria-hidden="true">/</span>
+    <div className="flex items-center gap-1.5 font-orys-mono text-[12px] font-medium select-none">
+      <span className="text-orys-accent">{currentLang.toUpperCase()}</span>
+      <span className="text-orys-fg-mute" aria-hidden="true">/</span>
       <Link
         href={currentLang === otherLang ? '#' : otherPath}
-        className="text-on-surface-variant hover:text-on-surface transition-colors"
+        className="text-orys-fg-dim hover:text-orys-fg transition-colors"
         aria-current={currentLang === otherLang ? 'true' : undefined}
       >
         {otherLang.toUpperCase()}

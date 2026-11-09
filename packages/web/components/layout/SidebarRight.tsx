@@ -49,11 +49,11 @@ export function SidebarRight({ toc, resources, lang }: SidebarRightProps) {
       {/* Tabla de contenidos */}
       {tocItems.length > 0 && (
         <div>
-          <p className="font-mono text-[11px] font-medium tracking-[0.1em] text-on-surface-variant mb-3.5">
+          <p className="font-orys-mono text-[11px] font-medium tracking-[0.1em] text-orys-fg-dim mb-3.5">
             {lang === 'es' ? 'EN ESTA PÁGINA' : 'ON THIS PAGE'}
           </p>
           <nav
-            className="flex flex-col gap-2.5 border-l border-outline-variant pl-3.5"
+            className="flex flex-col gap-2.5 border-l border-orys-line pl-3.5"
             aria-label={lang === 'es' ? 'Tabla de contenidos' : 'Table of contents'}
           >
             {tocItems.map((item) => (
@@ -65,8 +65,8 @@ export function SidebarRight({ toc, resources, lang }: SidebarRightProps) {
                   ${item.level > 2 ? 'pl-3' : ''}
                   ${
                     activeId === item.id
-                      ? 'text-primary-text font-semibold'
-                      : 'text-on-surface-variant hover:text-on-surface'
+                      ? 'text-orys-accent font-semibold'
+                      : 'text-orys-fg-dim hover:text-orys-fg'
                   }
                 `}
               >
@@ -80,7 +80,7 @@ export function SidebarRight({ toc, resources, lang }: SidebarRightProps) {
       {/* Recursos externos */}
       {resources.length > 0 && (
         <div className="mt-8">
-          <p className="font-mono text-[11px] font-medium tracking-[0.1em] text-on-surface-variant mb-3.5">
+          <p className="font-orys-mono text-[11px] font-medium tracking-[0.1em] text-orys-fg-dim mb-3.5">
             {lang === 'es' ? 'RECURSOS' : 'RESOURCES'}
           </p>
           <div className="flex flex-col gap-2.5">
@@ -90,14 +90,14 @@ export function SidebarRight({ toc, resources, lang }: SidebarRightProps) {
                 href={resource.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block p-3 border border-outline-variant hover:bg-surface-container transition-colors"
+                className="block p-3 border border-orys-line hover:bg-orys-bg-raised transition-colors"
               >
-                <p className="text-[12.5px] font-semibold text-on-surface leading-snug flex items-center gap-1.5">
+                <p className="text-[12.5px] font-semibold text-orys-fg leading-snug flex items-center gap-1.5">
                   <Icon name="arrow_outward" className="text-[14px] flex-shrink-0" />
                   <span>{resource.title}</span>
                 </p>
                 {resource.description && (
-                  <p className="text-[11.5px] text-on-surface-variant mt-1.5 font-body leading-snug">
+                  <p className="text-[11.5px] text-orys-fg-dim mt-1.5 font-orys-sans leading-snug">
                     {resource.description}
                   </p>
                 )}

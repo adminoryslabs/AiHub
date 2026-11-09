@@ -3,6 +3,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { Search } from 'lucide-react';
 import { searchArticles } from '@/lib/api-client';
 import type { SupportedLang } from '@/lib/i18n';
 
@@ -124,17 +125,17 @@ export function SearchBar({ lang, variant = 'navbar' }: SearchBarProps) {
         className={`
           relative flex items-center gap-2.5
           ${isHero ? 'h-[54px] px-5' : 'h-[38px] px-3.5'}
-          bg-surface-container border ${isHero ? 'border-outline' : 'border-outline-variant'}
-          focus-within:border-primary-text
+          bg-orys-bg-raised border ${isHero ? 'border-orys-line-strong' : 'border-orys-line'}
+          focus-within:border-orys-line-brand
           transition-colors
         `}
       >
-        <span
-          className={`material-symbols-outlined flex-shrink-0 ${isHero ? 'text-[22px]' : 'text-[18px]'} text-on-surface`}
+        <Search
+          size={isHero ? 22 : 18}
+          strokeWidth={1.75}
+          className="flex-shrink-0 text-orys-fg"
           aria-hidden="true"
-        >
-          search
-        </span>
+        />
 
         <input
           ref={inputRef}
@@ -145,10 +146,10 @@ export function SearchBar({ lang, variant = 'navbar' }: SearchBarProps) {
           onFocus={() => results.length > 0 && setIsOpen(true)}
           placeholder={placeholder}
           className={`
-            flex-1 min-w-0 bg-transparent font-body appearance-none border-0 outline-none
+            flex-1 min-w-0 bg-transparent font-orys-sans appearance-none border-0 outline-none
             focus:[outline:none] focus:[box-shadow:none] focus:[border-color:transparent]
             ${isHero ? 'text-[15.5px]' : 'text-[13.5px]'}
-            text-on-surface placeholder-on-surface-variant
+            text-orys-fg placeholder-orys-fg-mute
           `}
           aria-label={lang === 'es' ? 'Buscar' : 'Search'}
           aria-expanded={isOpen}
@@ -156,34 +157,34 @@ export function SearchBar({ lang, variant = 'navbar' }: SearchBarProps) {
         />
 
         {loading && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 border-2 border-primary-text border-t-transparent rounded-full animate-spin" />
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 border-2 border-orys-accent border-t-transparent rounded-full animate-spin" />
         )}
       </div>
 
       {/* Overlay de resultados */}
       {isOpen && results.length > 0 && (
-        <div className="absolute top-full mt-1.5 left-0 right-0 bg-surface-container-lowest dark:bg-surface-container border border-outline-variant overflow-hidden z-50 max-h-96 overflow-y-auto">
+        <div className="absolute top-full mt-1.5 left-0 right-0 bg-orys-bg-panel border border-orys-line overflow-hidden z-50 max-h-96 overflow-y-auto">
           {results.map((result, index) => (
             <button
               key={result.article_id}
               onClick={() => navigateTo(result)}
               className={`
-                w-full text-left px-4 py-2.5 hover:bg-surface-container transition-colors flex items-start gap-3
-                ${index === selectedIndex ? 'bg-surface-container' : ''}
-                ${index > 0 ? 'border-t border-outline-variant' : ''}
+                w-full text-left px-4 py-2.5 hover:bg-orys-bg-raised transition-colors flex items-start gap-3
+                ${index === selectedIndex ? 'bg-orys-bg-raised' : ''}
+                ${index > 0 ? 'border-t border-orys-line' : ''}
               `}
             >
               <div className="flex-1 min-w-0">
                 <p
-                  className="text-sm font-semibold text-on-surface"
+                  className="text-sm font-semibold text-orys-fg"
                   dangerouslySetInnerHTML={{ __html: result.highlight.title }}
                 />
                 <p
-                  className="text-xs text-on-surface-variant mt-0.5 line-clamp-1 font-body"
+                  className="text-xs text-orys-fg-dim mt-0.5 line-clamp-1 font-orys-sans"
                   dangerouslySetInnerHTML={{ __html: result.highlight.summary }}
                 />
               </div>
-              <span className="flex-shrink-0 font-mono text-[11px] text-primary-text border border-outline-variant px-1.5 py-px">
+              <span className="flex-shrink-0 font-orys-mono text-[11px] text-orys-accent border border-orys-line px-1.5 py-px">
                 {result.category}
               </span>
             </button>
@@ -192,10 +193,10 @@ export function SearchBar({ lang, variant = 'navbar' }: SearchBarProps) {
       )}
 
       {isOpen && !loading && results.length === 0 && query.trim() && (
-        <div className="absolute top-full mt-1.5 left-0 right-0 bg-surface-container-lowest dark:bg-surface-container border border-outline-variant p-6 text-center z-50">
-          <p className="text-sm text-on-surface-variant">
+        <div className="absolute top-full mt-1.5 left-0 right-0 bg-orys-bg-panel border border-orys-line p-6 text-center z-50">
+          <p className="text-sm text-orys-fg-dim">
             {lang === 'es' ? 'sin resultados para' : 'no results for'}{' '}
-            <span className="text-on-surface">{query}</span>
+            <span className="text-orys-fg">{query}</span>
           </p>
         </div>
       )}

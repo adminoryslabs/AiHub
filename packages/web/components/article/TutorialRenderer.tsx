@@ -30,18 +30,18 @@ export function TutorialRenderer({
     <div className="tutorial-content">
       {/* Badges del tutorial */}
       <div className="flex flex-wrap items-center gap-2 mb-6">
-        <span className="inline-flex items-center font-mono text-[10.5px] font-medium tracking-[0.06em] bg-primary text-on-primary px-2 py-0.5">
+        <span className="inline-flex items-center font-orys-mono text-[10.5px] font-medium tracking-[0.06em] bg-orys-accent text-orys-fg-on-accent px-2 py-0.5">
           {difficultyLabel}
         </span>
-        <span className="inline-flex items-center font-mono text-[10.5px] font-medium tracking-[0.06em] border border-outline-variant text-on-surface-variant px-2 py-0.5">
+        <span className="inline-flex items-center font-orys-mono text-[10.5px] font-medium tracking-[0.06em] border border-orys-line text-orys-fg-dim px-2 py-0.5">
           ~{estimatedTime}
         </span>
         {applicableAsOf && (
-          <span className="inline-flex items-center font-mono text-[10.5px] font-medium tracking-[0.06em] border border-outline-variant text-on-surface-variant px-2 py-0.5">
+          <span className="inline-flex items-center font-orys-mono text-[10.5px] font-medium tracking-[0.06em] border border-orys-line text-orys-fg-dim px-2 py-0.5">
             v {applicableAsOf}
           </span>
         )}
-        <span className="font-mono text-[12px] text-on-surface-variant ml-1">
+        <span className="font-orys-mono text-[12px] text-orys-fg-dim ml-1">
           {isEs ? 'actualizado' : 'updated'} {updatedMonth}
         </span>
       </div>

@@ -1,4 +1,4 @@
-// Componente Button con variantes del sistema de diseño — esquinas rectas
+// Componente Button con variantes del design system
 import { ButtonHTMLAttributes, ReactNode } from 'react';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'icon' | 'danger';
@@ -13,14 +13,14 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   primary:
-    'bg-primary text-on-primary hover:bg-primary-dim focus:ring-2 focus:ring-primary/30 font-semibold',
+    'bg-orys-accent text-orys-fg-on-accent hover:bg-orys-accent-bright focus-visible:ring-2 focus-visible:ring-orys-line-brand font-semibold',
   secondary:
-    'bg-surface-container text-on-surface hover:bg-surface-container-high border border-outline-variant focus:ring-2 focus:ring-outline/20 font-medium',
+    'bg-orys-bg-raised text-orys-fg hover:bg-orys-bg-higher border border-orys-line focus-visible:ring-2 focus-visible:ring-orys-line-brand font-medium',
   ghost:
-    'bg-transparent text-on-surface-variant hover:bg-surface-container hover:text-on-surface focus:ring-2 focus:ring-outline/20',
-  icon: 'bg-transparent text-on-surface-variant hover:bg-surface-container p-2',
+    'bg-transparent text-orys-fg-dim hover:bg-orys-bg-raised hover:text-orys-fg focus-visible:ring-2 focus-visible:ring-orys-line-brand',
+  icon: 'bg-transparent text-orys-fg-dim hover:bg-orys-bg-raised p-2',
   danger:
-    'bg-error text-white hover:bg-error/80 focus:ring-2 focus:ring-error/30 font-semibold',
+    'bg-orys-fail text-orys-fg-on-accent hover:opacity-90 focus-visible:ring-2 focus-visible:ring-orys-fail font-semibold',
 };
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {
@@ -41,7 +41,7 @@ export function Button({
   return (
     <button
       className={`
-        inline-flex items-center justify-center gap-2 transition-colors duration-150 outline-none font-body
+        inline-flex items-center justify-center gap-2 transition-colors duration-150 outline-none font-orys-sans
         disabled:opacity-50 disabled:cursor-not-allowed
         ${VARIANT_CLASSES[variant]}
         ${SIZE_CLASSES[size]}
