@@ -1,47 +1,43 @@
-// Toggle de tema oscuro/claro — botón cuadrado 34×34, borde outline-variant
+// Toggle de tema oscuro/claro — API y tokens del design system
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
+import { Moon, Sun } from 'lucide-react';
+import { toggleTheme } from '@adminoryslabs/design-system/theme';
+
+type Theme = 'dark' | 'light';
+
+const subscribe = (onChange: () => void) => {
+  const observer = new MutationObserver(onChange);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme'],
+  });
+  return () => observer.disconnect();
+};
+
+const getSnapshot = (): Theme =>
+  document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+
+const getServerSnapshot = (): Theme => 'light';
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    const saved = localStorage.getItem('aihub_theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initial = saved ? (saved as 'light' | 'dark') : prefersDark ? 'dark' : 'light';
-    setTheme(initial);
-    applyTheme(initial);
-  }, []);
-
-  function applyTheme(t: 'light' | 'dark') {
-    document.documentElement.classList.toggle('dark', t === 'dark');
-  }
-
-  function toggleTheme() {
-    const next = theme === 'light' ? 'dark' : 'light';
-    setTheme(next);
-    localStorage.setItem('aihub_theme', next);
-    applyTheme(next);
-  }
-
-  if (!mounted) {
-    // Placeholder del mismo tamaño para evitar layout shift
-    return <span className="w-[34px] h-[34px] block" aria-hidden="true" />;
-  }
+  const theme = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const label = theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro';
 
   return (
     <button
-      onClick={toggleTheme}
-      className="w-[34px] h-[34px] flex items-center justify-center bg-surface border border-outline-variant text-on-surface hover:bg-surface-container transition-colors"
-      aria-label={theme === 'light' ? 'Activar modo oscuro' : 'Activar modo claro'}
-      title={theme === 'light' ? 'Modo oscuro' : 'Modo claro'}
+      type="button"
+      onClick={() => toggleTheme()}
+      aria-label={label}
+      title={label}
+      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-orys-md border border-orys-line bg-orys-bg-input text-orys-fg-dim transition-colors hover:border-orys-line-brand hover:text-orys-accent"
     >
-      <span className="material-symbols-outlined text-[19px]" aria-hidden="true">
-        {theme === 'light' ? 'dark_mode' : 'light_mode'}
-      </span>
+      {theme === 'dark' ? (
+        <Sun size={18} strokeWidth={1.75} aria-hidden="true" />
+      ) : (
+        <Moon size={18} strokeWidth={1.75} aria-hidden="true" />
+      )}
     </button>
   );
 }
