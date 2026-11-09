@@ -1,117 +1,59 @@
-/* Importar fuentes de Google — deben ir antes de @tailwind */
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* ──────────────────────────────────────────────────────────────────────────
-   AI Hub — sistema de diseño "Minimal"
-   Light protagonista: papel verde-piedra + tinta índigo + acento chartreuse.
-   Dark fiel a OrysLabs: índigo profundo + chartreuse neón.
-   Esquinas afiladas, sin sombras, sin motivos de terminal.
+   AI Hub — tokens del design system OrysLabs (línea academy).
+   Los colores, fuentes, radios y espaciados vienen de --orys-*; el tema
+   claro/oscuro lo resuelve `data-theme` en <html>.
    ────────────────────────────────────────────────────────────────────────── */
-
-/* Variables CSS para el sistema de diseño (canales RGB para soporte de opacidad con Tailwind) */
-:root {
-  /* Primario — chartreuse puro solo para sólidos. Texto de acento usa --color-primary-text */
-  --color-primary: 163 230 53;              /* #a3e635 chartreuse puro */
-  --color-primary-dim: 132 204 22;           /* #84cc16 hover del acento sólido */
-  --color-primary-container: 230 243 201;   /* #e6f3c9 fondo suave de acento */
-  --color-primary-fixed-dim: 132 204 22;     /* #84cc16 */
-  --color-on-primary: 18 20 31;             /* #12141f texto sobre chartreuse sólido */
-  --color-primary-text: 77 124 15;          /* #4d7c0f chartreuse oscuro para TEXTO (AA) */
-
-  /* Superficies — papel verde-piedra muy claro */
-  --color-surface: 246 247 243;             /* #f6f7f3 fondo de página */
-  --color-surface-container: 238 240 230;   /* #eef0e6 tarjetas, inputs, hover */
-  --color-surface-container-low: 241 243 235;   /* #f1f3eb */
-  --color-surface-container-lowest: 255 255 255; /* #ffffff */
-  --color-surface-container-high: 232 235 222;  /* #e8ebde */
-  --color-surface-container-highest: 226 230 214; /* #e2e6d6 */
-
-  /* Texto — tinta índigo de marca (casi negro en light) */
-  --color-on-surface: 18 20 31;             /* #12141f */
-  --color-on-surface-variant: 90 97 80;     /* #5a6150 olive muted, contraste AA sobre claro */
-
-  /* Bordes */
-  --color-outline: 18 20 31;                /* #12141f borde fuerte (tinta) */
-  --color-outline-variant: 220 222 209;     /* #dcded1 bordes/divisores sutiles */
-
-  /* Error */
-  --color-error: 190 50 50;                 /* #be3232 */
-  --color-error-container: 255 200 200;     /* #ffc8c8 */
-
-  /* Bloque de código — navy fijo (terminal incrustada incluso en light, del brandbook) */
-  --color-code-bg: 9 11 26;                 /* #090b1a */
-  --color-code-fg: 106 138 88;             /* #6a8a58 */
-
-  /* Tipografía — Space Grotesk para titulares, Inter para cuerpo, JetBrains Mono para micro-etiquetas */
-  --font-headline: 'Space Grotesk', sans-serif;
-  --font-body: 'Inter', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-}
-
-/* Overrides dark mode — índigo profundo + chartreuse (fiel a OrysLabs) */
-.dark {
-  /* Primario — chartreuse neón (sólido y texto) */
-  --color-primary: 163 230 53;              /* #a3e635 */
-  --color-primary-dim: 132 204 22;          /* #84cc16 */
-  --color-primary-container: 31 42 18;      /* #1f2a12 fondo suave de acento */
-  --color-primary-fixed-dim: 132 204 22;    /* #84cc16 */
-  --color-on-primary: 12 14 31;             /* #0c0e1f tinta sobre chartreuse */
-  --color-primary-text: 163 230 53;         /* #a3e635 acento de texto en dark = chartreuse puro */
-
-  /* Superficies — índigo profundo */
-  --color-surface: 12 14 31;                /* #0c0e1f fondo de página */
-  --color-surface-container: 20 23 58;      /* #14173a tarjetas, inputs, hover */
-  --color-surface-container-low: 15 18 42;  /* #0f122a */
-  --color-surface-container-lowest: 9 11 26; /* #090b1a */
-  --color-surface-container-high: 26 30 72;  /* #1a1e48 */
-  --color-surface-container-highest: 31 37 88; /* #1f2558 */
-
-  /* Texto */
-  --color-on-surface: 234 245 228;          /* #eaf5e4 */
-  --color-on-surface-variant: 154 164 143;  /* #9aa48f */
-
-  /* Bordes */
-  --color-outline: 234 245 228;             /* #eaf5e4 borde fuerte (casi blanco) */
-  --color-outline-variant: 36 42 82;        /* #242a52 bordes sutiles */
-
-  /* Error */
-  --color-error: 239 68 68;                 /* #ef4444 */
-  --color-error-container: 92 26 38;        /* #5c1a26 */
-
-  /* Bloque de código — mismo navy (terminal) */
-  --color-code-bg: 9 11 26;                 /* #090b1a */
-  --color-code-fg: 106 138 88;             /* #6a8a58 */
-}
 
 /* Offset de scroll para que la navbar fija no tape los títulos al navegar por anclas */
 :target,
 .prose :is(h1, h2, h3, h4) {
-  scroll-margin-top: 5rem; /* navbar (58px) + margen visual cómodo */
+  scroll-margin-top: 5rem;
 }
 
 /* Estilos base */
 body {
-  font-family: var(--font-body);
-  background-color: rgb(var(--color-surface));
-  color: rgb(var(--color-on-surface));
+  font-family: var(--orys-font-sans);
+  background-color: var(--orys-bg);
+  color: var(--orys-fg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-headline);
+  font-family: var(--orys-font-sans);
 }
 
-/* Iconos Material Symbols */
-.material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-  vertical-align: middle;
-  font-size: 1.25rem;
-  line-height: 1;
+/* Controles de formulario con tokens (los defaults del plugin de forms son blancos) */
+input:not([type='checkbox']):not([type='radio']):not([type='file']),
+select,
+textarea {
+  background-color: var(--orys-bg-input);
+  color: var(--orys-fg);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--orys-fg-mute);
+}
+
+select option {
+  background-color: var(--orys-bg-panel);
+  color: var(--orys-fg);
+}
+
+/* Selección y foco con el acento de la línea */
+::selection {
+  background-color: var(--orys-accent);
+  color: var(--orys-fg-on-accent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--orys-accent);
+  outline-offset: 2px;
 }
 
 /* Cursor parpadeante — bloque y underscore. Respeta prefers-reduced-motion. */
@@ -139,18 +81,34 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgb(var(--color-outline-variant));
-  border-radius: 2px;
+  background: var(--orys-line-strong);
+  border-radius: var(--orys-r-full);
 }
 
-/* ─── Bloques de código: Shiki dual-theme (light / dark) ──────────────────── */
+/* ─── Cuerpo de artículo: mapeo de la paleta de @tailwindcss/typography ─────
+   El plugin trae su propia paleta gris; la reemplazamos por tokens para que
+   siga el tema sin duplicar estilos por tema.
+   ────────────────────────────────────────────────────────────────────────── */
+.prose {
+  --tw-prose-body: var(--orys-fg);
+  --tw-prose-headings: var(--orys-fg);
+  --tw-prose-lead: var(--orys-fg-dim);
+  --tw-prose-links: var(--orys-accent);
+  --tw-prose-bold: var(--orys-fg);
+  --tw-prose-counters: var(--orys-fg-dim);
+  --tw-prose-bullets: var(--orys-line-strong);
+  --tw-prose-hr: var(--orys-line);
+  --tw-prose-quotes: var(--orys-fg);
+  --tw-prose-quote-borders: var(--orys-accent);
+  --tw-prose-captions: var(--orys-fg-mute);
+  --tw-prose-code: var(--orys-accent);
+  --tw-prose-pre-code: var(--orys-fg);
+  --tw-prose-pre-bg: var(--orys-bg-input);
+  --tw-prose-th-borders: var(--orys-line-strong);
+  --tw-prose-td-borders: var(--orys-line);
+}
 
-/*
-  Terminal Orys: el bloque de código es una terminal incrustada navy en ambos
-  modos. Usamos los tokens del tema oscuro de Shiki (--shiki-dark) siempre,
-  sobre fondo --color-code-bg, para que el resaltado se lea sobre navy.
-  Mantenemos el pipeline Shiki / rehype-pretty-code: solo encajamos forma/color.
-*/
+/* ─── Bloques de código: Shiki dual-theme (claro / oscuro) ───────────────── */
 
 [data-rehype-pretty-code-figure] {
   position: relative;
@@ -158,41 +116,45 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 [data-rehype-pretty-code-figure] pre {
-  border-radius: 3px;
+  border-radius: var(--orys-r-md);
   overflow: auto;
   padding: 1.25rem 1.5rem;
-  font-family: var(--font-mono) !important;
+  font-family: var(--orys-font-mono) !important;
   font-size: 0.8125rem;
   line-height: 1.7;
   position: relative;
+  background-color: var(--orys-bg-input) !important;
+  border: 1px solid var(--orys-line-strong);
 }
 
-/* Tokens: siempre colores del tema oscuro (legibles sobre navy) */
+/* Variante clara de Shiki por defecto */
 [data-rehype-pretty-code-figure] code[data-theme*=' '] span {
+  color: var(--shiki-light);
+  font-style: var(--shiki-light-font-style);
+  font-weight: var(--shiki-light-font-weight);
+  text-decoration: var(--shiki-light-text-decoration);
+}
+
+/* Variante oscura cuando el tema es oscuro */
+[data-theme='dark'] [data-rehype-pretty-code-figure] code[data-theme*=' '] span {
   color: var(--shiki-dark);
+  font-style: var(--shiki-dark-font-style);
+  font-weight: var(--shiki-dark-font-weight);
+  text-decoration: var(--shiki-dark-text-decoration);
 }
 
-/* Pre: fondo navy fijo en ambos modos + borde sutil */
-[data-rehype-pretty-code-figure] pre[data-theme*=' '] {
-  background-color: rgb(var(--color-code-bg)) !important;
-  border: 1px solid rgb(var(--color-outline-variant));
-}
-.dark [data-rehype-pretty-code-figure] pre[data-theme*=' '] {
-  border: 1px solid rgb(var(--color-outline-variant));
-}
-
-/* Título del bloque (nombre de archivo o lenguaje) — barra sobre navy */
+/* Título del bloque (nombre de archivo o lenguaje) */
 [data-rehype-pretty-code-title] {
-  font-family: var(--font-mono);
+  font-family: var(--orys-font-mono);
   font-size: 0.75rem;
-  color: rgb(var(--color-code-fg));
+  color: var(--orys-fg-mute);
   padding: 0.4rem 1.25rem;
-  border-bottom: 1px solid rgb(var(--color-outline-variant));
-  border-radius: 3px 3px 0 0;
-  background-color: rgb(var(--color-code-bg));
+  border-bottom: 1px solid var(--orys-line-strong);
+  border-radius: var(--orys-r-md) var(--orys-r-md) 0 0;
+  background-color: var(--orys-bg-input);
 }
 [data-rehype-pretty-code-title] + pre {
-  border-radius: 0 0 3px 3px;
+  border-radius: 0 0 var(--orys-r-md) var(--orys-r-md);
   border-top: none;
 }
 
@@ -203,16 +165,16 @@ h1, h2, h3, h4, h5, h6 {
   right: 0.6rem;
   padding: 0.2rem 0.55rem;
   font-size: 0.7rem;
-  font-family: var(--font-mono);
+  font-family: var(--orys-font-mono);
   font-weight: 600;
   letter-spacing: 0.02em;
-  border-radius: 2px;
+  border-radius: var(--orys-r-sm);
   opacity: 0;
   transition: opacity 150ms;
   cursor: pointer;
-  background: rgb(255 255 255 / 10%);
-  color: #e8ecf4;
-  border: 1px solid rgb(var(--color-outline-variant));
+  background: color-mix(in srgb, var(--orys-fg) 10%, transparent);
+  color: var(--orys-fg);
+  border: 1px solid var(--orys-line-strong);
   backdrop-filter: blur(4px);
 }
 [data-rehype-pretty-code-figure] pre:hover .code-copy-btn {
@@ -224,20 +186,20 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ─── Código inline ────────────────────────────────────────────────────────── */
 code:not(pre code) {
-  background-color: rgb(var(--color-surface-container));
-  color: rgb(var(--color-primary));
+  background-color: var(--orys-bg-raised);
+  color: var(--orys-accent);
   padding: 0.1rem 0.35rem;
-  border-radius: 2px;
-  font-family: var(--font-mono);
+  border-radius: var(--orys-r-sm);
+  font-family: var(--orys-font-mono);
   font-size: 0.85em;
-  border: 1px solid rgb(var(--color-outline-variant));
+  border: 1px solid var(--orys-line);
 }
 
 /* Imágenes en artículos */
 .img-contained {
   max-width: 100%;
   height: auto;
-  border-radius: 4px;
+  border-radius: var(--orys-r-md);
   margin: 1.5rem auto;
   display: block;
 }
@@ -245,12 +207,11 @@ code:not(pre code) {
 .img-full {
   width: 100%;
   height: auto;
-  border-radius: 4px;
+  border-radius: var(--orys-r-md);
   margin: 1.5rem 0;
 }
 
-/* ─── Cuerpo de artículo: prefijos markdown en subtítulos (DESACTIVADO en UI "Minimal") ─
-   Si más adelante se quiere volver al estilo terminal, descomentar:           */
+/* ─── Cuerpo de artículo: prefijos markdown en subtítulos (desactivado) ───── */
 .article-prose h2::before,
 .article-prose h3::before {
   content: none;
