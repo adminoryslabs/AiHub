@@ -41,7 +41,7 @@ export function Button({
   return (
     <button
       className={`
-        inline-flex items-center justify-center gap-2 transition-colors duration-150 outline-none font-orys-sans
+        inline-flex items-center justify-center gap-2 rounded-orys-xl transition-colors duration-150 outline-none font-orys-sans
         disabled:opacity-50 disabled:cursor-not-allowed
         ${VARIANT_CLASSES[variant]}
         ${SIZE_CLASSES[size]}
