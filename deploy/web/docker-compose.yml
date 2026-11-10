@@ -1,0 +1,43 @@
+# Stack de producción de la web de AI Hub en la VPS compartida de OrysLabs.
+# Next.js standalone. La imagen se construye en CI y se baja de GHCR acá:
+# en la VPS nunca se buildea. Traefik es la única puerta de entrada.
+
+services:
+  app:
+    image: ghcr.io/adminoryslabs/aihub-web:${IMAGE_TAG}
+    restart: unless-stopped
+    networks: [edge]
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.75"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=edge
+      - traefik.http.routers.aihub-web.rule=Host(`aihub.oryslabs.com`)
+      - traefik.http.routers.aihub-web.entrypoints=websecure
+      - traefik.http.routers.aihub-web.tls.certresolver=letsencrypt
+      - traefik.http.routers.aihub-web.priority=10
+      - traefik.http.services.aihub-web.loadbalancer.server.port=3000
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  edge:
+    external: true
