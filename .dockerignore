@@ -1,11 +1,32 @@
+# Contexto de build de Docker (web y API comparten la raíz del monorepo).
+# Nada de esto es necesario para compilar: mantenerlo fuera acelera el envío.
+
 node_modules
+**/node_modules
 .turbo
 .next
+**/.next
 dist
-coverage
+**/dist
+**/coverage
+**/tsconfig.tsbuildinfo
+
+# Historial y automatización
 .git
 .github
-.env
-.env.*
+
+# Contenido y documentación que no entra en ninguna imagen
+docs
+openspec
+articles
+Oryslabs
+*.md
+
+# Secretos locales (en cualquier nivel del monorepo)
+**/.env
+**/.env.*
+!**/.env.example
+
+# Ruido
 *.log
 summary.txt
