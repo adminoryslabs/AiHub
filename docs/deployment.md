@@ -1,246 +1,255 @@
 # Despliegue — AI Hub
 
-> Runbook operativo para el despliegue híbrido (Vercel + NAS).
-> Stack y razonamiento en `architecture.md` (sección "Revisión 2026-05-04").
+> Runbook operativo del despliegue actual: web y API en la VPS compartida de
+> OrysLabs, detrás de Traefik. Ya no hay Vercel, NAS ni Fly.io.
+> Las decisiones de stack están en `architecture.md`.
 
 ---
 
 ## Topología de producción
 
 ```
-aihub.oryslabs.com           → Vercel (Next.js: SSG/ISR/SSR)
-api-aihub.oryslabs.com       → Cloudflare Tunnel → NAS:3010 (Express API)
+aihub.oryslabs.com        → Cloudflare → Traefik → /opt/apps/aihub-web (Next.js standalone)
+api-aihub.oryslabs.com    → Cloudflare → Traefik → /opt/apps/aihub     (Express + Meilisearch)
 ```
 
-Stack en NAS (`/volume1/docker/aihub/`):
-
-- **Postgres 16-alpine** — DB principal, no expuesta al host
-- **Meilisearch v1.11** — motor de búsqueda, no expuesto al host
-- **API Express** — expone `127.0.0.1:3010` (solo accesible desde el host del NAS, leído por cloudflared en network_mode host)
-
-Storage (Cloudflare R2) y frontend (Vercel) siguen el doc de arquitectura original.
+- **Traefik** es el único proceso que escucha en `:443` y emite los certificados
+  con Let's Encrypt. Ningún contenedor publica puertos.
+- **VPS**: Hostinger `srv1906663`, Ubuntu 24.04, `187.127.51.101`, 2 vCPU /
+  7.8 GB. Aloja varias aplicaciones de OrysLabs; cada una es un stack aislado
+  en `/opt/apps/<slug>/`.
+- **PostgreSQL**: un motor compartido en `/opt/infra/data`, un rol y una base
+  por aplicación. La API entra por la red `data`.
+- **Meilisearch**: sidecar privado del stack de la API, sin Traefik y sin
+  puertos publicados.
+- **Cloudflare R2**: storage de imágenes (aún sin configurar en producción).
 
 ---
 
-## CI/CD — patrón heredado de `oryslabs-landing`
-
-**Sin registry.** Disparo:
+## Estructura en la VPS
 
 ```
-push a master (GitHub)
-  → GitHub Actions runner (ubuntu-latest)
-  → SSH al NAS vía Cloudflare Access ZeroTrust (host: ssh-nas.knowflare.com)
-  → ejecuta sudo /volume1/docker/aihub/deploy.sh
-  → git pull → docker compose build → migrations → up -d → healthcheck
+/opt/apps/aihub/                  stack de la API
+├── docker-compose.yml            API + Meilisearch + migraciones
+├── deploy.sh                     script invocado por GitHub Actions
+└── app.env                       variables y secretos (modo 600, NO en el repo)
+
+/opt/apps/aihub-web/              stack de la web
+├── docker-compose.yml            solo el servidor Next.js
+└── deploy.sh                     script invocado por GitHub Actions
 ```
 
-Workflow: `.github/workflows/deploy.yml` (filtrado a cambios en `packages/api/**`, `packages/shared/**`, `package-lock.json`, `turbo.json`).
+Redes Docker: `edge` (Traefik + contenedores ruteables), `data` (PostgreSQL) y
+la red privada de cada stack. La web solo usa `edge`; la API usa `edge`,
+`data` e `internal`.
 
 ---
 
-## Estructura en el NAS
+## Cómo se despliega cada parte
 
-```
-/volume1/docker/aihub/
-├── docker-compose.yml         # Postgres + Meili + api
-├── .env                       # secretos (permisos 600, NO commit)
-├── deploy.sh                  # script disparado por GitHub Actions
-├── deploy_key                 # privada, lee del repo (read-only)
-├── deploy_key.pub             # subida a GitHub Deploy Keys
-├── nas_runner_key             # privada, queda local — la pública va a authorized_keys
-├── nas_runner_key.pub         # añadida a ~/.ssh/authorized_keys del NAS
-├── codigo/                    # clon git del repo (creado en primer deploy)
-├── postgres_data/             # volumen Postgres (bind mount)
-└── meilisearch_data/          # volumen Meilisearch (bind mount)
-```
+Las imágenes se construyen **en GitHub Actions** y se publican en GHCR. En la
+VPS nunca se construye ni se despliega a mano.
+
+| | Web | API |
+|---|---|---|
+| Workflow | `.github/workflows/publish-web.yml` | `.github/workflows/publish.yml` |
+| Disparo | push a `master` con cambios en `packages/web/**`, `packages/shared/**`, `package.json`, `package-lock.json`, `.npmrc`, `turbo.json`, `deploy/web/**` o el propio workflow; `workflow_dispatch` | push a `master` con cambios en `packages/api/**`, `packages/shared/**`, `package.json`, `package-lock.json`, `turbo.json`, `deploy/**` o el propio workflow; `workflow_dispatch` |
+| Imagen | `ghcr.io/adminoryslabs/aihub-web:<sha>` y `:latest` | `ghcr.io/adminoryslabs/aihub-app:<sha>` y `:latest` |
+| Compose | `deploy/web/docker-compose.yml` | `deploy/docker-compose.yml` |
+| Carpeta | `/opt/apps/aihub-web` | `/opt/apps/aihub` |
+| Dominio | `aihub.oryslabs.com` | `api-aihub.oryslabs.com` |
+
+Cada workflow tiene su propia `concurrency` y su propio `deploy.sh`: un deploy
+de la web no reinicia la API y viceversa.
+
+### Build de la web
+
+`packages/web/Dockerfile` es multi-stage sobre `node:22-alpine`:
+
+1. `deps` instala solo el workspace `@ai-hub/web` con `npm ci`. El token de
+   GitHub Packages entra como secreto de BuildKit (`id=npm_token`) para bajar
+   `@adminoryslabs/design-system`; nunca queda en un `ENV`, un `ARG` ni una
+   capa.
+2. `build` compila Next con `NEXT_PUBLIC_API_URL` y `NEXT_PUBLIC_SITE_URL`
+   como build args. Esas variables se inlinean en el bundle: si cambian, hay
+   que reconstruir la imagen, no alcanza con reiniciar el contenedor.
+3. `runner` copia solo la salida standalone, corre como usuario no root
+   (uid 1001) y expone `:3000` únicamente dentro de la red Docker.
+
+La API mantiene su `packages/api/Dockerfile` (`node:20-alpine`) y su propio
+stack con Meilisearch y el servicio de migraciones.
 
 ---
 
 ## Setup inicial (una sola vez)
 
-### 1. GitHub — Deploy Key (pull del repo)
+### 1. DNS (Cloudflare, zona `oryslabs.com`)
 
-Repo: `adminoryslabs/AiHub` → **Settings → Deploy keys → Add deploy key**:
+| Registro | Tipo | Valor |
+|---|---|---|
+| `aihub` | A | `187.127.51.101` |
+| `api-aihub` | A | `187.127.51.101` |
 
-- **Title**: `aihub-nas-pull`
-- **Key**: contenido de `/volume1/docker/aihub/deploy_key.pub`
-- **Allow write access**: ❌ NO
+No crear registros `AAAA`: el host tiene IPv6 pero Docker no lo enruta. La web
+puede quedar proxied; no hay websockets de larga duración.
 
-### 2. GitHub — Secrets para Actions
+### 2. Carpetas en la VPS
 
-Repo → **Settings → Secrets and variables → Actions → New repository secret**:
+```bash
+mkdir -p /opt/apps/aihub-web
+```
 
-| Secret | Valor |
+`/opt/apps/aihub/` ya existe con el stack de la API. El `scp` y el `cd` de cada
+`deploy.sh` requieren que la carpeta exista.
+
+### 3. Secretos del repositorio (GitHub Actions)
+
+| Secreto | Uso |
 |---|---|
-| `NAS_SSH_KEY` | Contenido completo de `/volume1/docker/aihub/nas_runner_key` (la **privada**, incluye `-----BEGIN`/`-----END`) |
-| `NAS_USER` | `otc-admin` |
-| `NAS_HOST` | `ssh-nas.knowflare.com` |
+| `VPS_SSH_KEY` | Clave de despliegue de GitHub Actions |
+| `VPS_HOST` | `187.127.51.101` |
+| `VPS_USER` | `root` |
+| `NPM_TOKEN` | Token de GitHub Packages con `read:packages`, para instalar el design system en el build de la web |
 
-### 3. Cloudflare — DNS
+`VPS_SSH_KEY`, `VPS_HOST` y `VPS_USER` ya existen para el deploy de la API y se
+reutilizan para la web. La clave de despliegue se genera en la VPS y su mitad
+privada se carga directamente en el secreto, sin imprimirla ni guardarla en el
+repositorio.
 
-En el dashboard de Cloudflare para `oryslabs.com`:
+### 4. Variables del repositorio (GitHub Actions)
 
-- **CNAME** `aihub` → `cname.vercel-dns.com` (o el target que indique Vercel al añadir el dominio custom)
-- **CNAME** `api-aihub` → `<tunnel-id>.cfargotunnel.com` (lo añade automáticamente CF Zero Trust al crear el Public Hostname del paso siguiente)
+| Variable | Valor |
+|---|---|
+| `NEXT_PUBLIC_API_URL` | `https://api-aihub.oryslabs.com` |
+| `NEXT_PUBLIC_SITE_URL` | `https://aihub.oryslabs.com` |
 
-### 4. Cloudflare Zero Trust — Public Hostname
+### 5. Variables de la API
 
-**Networks → Tunnels → cloudflared-oryslabs → Public Hostnames → Add a public hostname**:
+En `/opt/apps/aihub/app.env` (modo 600):
 
-- **Subdomain**: `api-aihub`
-- **Domain**: `oryslabs.com`
-- **Service Type**: `HTTP`
-- **URL**: `localhost:3010`
-
-Esto crea automáticamente el CNAME en DNS.
-
-### 5. Cloudflare Access — verificar policy SSH
-
-El host `ssh-nas.knowflare.com` ya está configurado para `oryslabs-landing`. Verificar con el dueño del NAS que el policy de Access permita autenticación desde el nuevo workflow de GitHub Actions (típicamente con `Service Token` o email-based + workflow auth).
-
-### 6. NAS — sudoers para deploy.sh
-
-`otc-admin` necesita poder ejecutar `deploy.sh` con `sudo` sin password:
-
-```bash
-# Como root (o usar ssh con sudo si está configurado para landing y replicar línea):
-sudo visudo -f /etc/sudoers.d/aihub-deploy
-# contenido:
-otc-admin ALL=(ALL) NOPASSWD: /volume1/docker/aihub/deploy.sh
-```
-
-**Estado**: por verificar con Mario/su amigo si el patrón actual ya cubre esto o necesita línea nueva.
-
-### 7. Primer clone del repo (manual una vez)
-
-Tras subir la deploy_key a GitHub:
-
-```bash
-ssh nas
-cd /volume1/docker/aihub
-GIT_SSH_COMMAND="ssh -i ./deploy_key -o StrictHostKeyChecking=no" \
-  git clone git@github.com:adminoryslabs/AiHub.git codigo
-```
-
-### 8. Primera levantada del stack
-
-```bash
-ssh nas
-cd /volume1/docker/aihub
-docker compose --env-file .env up -d
-docker compose logs -f api
-```
-
-### 9. Vercel — frontend
-
-- Conectar repo `adminoryslabs/AiHub` a Vercel.
-- **Root Directory**: `packages/web`.
-- **Build Command**: `npm run build --workspace=@ai-hub/web`.
-- **Environment Variables**:
-  - `NEXT_PUBLIC_API_URL=https://api-aihub.oryslabs.com`
-- Añadir dominio custom: `aihub.oryslabs.com`.
+- `CORS_ORIGIN` debe incluir exactamente `https://aihub.oryslabs.com`.
+- El resto de las variables no cambia por el despliegue de la web.
 
 ---
 
 ## Operaciones del día a día
 
-### Deploy normal
+### Deploy
 
-`git push origin master` con cambios en `packages/api/**` o `packages/shared/**`.
-GitHub Actions se encarga del resto.
+`git push origin master` con cambios en las rutas que filtra cada workflow.
+GitHub Actions construye, publica en GHCR y ejecuta el `deploy.sh` por SSH.
 
 ### Ver logs
 
 ```bash
-ssh nas
-cd /volume1/docker/aihub
-docker compose logs -f api          # api
-docker compose logs -f postgres     # postgres
-docker compose logs --tail=200 api  # últimas 200 líneas
+# Web
+cd /opt/apps/aihub-web && docker compose logs -f app
+
+# API
+cd /opt/apps/aihub && docker compose logs -f app
+cd /opt/apps/aihub && docker compose logs -f meilisearch
 ```
 
-### Reiniciar servicios
+### Estado y salud
 
 ```bash
-docker compose restart api          # solo api
-docker compose down && docker compose up -d  # reset completo
+cd /opt/apps/aihub-web && docker compose ps
+curl -fsS https://aihub.oryslabs.com/api/health
+
+cd /opt/apps/aihub && docker compose ps
+curl -fsS https://api-aihub.oryslabs.com/api/v1/health
 ```
 
-### Acceder a la DB
+### Reiniciar un servicio
+
+Reiniciar un contenedor para aliviar una operación no es un deploy:
 
 ```bash
-ssh nas
-cd /volume1/docker/aihub
-docker compose exec postgres psql -U aihub -d aihub
+cd /opt/apps/aihub-web && docker compose restart app
+cd /opt/apps/aihub && docker compose restart app
 ```
 
-### Backup manual de DB
+### Acceder a PostgreSQL
+
+El motor compartido se publica solo en loopback (`127.0.0.1:5432`), nunca en la
+interfaz pública. Para una GUI o `psql`, abrir un túnel SSH:
 
 ```bash
-ssh nas
-cd /volume1/docker/aihub
-docker compose exec -T postgres pg_dump -U aihub aihub | \
-  gzip > /volume1/Respaldo_Mac/aihub-backup-$(date +%Y%m%d-%H%M).sql.gz
+ssh -L 5432:127.0.0.1:5432 root@187.127.51.101
 ```
 
-### Restaurar backup
+y autenticar con el rol de AI Hub.
 
-```bash
-gunzip -c /volume1/Respaldo_Mac/aihub-backup-FECHA.sql.gz | \
-  docker compose exec -T postgres psql -U aihub -d aihub
-```
+---
 
-### Backups automáticos
+## Design system, fuentes e íconos
 
-Crear tarea en **DSM → Control Panel → Task Scheduler** (User-defined script, daily 03:00):
-
-```sh
-docker exec aihub-postgres pg_dump -U aihub aihub | \
-  gzip > /volume1/Respaldo_Mac/aihub/backup-$(date +%Y%m%d).sql.gz
-find /volume1/Respaldo_Mac/aihub/ -name "backup-*.sql.gz" -mtime +30 -delete
-```
+- Los estilos vienen de `@adminoryslabs/design-system` (v2.2.0): el preset de
+  Tailwind (clases `orys-*`), el CSS de tokens y el script anti-parpadeo
+  `theme-init`. El tema se expresa con `data-theme` y `data-line="academy"` en
+  `<html>`.
+- **No se usa Google Fonts.** Las fuentes (Inter y JetBrains Mono) las sirve el
+  propio paquete vía `@adminoryslabs/design-system/fonts`, dentro del bundle.
+  No hay `@import` a `fonts.googleapis.com` ni `fonts.gstatic.com`.
+- Los íconos son **Lucide** (`lucide-react`, trazo 1.75, `currentColor`), a
+  través de `components/ui/Icon.tsx`. No se usa Material Symbols.
+- El tema por defecto es claro (`data-theme="light"`) y el visitante puede
+  cambiarlo con el toggle; la preferencia se guarda en `localStorage`.
 
 ---
 
 ## Troubleshooting
 
-### El api no levanta tras deploy
+### Traefik no ve ningún contenedor
 
-```bash
-ssh nas
-cd /volume1/docker/aihub
-docker compose logs --tail=100 api
-```
+Síntoma: `curl` devuelve `000`, el certificado servido es
+`TRAEFIK DEFAULT CERT` y el log de Traefik repite `client version 1.24 is too
+old. Minimum supported API version is 1.40`.
 
-Causas comunes:
-- Error de migración → revisar `migrations/*.sql`.
-- Variable de entorno faltante → revisar `.env` vs `packages/api/.env.example`.
-- Postgres no listo → comprobar `docker compose ps`, healthcheck debe ser `healthy`.
+Causa: Docker Engine 29 rechaza clientes por debajo de la API 1.40. Traefik
+tiene que ser `v3.7.10` o superior. Definir `DOCKER_API_VERSION` en el
+contenedor no lo arregla.
 
-### `api-aihub.oryslabs.com` da 502
+### El healthcheck nunca pasa a `healthy`
 
-- Verificar que `aihub-api` esté `Up` y `healthy`: `docker compose ps`.
-- Verificar que el puerto 3010 esté libre: `netstat -tln | grep 3010`.
-- Verificar Public Hostname en Cloudflare Zero Trust dashboard.
+Los healthchecks usan `127.0.0.1`, nunca `localhost`: BusyBox resuelve
+`localhost` a `::1` y el proceso escucha solo en IPv4.
 
-### Migraciones fallan en deploy
+### El deploy muere a mitad del pull con `Broken pipe`
 
-El deploy.sh es **idempotente** sobre las migraciones (errores de "ya existe" se ignoran). Si fallan por otra razón, ejecutar manualmente:
+Mantener los keepalives SSH (`ServerAliveInterval`, `ServerAliveCountMax`,
+`TCPKeepAlive`) y no usar `docker compose pull --quiet`.
 
-```bash
-ssh nas
-cd /volume1/docker/aihub
-docker compose exec -T postgres psql -U aihub -d aihub < codigo/packages/api/migrations/001_initial_schema.sql
-```
+### La web apunta a la API equivocada
 
-### Frontend en Vercel no conecta con la api
+`NEXT_PUBLIC_*` se hornea en build. Corregir `vars.NEXT_PUBLIC_API_URL` en
+GitHub y volver a correr el workflow; reiniciar el contenedor no alcanza.
 
-- Verificar que `NEXT_PUBLIC_API_URL` apunta a `https://api-aihub.oryslabs.com` en Vercel.
-- Verificar CORS: `CORS_ORIGIN` en `.env` del NAS debe incluir `https://aihub.oryslabs.com`.
+### Falla la instalación del design system en CI
+
+El build usa `secrets.NPM_TOKEN` como secreto de BuildKit. Verificar que el
+token exista, tenga `read:packages` y pueda leer
+`@adminoryslabs/design-system`.
+
+### La web no conecta con la API desde el navegador
+
+- Verificar que `NEXT_PUBLIC_API_URL` en el build sea
+  `https://api-aihub.oryslabs.com`.
+- Verificar que `CORS_ORIGIN` en `/opt/apps/aihub/app.env` sea exactamente
+  `https://aihub.oryslabs.com`.
+
+### Logs y rotación
+
+Los dos stacks usan el driver `json-file` con `max-size: 10m` y `max-file: 3`.
 
 ---
 
-## Monitoreo
+## Historial
 
-- **Uptime Kuma** (ya corriendo en NAS): añadir monitor HTTP a `https://api-aihub.oryslabs.com/api/v1/health` con check cada 1 min.
-- **Logs**: rotación configurada en compose (max 10MB × 3 archivos por servicio).
+- **Hasta 2026-08-16**: API, PostgreSQL y Meilisearch en un NAS doméstico,
+  expuestos por Cloudflare Tunnel; frontend en Vercel.
+- **2026-08-16**: la API, PostgreSQL y Meilisearch se mudaron a la VPS
+  compartida de OrysLabs.
+- **2026-11**: la web pasó de Vercel a la VPS compartida como stack propio
+  (`/opt/apps/aihub-web`), con imagen `ghcr.io/adminoryslabs/aihub-web` y
+  salida standalone de Next.js.

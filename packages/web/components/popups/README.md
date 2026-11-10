@@ -17,4 +17,4 @@ Modales de novedades para la web pública. El orquestador (`PopupHost`) está mo
 ## Reglas
 
 - Cada CTAs externa debe usar `target="_blank" rel="noopener noreferrer"` (mismo patrón que `CommunityCard`, `SidebarRight`).
-- Reutilizar tokens de `globals.css` (`bg-primary`, `text-on-primary`, `bg-surface`, etc.) — nunca colores hardcodeados.
+- Reutilizar los tokens del design system (`bg-orys-accent`, `text-orys-fg-on-accent`, `bg-orys-bg-raised`, `text-orys-fg`, `text-orys-fg-dim`, `border-orys-line`, etc.) — nunca colores hardcodeados.

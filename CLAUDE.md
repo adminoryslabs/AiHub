@@ -25,11 +25,39 @@ Leer `docs/article-guidelines.md` antes de crear o revisar contenido.
 
 | Capa | Decisión |
 |------|----------|
-| Frontend | Next.js (SSR/SSG) → Vercel |
-| Backend | Express (Node.js) → Fly.io |
-| Base de datos | PostgreSQL vía NeonDB |
-| Búsqueda | Meilisearch |
+| Frontend | Next.js (SSR/SSG) — salida standalone en Docker, VPS compartida |
+| Backend | Express (Node.js) — Docker Compose, VPS compartida |
+| Base de datos | PostgreSQL — motor compartido de la VPS (una base y un rol por app) |
+| Búsqueda | Meilisearch — sidecar privado en la VPS |
 | Storage | Cloudflare R2 |
+
+### Despliegue (VPS compartida de OrysLabs, detrás de Traefik)
+
+Web y API son dos stacks independientes. Ningún contenedor publica puertos y no
+se usa Vercel, NAS ni Fly.io.
+
+| Pieza | Carpeta en la VPS | Imagen | Workflow |
+|-------|-------------------|--------|----------|
+| Web | `/opt/apps/aihub-web` | `ghcr.io/adminoryslabs/aihub-web` | `.github/workflows/publish-web.yml` |
+| API | `/opt/apps/aihub` | `ghcr.io/adminoryslabs/aihub-app` | `.github/workflows/publish.yml` |
+
+Las imágenes se construyen en GitHub Actions y se publican en GHCR; la VPS solo
+las baja. Runbook completo en `docs/deployment.md`.
+
+- La web llama a la API por `https://api-aihub.oryslabs.com`, no por la red interna.
+- `NEXT_PUBLIC_API_URL` y `NEXT_PUBLIC_SITE_URL` se inlinean en el build: se pasan
+  como build args desde variables de repositorio. Cambiarlas exige recompilar.
+- El build de la web instala `@adminoryslabs/design-system` desde GitHub Packages
+  con el secreto `NPM_TOKEN` montado como secreto de BuildKit.
+
+### Design system
+
+- Estilos desde `@adminoryslabs/design-system` v2.2.0: preset de Tailwind
+  (`orys-*`), CSS de tokens y script `theme-init`. Tema por `data-theme` y
+  `data-line="academy"`.
+- **No se usa Google Fonts**: las fuentes (Inter, JetBrains Mono) las sirve el
+  paquete desde el bundle.
+- Los íconos son **Lucide** (`lucide-react`) mediante `components/ui/Icon.tsx`.
 
 ---
 

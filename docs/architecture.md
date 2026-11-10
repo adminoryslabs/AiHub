@@ -10,10 +10,10 @@
 
 | Capa | Tecnología | Alternativa descartada | Razón de la elección |
 |------|-----------|----------------------|---------------------|
-| **Frontend** | Next.js | React + Vite | SSR nativo obligatorio para SEO. Vite requiere configuración manual de SSR para el mismo resultado. |
-| **Backend** | Express (Node.js) | Next.js API routes | API routes son serverless — no escalan bien con background jobs, agentes editoriales y pipelines que vienen en fases posteriores. Express escala independientemente y el equipo lo conoce. |
-| **Base de datos** | PostgreSQL vía NeonDB | Supabase | NeonDB es PostgreSQL puro sin extras innecesarios. Branching para dev/staging, scale to zero, sin vendor lock-in. Supabase ofrece Auth/Storage/Realtime que no se usan en este proyecto. |
-| **Motor de búsqueda** | Meilisearch | Elasticsearch, Algolia | Meilisearch: self-hostable, fácil de operar, full-text con tolerancia a typos, sinónimos configurables. Elasticsearch es excesivo para este volumen. Algolia es gestionado pero costoso a escala. |
+| **Frontend** | Next.js (SSR/SSG) en la VPS compartida, salida standalone en Docker | React + Vite | SSR nativo obligatorio para SEO. Vite requiere configuración manual de SSR para el mismo resultado. |
+| **Backend** | Express (Node.js) en la VPS compartida (Docker) | Next.js API routes | API routes son serverless — no escalan bien con background jobs, agentes editoriales y pipelines que vienen en fases posteriores. Express escala independientemente y el equipo lo conoce. |
+| **Base de datos** | PostgreSQL en la VPS compartida (motor compartido, un rol y una base por aplicación) | Supabase | PostgreSQL puro sin extras innecesarios. Supabase ofrece Auth/Storage/Realtime que no se usan en este proyecto. |
+| **Motor de búsqueda** | Meilisearch (sidecar privado en la VPS) | Elasticsearch, Algolia | Meilisearch: self-hostable, fácil de operar, full-text con tolerancia a typos, sinónimos configurables. Elasticsearch es excesivo para este volumen. Algolia es gestionado pero costoso a escala. |
 | **Storage de imágenes** | Cloudflare R2 | AWS S3, GCS | Compatible con S3. Sin costo de egress — crítico cuando el tráfico es impredecible en las primeras etapas. |
 
 ---
@@ -21,72 +21,79 @@
 ## Arquitectura
 
 ```
-┌──────────────────────────────────────────────┐
-│              Vercel (CDN global)             │
-│         Next.js — frontend público           │
-│              + panel de admin                │
-│           (SSR / SSG, sin API routes)        │
-└─────────────────────┬────────────────────────┘
-                      │ HTTP (REST)
-┌─────────────────────▼────────────────────────┐
-│              Fly.io                          │
-│           Express API                        │
-│     (lógica de negocio, auth, jobs)          │
-└──────────┬───────────────────────────────────┘
-           │
-  ┌────────┼────────────────┐
-  │        │                │
-┌─▼──────┐ ┌▼────────────┐ ┌▼─────────────┐
-│ NeonDB │ │ Meilisearch │ │Cloudflare R2 │
-│Postgres│ │   Cloud     │ │   (images)   │
-└────────┘ └─────────────┘ └──────────────┘
+                  Internet
+                     │
+                     ▼
+        Cloudflare DNS (aihub / api-aihub)
+                     │
+                     ▼
+     ┌─────────────────────────────────────────┐
+     │   VPS compartida OrysLabs (Hostinger)   │
+     │   Traefik (único :443, ACME)            │
+     │  ┌───────────────────────────────────┐  │
+     │  │ /opt/apps/aihub-web/              │  │
+     │  │  Next.js standalone ── red `edge` │  │
+     │  └───────────────────────────────────┘  │
+     │  ┌───────────────────────────────────┐  │
+     │  │ /opt/apps/aihub/                  │  │
+     │  │  Express API  ── red `edge`       │  │
+     │  │  Meilisearch  ── red privada      │  │
+     │  └───────────────────────────────────┘  │
+     │  ┌───────────────────────────────────┐  │
+     │  │ PostgreSQL compartido ── red `data`│  │
+     │  └───────────────────────────────────┘  │
+     └─────────────────────────────────────────┘
+                     │
+                     ▼
+             Cloudflare R2 (imágenes)
 ```
 
 **Dos superficies, una API:**
 - El sitio público (lectores) y el panel de admin comparten el mismo backend Express.
-- La distinción es de autenticación y rutas — no de servicios separados.
+- La web llama a la API por su URL pública (`https://api-aihub.oryslabs.com`), no por la red interna.
 
 ---
 
-## Despliegue — path de costos
+## Despliegue
 
-### MVP (~$0/mes)
+Las dos partes corren en la VPS compartida de OrysLabs, cada una como stack
+Docker propio detrás de Traefik. Detalle operativo en `deployment.md`.
 
-| Servicio | Plan | Límite relevante |
-|----------|------|-----------------|
-| Vercel | Free | 100GB bandwidth/mes |
-| Fly.io | Free | 3 VMs 256MB RAM |
-| NeonDB | Free | 0.5GB storage |
-| Meilisearch Cloud | Free | 10k documentos |
-| Cloudflare R2 | Free | 10GB storage, sin egress |
+| Pieza | Imagen | Carpeta en la VPS | Workflow |
+|---|---|---|---|
+| Web (Next.js standalone) | `ghcr.io/adminoryslabs/aihub-web` | `/opt/apps/aihub-web` | `publish-web.yml` |
+| API (Express) | `ghcr.io/adminoryslabs/aihub-app` | `/opt/apps/aihub` | `publish.yml` |
 
-### Cuando escala (~€10-15/mes)
+Las imágenes se construyen en GitHub Actions y se publican en GHCR; la VPS solo
+las baja. Ningún contenedor publica puertos: Traefik es la única entrada.
 
-Trigger: Meilisearch supera 10k docs, o Express necesita más RAM.
+### Design system
 
-Movimiento: un único Hetzner VPS (€4-6/mes) corre Express + Meilisearch self-hosted.
-NeonDB y Vercel continúan en sus planes o se migran según volumen.
+La web usa `@adminoryslabs/design-system` v2.2.0: preset de Tailwind (`orys-*`),
+CSS de tokens, script `theme-init` y fuentes servidas desde el propio paquete
+(Inter y JetBrains Mono). **No se usa Google Fonts.** Los íconos son **Lucide**
+(`lucide-react`) a través de `components/ui/Icon.tsx`.
 
 ---
 
-## Revisión 2026-08-16 — Migración: NAS → VPS compartida OrysLabs
+## Revisión 2026-11 — Web y API en la VPS compartida OrysLabs
 
 > **Esta sección reemplaza a "Revisión 2026-05-04" como estado actual del despliegue.**
-> Esa sección se conserva más abajo solo como historial de la decisión original; el backend, PostgreSQL y Meilisearch **ya no viven en el NAS**.
+> Esa sección se conserva más abajo solo como historial de la decisión original; el backend, PostgreSQL, Meilisearch y la web **ya no viven en el NAS ni en Vercel**.
 
 ### Motivo del cambio
 
-OrysLabs pasó a operar una VPS compartida (Hostinger, `187.127.51.101`) para todas sus aplicaciones, con Traefik como único punto de entrada y un motor PostgreSQL compartido (una base y un rol por aplicación). AI Hub se movió a esa VPS para dejar de depender del NAS doméstico y de su Cloudflare Tunnel — mismo espíritu de costo ~$0/mes, pero sobre infraestructura pensada para alojar múltiples proyectos de forma aislada.
+OrysLabs pasó a operar una VPS compartida (Hostinger, `187.127.51.101`) para todas sus aplicaciones, con Traefik como único punto de entrada y un motor PostgreSQL compartido (una base y un rol por aplicación). En agosto de 2026 se movieron la API, PostgreSQL y Meilisearch; en noviembre de 2026 se movió también la web, que hasta entonces servía Vercel desde `packages/web`. La web corre ahora como un stack Docker independiente con la salida standalone de Next.js, para dejar de depender de Vercel y tener web y API bajo el mismo mecanismo de despliegue.
 
 ### Stack actual
 
-| Capa | Actual (VPS) | Destino objetivo (cloud, sin cambios) |
-|------|--------------|--------------------------|
-| Frontend | **Vercel** (sin cambio) | Vercel |
-| Backend Express | **VPS compartida** (Docker Compose, detrás de Traefik) | Fly.io |
-| PostgreSQL | **VPS compartida** (motor Postgres compartido, base `aihub` propia) | Neon |
-| Meilisearch | **VPS compartida** (sidecar privado, solo alcanzable desde el backend) | Meilisearch Cloud |
-| Storage de imágenes | **Cloudflare R2** (sin cambio, aún no configurado en producción) | Cloudflare R2 |
+| Capa | Actual (VPS) |
+|------|--------------|
+| Frontend | **VPS compartida** (Next.js standalone en Docker, `/opt/apps/aihub-web`) |
+| Backend Express | **VPS compartida** (Docker Compose, detrás de Traefik) |
+| PostgreSQL | **VPS compartida** (motor Postgres compartido, base `aihub` propia) |
+| Meilisearch | **VPS compartida** (sidecar privado, solo alcanzable desde el backend) |
+| Storage de imágenes | **Cloudflare R2** (aún no configurado en producción) |
 
 ### Arquitectura actual
 
@@ -94,49 +101,38 @@ OrysLabs pasó a operar una VPS compartida (Hostinger, `187.127.51.101`) para to
                   Internet
                      │
                      ▼
-     ┌───────────────────────────────┐
-     │     aihub.oryslabs.com        │ ← DNS Cloudflare → Vercel
-     └───────────────────────────────┘
+        Cloudflare DNS (aihub / api-aihub)
                      │
                      ▼
-              [ Vercel: Next.js ]
-              SSG / ISR / SSR
-                     │
-                     │ fetch HTTPS
-                     ▼
-     ┌───────────────────────────────┐
-     │  api-aihub.oryslabs.com       │ ← DNS Cloudflare (proxied) → VPS
-     └───────────────────────────────┘
-                     │
-                     ▼
-       ┌─────────────────────────────────────┐
-       │   VPS compartida OrysLabs (Hostinger)│
-       │   Traefik (único :443, ACME)         │
-       │  ┌─────────────────────────────────┐ │
-       │  │ /opt/apps/aihub/                │ │
-       │  │  Express API  ── red `edge`     │ │
-       │  │  Meilisearch  ── red privada     │ │
-       │  │              (solo desde API)    │ │
-       │  └─────────────────────────────────┘ │
-       │  ┌─────────────────────────────────┐ │
-       │  │ PostgreSQL compartido            │ │
-       │  │  (red `data`, un rol/base        │ │
-       │  │   por aplicación de la VPS)       │ │
-       │  └─────────────────────────────────┘ │
-       └─────────────────────────────────────┘
+     ┌─────────────────────────────────────────┐
+     │   VPS compartida OrysLabs (Hostinger)   │
+     │   Traefik (único :443, ACME)            │
+     │  ┌───────────────────────────────────┐  │
+     │  │ /opt/apps/aihub-web/              │  │
+     │  │  Next.js standalone ── red `edge` │  │
+     │  └───────────────────────────────────┘  │
+     │  ┌───────────────────────────────────┐  │
+     │  │ /opt/apps/aihub/                  │  │
+     │  │  Express API  ── red `edge`       │  │
+     │  │  Meilisearch  ── red privada      │  │
+     │  └───────────────────────────────────┘  │
+     │  ┌───────────────────────────────────┐  │
+     │  │ PostgreSQL compartido ── red `data`│  │
+     │  └───────────────────────────────────┘  │
+     └─────────────────────────────────────────┘
 ```
 
-CI/CD: `.github/workflows/publish.yml` construye la imagen (`ghcr.io/adminoryslabs/aihub-app`), la publica en GHCR y despliega por SSH ejecutando `deploy/deploy.sh` en la VPS — build y deploy nunca ocurren a mano ni sobre la VPS misma.
+CI/CD: `.github/workflows/publish.yml` construye y publica `ghcr.io/adminoryslabs/aihub-app` (API); `.github/workflows/publish-web.yml` hace lo propio con `ghcr.io/adminoryslabs/aihub-web` (web). Cada uno despliega por SSH ejecutando su `deploy.sh` en la VPS — build y deploy nunca ocurren a mano ni sobre la VPS misma.
 
 ### Limitaciones aceptadas
 
 - La VPS es compartida con otras aplicaciones de OrysLabs (2 vCPU / 7.8GB RAM totales) — AI Hub declara límites de recursos por contenedor para no acaparar el host.
 - Backups de Postgres: responsabilidad del operador de la VPS compartida, no hay automatización propia todavía documentada acá.
-- Igual que en la opción NAS, el frontend en Vercel con ISR sigue sirviendo páginas pre-renderizadas durante caídas del backend — SEO no se ve afectado por caídas cortas.
+- Sin CDN de Vercel, el TTFB del SSR depende de la VPS y de Cloudflare como proxy. El caché ISR vive en el filesystem efímero del contenedor: se pierde en cada redeploy y no se comparte entre réplicas (hoy hay una sola).
 
 ### Impacto en el diseño
 
-Sin cambios respecto a la sección anterior: el diseño de aplicación no depende de dónde corre el backend. Postgres y Meilisearch le hablan al backend por red de contenedor tanto en NAS como en la VPS — solo cambian las variables de entorno y el mecanismo de despliegue.
+Sin cambios: el diseño de aplicación no depende de dónde corre cada parte. Postgres y Meilisearch le hablan al backend por red de contenedor; la web llama a la API por su URL pública. Solo cambian las variables de entorno y el mecanismo de despliegue.
 
 ---
 
